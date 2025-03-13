@@ -3,5 +3,5 @@
 System tworzony w ramach projektu inżynierskiego przez:  
 - **Zofia Lorenc** - [GitHub](#)  
 - **Julia Osińska** - [GitHub](https://github.com/juliaosinska)  
-- **Robert Piłat** - [GitHub](#)  
+- **Robert Piłat** - [GitHub](https://github.com/luminoksik)  
 - **Agata Zaparucha** - [GitHub](https://github.com/agataaga)  
