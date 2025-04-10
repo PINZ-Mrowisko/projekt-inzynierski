@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'pages/about_page.dart';
-import 'pages/docs_page.dart';
-import 'pages/features_page.dart';
-import 'pages/home_page.dart';
-import 'pages/login_page.dart';
+import '../pages/about_page.dart';
+import '../pages/docs_page.dart';
+import '../pages/features_page.dart';
+import '../pages/home_page.dart';
+import '../pages/login_page.dart';
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});
