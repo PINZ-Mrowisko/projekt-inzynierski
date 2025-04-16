@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Mrowisko',
       themeMode: ThemeMode.light,
       theme: MyAppTheme.lightTheme,

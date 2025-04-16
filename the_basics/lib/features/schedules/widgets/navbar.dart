@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../features/schedules/screens/about_page.dart';
-import '../features/schedules/screens/docs_page.dart';
-import '../features/schedules/screens/features_page.dart';
-import '../features/schedules/screens/home_page.dart';
-import '../features/auth/screens/login_page.dart';
+import '../screens/about_page.dart';
+import '../screens/docs_page.dart';
+import '../screens/features_page.dart';
+import '../screens/home_page.dart';
+import '../../auth/screens/login_page.dart';
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});

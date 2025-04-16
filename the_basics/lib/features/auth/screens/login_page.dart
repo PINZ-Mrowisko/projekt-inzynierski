@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:the_basics/features/auth/screens/signup.dart';
 
 class LoginPage extends StatelessWidget {
   final _emailController = TextEditingController();
@@ -56,7 +57,17 @@ class LoginPage extends StatelessWidget {
                 },
                 child: const Text('Zaloguj się'),
               ),
-            ],
+              const SizedBox(height: 30),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => SignUpPage()),
+              );
+            },
+            child: const Text('Zarejestruj się'),
+          ),
+          ]
           ),
         ),
       ),
