@@ -1,11 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/screens/verify_email.dart';
-import 'package:the_basics/features/schedules/screens/home_page.dart';
 
 import '../../../data/repositiories/user/market_repo.dart';
 import '../models/market_model.dart';

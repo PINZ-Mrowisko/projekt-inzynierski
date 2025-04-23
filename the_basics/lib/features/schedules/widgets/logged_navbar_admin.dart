@@ -4,7 +4,6 @@ import '../screens/about_page.dart';
 import '../screens/docs_page.dart';
 import '../screens/features_page.dart';
 import '../screens/home_page.dart';
-import '../../auth/screens/login_page.dart';
 
 class LoggedAdminNavBar extends StatelessWidget {
   const LoggedAdminNavBar({super.key});
