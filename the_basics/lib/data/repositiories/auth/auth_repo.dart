@@ -30,6 +30,7 @@ class AuthRepo extends GetxController {
       } else {
         Get.offAll(() => const VerifyEmailScreen());
       }
+      // LATER : ADD CHECK WHETHER KIEROWNIK OR NOT
     } else {
       // i guess we remain on the the welcome page
     }
@@ -58,6 +59,20 @@ class AuthRepo extends GetxController {
     try {
       // the current authenticated user that just registered will by recalled by the firebase instance
       return _auth.currentUser?.sendEmailVerification();
+    } on FirebaseException catch (e) {
+      throw MyFirebaseException(e.code).message;
+    } on FormatException catch (_) {
+      throw const MyFormatException();
+    } on PlatformException catch (e) {
+      throw MyPlatformException(e.code).message;
+    } catch (e) {
+      throw 'Coś poszło nie tak :(';
+    }
+  }
+
+  Future<UserCredential> loginWithEmailAndPassword(String mail, String password) async {
+    try {
+      return await _auth.signInWithEmailAndPassword(email: mail, password: password);
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
