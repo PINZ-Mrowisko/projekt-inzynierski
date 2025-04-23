@@ -7,6 +7,9 @@ import 'package:the_basics/utils/validators/validation.dart';
 class MySignUpForm extends StatelessWidget {
   const MySignUpForm({super.key});
 
+  /// TO DO
+  // zrobić to ładnie wizualnie
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(SignUpController());

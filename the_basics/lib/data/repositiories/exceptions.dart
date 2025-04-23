@@ -20,6 +20,40 @@ class MyFirebaseException implements Exception {
       case 'invalid-email':
         return 'The email address is malformed.';
 
+      case 'wrong-password':
+        return 'Incorrect password.';
+
+      default:
+        return 'A Firebase error occurred. Please try again.';
+    }
+  }
+}
+
+class MyFirebaseAuthException implements Exception {
+  final String code;
+
+  MyFirebaseAuthException(this.code);
+
+  String get message {
+    switch (code) {
+      case 'permission-denied':
+        return 'You do not have permission to perform this action.';
+
+      case 'unavailable':
+        return 'The server is currently unavailable. Please try again later.';
+
+      case 'weak-password':
+        return 'The password provided is too weak.';
+
+      case 'email-already-in-use':
+        return 'The account already exists for that email.';
+
+      case 'invalid-email':
+        return 'The email address is malformed.';
+
+      case 'wrong-password':
+        return 'Incorrect password.';
+
       default:
         return 'A Firebase error occurred. Please try again.';
     }
