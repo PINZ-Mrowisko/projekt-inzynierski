@@ -4,7 +4,9 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import '../../../features/auth/screens/verify_email.dart';
-import '../../../features/schedules/screens/home_page.dart';
+import '../../../features/schedules/controllers/tags_controller.dart';
+import '../../../features/schedules/controllers/user_controller.dart';
+import '../../../features/schedules/screens/before_login/home_page.dart';
 import '../../../features/schedules/screens/after_login/main_calendar.dart';
 import '../exceptions.dart';
 
@@ -13,6 +15,10 @@ class AuthRepo extends GetxController {
 
   final deviceStorage = GetStorage();
   final _auth = FirebaseAuth.instance; //get the instance initialized from mian
+
+  /// get auth user data
+  User? get authUser => _auth.currentUser;
+
 
   // this func gets called first after storage is initialized
   @override
@@ -25,7 +31,9 @@ class AuthRepo extends GetxController {
     final user =  _auth.currentUser;
     if (user != null) {
       if (user.emailVerified){
-        Get.offAll(() => const MainCalendar());
+        // Initialize controllers sequentially
+        await _initializeControllers();
+        _navigateToMainApp();
       } else {
         Get.offAll(() => const VerifyEmailScreen());
       }
@@ -33,6 +41,28 @@ class AuthRepo extends GetxController {
     } else {
       // i guess we remain on the the welcome page
     }
+  }
+
+  Future<void> _initializeControllers() async {
+
+    final userController = await Get.putAsync<UserController>(() async {
+      final controller = UserController();
+      //await controller.fetchCurrentUserRecord(); // Wait for user data
+      return controller;
+    });
+
+    final marketId = Get.find<UserController>().employee.value.marketId;
+    if (marketId.isEmpty) {
+      throw "MarketID not available after user load";
+    }
+
+    Get.put(TagsController());
+  }
+
+  void _navigateToMainApp() {
+    Future.delayed(Duration.zero, () { // Ensures context is available
+      Get.offAll(() => const MainCalendar());
+    });
   }
 
   /// email + password : REGISTER

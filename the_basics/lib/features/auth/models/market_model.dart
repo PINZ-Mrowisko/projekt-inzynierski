@@ -16,6 +16,7 @@ class MarketModel {
     required this.updatedAt,
     this.deletedAt,
   });
+  static MarketModel empty() =>MarketModel(id: "", marketName: "", createdBy: "", insertedAt: DateTime.now(), updatedAt: DateTime.now());
 
   Map<String, dynamic> toMap() {
     return {
