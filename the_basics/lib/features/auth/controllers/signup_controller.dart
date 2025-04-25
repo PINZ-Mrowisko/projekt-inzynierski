@@ -2,8 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
+import 'package:the_basics/data/repositiories/user/tags_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/screens/verify_email.dart';
+import 'package:the_basics/features/schedules/models/tags_model.dart';
 
 import '../../../data/repositiories/user/market_repo.dart';
 import '../models/market_model.dart';
@@ -67,6 +69,23 @@ class SignUpController extends GetxController {
       final marketRepo = Get.put(MarketRepo());
       await marketRepo.saveMarket(newMarket);
 
+      /// TAG
+      /// 1 : add the kierownik tag to the FB
+
+      final tagsId = FirebaseFirestore.instance.collection('Tags').doc().id;
+
+      final newTag = TagsModel(
+        id: tagsId,
+        tagName: 'Kierownik',
+        description: 'Szef szefów',
+        marketId: marketId,
+        insertedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final tagRepo = Get.put(TagsRepo());
+      await tagRepo.saveTag(newTag);
+
 
       /// USER
       /// 1 : create a user model locally
@@ -77,7 +96,8 @@ class SignUpController extends GetxController {
           firstName: firstName.text.trim(),
           lastName: lastName.text.trim(),
           email: email.text.trim(),
-          marketName: marketName.text.trim(), // maybe we can delete marketName from here then !
+          marketId: marketId,
+          tags: ['Kierownik'],
           insertedAt: DateTime.now(),
           updatedAt: DateTime.now()
       );
