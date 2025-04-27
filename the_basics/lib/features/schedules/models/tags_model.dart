@@ -63,20 +63,23 @@ class TagsModel {
   }
 
   TagsModel copyWith({
+    String? id,
     String? tagName,
     String? description,
     String? marketId,
     bool? isDeleted,
+    DateTime? insertedAt,
+    DateTime? updatedAt,
     DateTime? deletedAt,
   }) {
     return TagsModel(
-      id: id,
+      id: id ?? this.id,
       tagName: tagName ?? this.tagName,
       description: description ?? this.description,
       marketId: marketId ?? this.marketId,
       isDeleted: isDeleted ?? this.isDeleted,
-      insertedAt: insertedAt,
-      updatedAt: DateTime.now(),
+      insertedAt: insertedAt ?? this.insertedAt,
+      updatedAt: insertedAt ?? this.insertedAt,
       deletedAt: deletedAt ?? this.deletedAt,
     );
   }

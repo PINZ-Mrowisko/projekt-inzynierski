@@ -50,4 +50,41 @@ class TagsRepo extends GetxController {
       throw 'Coś poszło nie tak :(';
     }
   }
+
+  /// pobiera konkretny tag po ID i zwraca juz go w ladnie sformatowanej formie
+  Future<TagsModel?> getTagById(String tagId) async {
+    try {
+      final doc = await _db.collection('Tags').doc(tagId).get();
+      if (doc.exists) {
+        return TagsModel.fromSnapshot(doc);
+      }
+      return null;
+    } catch (e) {
+      throw 'Nie udało się pobrać tagu: ${e.toString()}';
+    }
+  }
+
+  /// Aktualizuje tag o konkretnym id
+  Future<void> updateTag(TagsModel tag) async {
+    try {
+      await _db.collection('Tags').doc(tag.id).update(tag.toMap());
+    } catch (e) {
+      throw 'Nie udało się zaktualizować tagu: ${e.toString()}';
+    }
+  }
+
+  /// Usuwa tag o konkretnym id
+  /// TO DO : dodać sprawdzenia, czy jacys pracownicy posiadaja dany tag
+  ///
+  /// tak w sumie stwierdzilam ze tagow nie ma sensu trzymac w celach historycznych
+  /// wiec nie ma co ich oznaczac isDeleted czy cos
+  /// TO DO:
+  /// usunac isDeleted i deletedAt z modelu tagow
+  Future<void> deleteTag(String tagId) async {
+    try {
+      await _db.collection('Tags').doc(tagId).delete();
+    } catch (e) {
+      throw 'Nie udało się usunąć tagu: ${e.toString()}';
+    }
+  }
 }
