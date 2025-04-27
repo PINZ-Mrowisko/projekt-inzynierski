@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
-import 'package:the_basics/data/repositiories/user/tags_repo.dart';
+import 'package:the_basics/data/repositiories/other/tags_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/screens/verify_email.dart';
 import 'package:the_basics/features/schedules/models/tags_model.dart';
 
-import '../../../data/repositiories/user/market_repo.dart';
+import '../../../data/repositiories/other/market_repo.dart';
 import '../models/market_model.dart';
 import '../models/user_model.dart';
 
@@ -107,12 +107,12 @@ class SignUpController extends GetxController {
       userRepo.saveUser(newUser);
 
       // display a success msg with snackbar ??
-      print("sukces");
+      //print("sukces");
       Get.to(() => VerifyEmailScreen(email: email.text.trim()));
     }
     catch (e) {
       // display error msg with snackbar
-      print(e.toString());
+      //print(e.toString());
 
     } finally {
 

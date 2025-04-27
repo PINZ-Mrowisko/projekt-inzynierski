@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../features/schedules/controllers/user_controller.dart';
 import '../../../features/schedules/models/tags_model.dart';
 import '../exceptions.dart';
 
@@ -33,7 +32,7 @@ class TagsRepo extends GetxController {
           .get();
 
       if (snapshot.docs.isEmpty) {
-        print('No tags found for marketId: $marketId');
+        //print('No tags found for marketId: $marketId');
         return [];
       }
 

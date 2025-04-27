@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-
 import '../../schedules/widgets/navbar.dart';
 import '../controllers/verify_email_controller.dart';
 
@@ -12,7 +10,7 @@ class VerifyEmailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final verify_controller = Get.put(VerifyEmailController());
+    final verifyController = Get.put(VerifyEmailController());
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -37,7 +35,7 @@ class VerifyEmailScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                          onPressed: () => verify_controller.checkEmailVerificationStatus(),
+                          onPressed: () => verifyController.checkEmailVerificationStatus(),
                           child: Text("Kontynuuj")
                       ),
                     ),
@@ -47,7 +45,7 @@ class VerifyEmailScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                          onPressed: () => verify_controller.sendEmailVerification(),
+                          onPressed: () => verifyController.sendEmailVerification(),
                           child: Text("Wyślij mail ponownie")
                       ),
                     ),

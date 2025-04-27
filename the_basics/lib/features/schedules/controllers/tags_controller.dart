@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/data/repositiories/user/tags_repo.dart';
+import 'package:the_basics/data/repositiories/other/tags_repo.dart';
 import 'package:the_basics/features/schedules/controllers/user_controller.dart';
 import 'package:the_basics/features/schedules/models/tags_model.dart';
 

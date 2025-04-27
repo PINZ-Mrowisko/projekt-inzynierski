@@ -28,8 +28,8 @@ class UserController extends GetxController {
     try {
       isLoading(true);
       final employee = await userRepo.fetchCurrentUserDetails();
-      print("User loaded: ${employee.firstName}");
-      print("User loaded: ${employee.marketId}");
+      //print("User loaded: ${employee.firstName}");
+      //print("User loaded: ${employee.marketId}");
       // assign the curr user to the observable var
       this.employee(employee);
 

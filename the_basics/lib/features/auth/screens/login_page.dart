@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:the_basics/features/auth/controllers/login_controller.dart';
 import 'package:the_basics/features/auth/screens/signup.dart';
