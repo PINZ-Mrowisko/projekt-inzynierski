@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:the_basics/data/repositiories/user/market_repo.dart';
+import 'package:the_basics/data/repositiories/other/market_repo.dart';
 import 'package:the_basics/features/auth/models/market_model.dart';
 
 class MarketController extends GetxController {

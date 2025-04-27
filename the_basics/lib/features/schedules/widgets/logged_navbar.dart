@@ -2,22 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/schedules/controllers/user_controller.dart';
 import '../../../data/repositiories/auth/auth_repo.dart';
-import '../controllers/tags_controller.dart';
-import '../screens/before_login/about_page.dart';
-import '../screens/after_login/main_calendar.dart';
-import '../screens/after_login/tags.dart';
 import '../screens/before_login/home_page.dart';
 
 /// THIS NAVBAR IS DISPLAYED AFTER USERS LOG IN
 /// through reading the data of the current logged user it decides whether to display the admin version or normal worker one
 
 class LoggedNavBar extends StatelessWidget {
-  LoggedNavBar({super.key});
+  const LoggedNavBar({super.key});
 
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
-    final tagsController = Get.find<TagsController>(); // Use find instead of put to avoid duplicate controllers
+    //final tagsController = Get.find<TagsController>(); // Use find instead of put to avoid duplicate controllers
 
     return Obx(() {
       final isAdmin = userController.isAdmin.value;

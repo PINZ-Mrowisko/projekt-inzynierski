@@ -3,6 +3,7 @@ class MyValidator {
     if (value == null || value.isEmpty){
       return 'To pole jest wymagane.';
     }
+    return null;
   }
 
   static String? validateEmail(String? value){

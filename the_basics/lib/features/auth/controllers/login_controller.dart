@@ -39,11 +39,14 @@ class LoginController extends GetxController {
         pswd.text.trim(),
       );
 
+      /// TO DO:
+      /// implement a remember me feature to shorten login
+
 
       // redirect using our fancy func
       AuthRepo.instance.screenRedirect();
     } catch (e) {
-      print("display error msg here....");
+      //print("display error msg here....");
     }
   }
 }
