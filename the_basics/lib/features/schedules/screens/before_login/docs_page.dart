@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../navbar.dart';
+import '../../widgets/navbar.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class DocsPage extends StatelessWidget {
+  const DocsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class HomePage extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                'To jest strona główna.',
+                'Tutaj dokumentacja projektu.',
                 style: TextStyle(fontSize: 24),
               ),
             ),

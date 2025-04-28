@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'pages/about_page.dart';
-import 'pages/docs_page.dart';
-import 'pages/features_page.dart';
-import 'pages/home_page.dart';
-import 'pages/login_page.dart';
+import '../screens/before_login/about_page.dart';
+import '../screens/before_login/docs_page.dart';
+import '../screens/before_login/features_page.dart';
+import '../screens/before_login/home_page.dart';
+import '../../auth/screens/login_page.dart';
+
+/// THIS NAVBAR IS DISPLAYED IN THE HOMEPAGE - UNLOGGED USERS!
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});
