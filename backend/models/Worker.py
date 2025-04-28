@@ -30,6 +30,3 @@ class Worker:
     def __str__(self):
         return f"{self.firstname}|{self.lastname}|{self.age}|{self.type_of_deal}|{self.get_max_working_hours()}h/tydzień"
 
-adam = Worker("adam", "kowalski", 21, "umowa o prace", 606547766, "ellele@wp.pl")
-print(adam)
-
