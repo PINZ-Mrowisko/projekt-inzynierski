@@ -20,7 +20,6 @@ class AuthRepo extends GetxController {
   User? get authUser => _auth.currentUser;
 
 
-  // this func gets called first after storage is initialized
   @override
   void onReady() {
     screenRedirect();
@@ -29,34 +28,47 @@ class AuthRepo extends GetxController {
   // handles which screen to show to the user - if hes authenticated, then .....
   screenRedirect() async {
     final user =  _auth.currentUser;
+
+
     if (user != null) {
       if (user.emailVerified){
-        // Initialize controllers sequentially
-        await _initializeControllers();
-        _navigateToMainApp();
+        try {
+          // Initialize controllers sequentially
+          await _initializeControllers();
+          _navigateToMainApp();
+        } catch (e) {
+          throw(e.toString());
+        }
       } else {
         Get.offAll(() => const VerifyEmailScreen());
       }
-      // LATER : ADD CHECK WHETHER KIEROWNIK OR NOT
+
     } else {
       // i guess we remain on the the welcome page
     }
   }
 
+
   Future<void> _initializeControllers() async {
+    try {
+      final userController = Get.find<UserController>();
+      await userController.initialize();
 
-    final userController = await Get.putAsync<UserController>(() async {
-      final controller = UserController();
-      //await controller.fetchCurrentUserRecord(); // Wait for user data
-      return controller;
-    });
 
-    final marketId = Get.find<UserController>().employee.value.marketId;
-    if (marketId.isEmpty) {
-      throw "MarketID not available after user load";
+      // Verify marketId after user data loads
+      final marketId = userController.employee.value.marketId;
+      final idk = userController.employee;
+
+      if (marketId.isEmpty) {
+        throw "MarketID not available after user load";
+      }
+
+      final tagsController = Get.find<TagsController>();
+      await tagsController.initialize();
+
+    } catch (e) {
+      throw(e.toString());
     }
-
-    Get.put(TagsController());
   }
 
   void _navigateToMainApp() {

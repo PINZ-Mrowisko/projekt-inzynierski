@@ -26,6 +26,29 @@ class UserRepo extends GetxController {
     }
   }
 
+  Future<void> addNewEmployee(UserModel employee) async {
+    try {
+      await _db.collection('Users').add({
+        'firstName': employee.firstName,
+        'lastName': employee.lastName,
+        'email': employee.email,
+        'marketId': employee.marketId,
+        'phoneNumber': employee.phoneNumber,
+        'contractType': employee.contractType,
+        'maxWeeklyHours': employee.maxWeeklyHours,
+        'shiftPreference': employee.shiftPreference,
+        'tags': employee.tags,
+        'isDeleted': false,
+        'insertedAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      });
+    } on FirebaseException catch (e) {
+      throw 'Firebase error: ${e.message}';
+    } catch (e) {
+      throw 'Failed to add employee: ${e.toString()}';
+    }
+  }
+
   /// Fetches user detailes based on current users ID
   Future<UserModel> fetchCurrentUserDetails() async {
     try {
@@ -45,6 +68,34 @@ class UserRepo extends GetxController {
       throw MyPlatformException(e.code).message;
     } catch (e) {
       throw 'Coś poszło nie tak :(';
+    }
+  }
+
+  /// get all available employees specific to the market
+  Future<List<UserModel>> getAllEmployees(String marketId) async {
+    try{
+      final snapshot = await _db.collection('Users')
+          .where('marketId', isEqualTo: marketId)
+          .where('isDeleted', isEqualTo: false)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        print('No emps found for marketId: $marketId');
+        return [];
+      }
+
+      // go through each of the user docs and format them using our method
+      final list = snapshot.docs.map((e) => UserModel.fromMap(e)).toList();
+      return list;
+    }on FirebaseException catch (e) {
+      throw MyFirebaseException(e.code).message;
+    } on FormatException catch (_) {
+      throw const MyFormatException();
+    } on PlatformException catch (e) {
+      throw MyPlatformException(e.code).message;
+    }catch (e) {
+      print("Error fetching employees: $e");
+      throw 'Coś poszło nie tak przy pobieraniu pracowników :(';
     }
   }
 
