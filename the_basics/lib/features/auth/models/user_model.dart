@@ -24,7 +24,7 @@ class UserModel {
     this.phoneNumber = "123",
     this.contractType = "Umowa o pracę",
     this.maxWeeklyHours = 40,
-    this.shiftPreference = "Morning",
+    this.shiftPreference = "Brak preferencji",
     required this.tags,
     this.isDeleted = false,
     required this.insertedAt,
@@ -48,8 +48,8 @@ class UserModel {
       'shiftPreference': shiftPreference,
       'tags': tags,
       'isDeleted': isDeleted,
-      'insertedAt': insertedAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'insertedAt': Timestamp.fromDate(insertedAt),
+      'updatedAt': Timestamp.fromDate(updatedAt),
     };
   }
 
@@ -68,13 +68,34 @@ class UserModel {
         shiftPreference: map['shiftPreference'] ?? 'Brak preferencji',
         tags: List<String>.from(map['tags']),
         isDeleted: map['isDeleted'] ?? false,
-        insertedAt: DateTime.parse(map['insertedAt']),
-        updatedAt: DateTime.parse(map['updatedAt']),
+        insertedAt: (map['insertedAt']).toDate(),
+        updatedAt: (map['updatedAt']).toDate(),
         marketId: map['marketId'] ?? '',
       );
     } else {
       return UserModel.empty();
     }
+  }
+
+  factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    if (!doc.exists) return UserModel.empty();
+
+    final data = doc.data()!;
+    return UserModel(
+      id: doc.id, // Use document ID instead of field
+      firstName: data['firstName']?.toString() ?? '',
+      lastName: data['lastName']?.toString() ?? '',
+      email: data['email']?.toString() ?? '',
+      phoneNumber: data['phoneNumber']?.toString() ?? '',
+      contractType: data['contractType']?.toString() ?? "Umowa o pracę",
+      maxWeeklyHours: (data['maxWeeklyHours'] as num?)?.toInt() ?? 40,
+      shiftPreference: data['shiftPreference']?.toString() ?? 'Brak preferencji',
+      tags: List<String>.from(data['tags'] ?? []),
+      isDeleted: data['isDeleted'] as bool? ?? false,
+      insertedAt: (data['insertedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      marketId: data['marketId']?.toString() ?? '',
+    );
   }
 
   // Copy with method for updates

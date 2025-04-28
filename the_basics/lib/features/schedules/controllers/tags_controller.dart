@@ -11,7 +11,7 @@ class TagsController extends GetxController {
   final nameController = TextEditingController();
   final descController = TextEditingController();
 
-  final _tagsRepo = Get.put(TagsRepo());
+  final TagsRepo _tagsRepo = Get.find();
 
   //create an observable list that will hold all the tag data
   RxList<TagsModel> allTags = <TagsModel>[].obs;
@@ -20,11 +20,15 @@ class TagsController extends GetxController {
 
   final userController = Get.find<UserController>();
 
-  /// pull all the available tags when the app is launched for the first time
-  @override
-  void onInit() {
-    fetchTags();
-    super.onInit();
+  Future<void> initialize() async {
+    try {
+      isLoading(true);
+      await fetchTags();
+    } catch (e) {
+      errorMessage(e.toString());
+    } finally {
+      isLoading(false);
+    }
   }
 
   /// fetches all available tags in a list, which is saved in the controller
