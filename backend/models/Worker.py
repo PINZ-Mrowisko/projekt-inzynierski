@@ -11,6 +11,11 @@ class Worker:
         self.tags = [] #t0 do
         self.is_deleted = False
 
+    def __str__(self):
+        print(f"{self.firstname}|{self.lastname}|{self.age}|{self.type_of_deal}|{self.get_max_working_hours()}h/tydzień")
+        print("\n")
+        print(f"{self.tags}")
+
     def get_type_of_deal(self):
         return self.type_of_deal
 
@@ -27,6 +32,7 @@ class Worker:
     def delete_worker(self):
         self.is_deleted = True
 
-    def __str__(self):
-        return f"{self.firstname}|{self.lastname}|{self.age}|{self.type_of_deal}|{self.get_max_working_hours()}h/tydzień"
+    def add_tag(self, tag):
+        self.tags.append(tag)
+
 
