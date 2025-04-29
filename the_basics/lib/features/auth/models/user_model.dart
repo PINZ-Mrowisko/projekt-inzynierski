@@ -98,7 +98,13 @@ class UserModel {
     );
   }
 
-  // Copy with method for updates
+  UserModel copyWithUpdatedTags(String oldTagName, String newTagName) {
+    final updatedTags = tags.map((tag) => tag == oldTagName ? newTagName : tag)
+        .toList();
+    return copyWith(tags: updatedTags);
+  }
+
+    // Copy with method for updates
   UserModel copyWith({
     String? firstName,
     String? lastName,

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/schedules/controllers/tags_controller.dart';
 import 'package:the_basics/features/schedules/widgets/logged_navbar.dart';
-
-import '../../models/tags_model.dart';
+import 'package:the_basics/features/schedules/widgets/tag_dialogs/add_dialog.dart';
+import 'package:the_basics/features/schedules/widgets/tag_dialogs/delete_dialog.dart';
+import 'package:the_basics/features/schedules/widgets/tag_dialogs/edit_dialog.dart';
 
 class TagsPage extends StatelessWidget {
   const TagsPage({super.key});
@@ -15,9 +16,10 @@ class TagsPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+
       /// add tag button
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddTagDialog(context, tagsController),
+        onPressed: () => Get.dialog(AddTagDialog()),
         child: const Icon(Icons.add),
       ),
       body: Column(
@@ -42,7 +44,7 @@ class TagsPage extends StatelessWidget {
 
                       /// display add tags button in case of no tags in storage
                       ElevatedButton(
-                        onPressed: () => _showAddTagDialog(context, tagsController),
+                        onPressed: () => Get.dialog(AddTagDialog()),
                         child: const Text('Dodaj pierwszy tag'),
                       ),
                     ],
@@ -66,18 +68,15 @@ class TagsPage extends StatelessWidget {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.edit),
-                                onPressed: () => _showEditTagDialog(
-                                    context,
-                                    tagsController,
-                                    tag
-                                ),
+                                onPressed: () =>
+                                    Get.dialog(
+                                        EditTagDialog(tag: tag)
+                                    ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _confirmDeleteTag(
-                                    tagsController,
-                                    tag.id
-                                ),
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () =>
+                                      Get.dialog(DeleteTagDialog(tag: tag))
                               ),
                             ],
                           ),
@@ -93,135 +92,4 @@ class TagsPage extends StatelessWidget {
       ),
     );
   }
-
-/// *****************************///
-/// methods for handling the tags///
-/// *****************************///
-
-void _showAddTagDialog(BuildContext context, TagsController controller) {
-
-  Get.dialog(
-    AlertDialog(
-      title: const Text('Dodaj nowy tag'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: controller.nameController,
-            decoration: const InputDecoration(
-              labelText: 'Nazwa',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: controller.descController,
-            decoration: const InputDecoration(
-              labelText: 'Opis',
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: Get.back,
-          child: const Text('Anuluj'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            if (controller.nameController.text.isEmpty) return;
-            await controller.saveTag(controller.userController.employee.value.marketId);
-            Get.back();
-          },
-          child: const Text('Dodaj'),
-        ),
-      ],
-    ),
-  );
-}
-
-void _showEditTagDialog(
-    BuildContext context,
-    TagsController controller,
-    TagsModel tag
-    ) {
-  final nameController = TextEditingController(text: tag.tagName);
-  final descController = TextEditingController(text: tag.description);
-
-  Get.dialog(
-    AlertDialog(
-      title: const Text('Edytuj Tag'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Nazwa Tagu',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: descController,
-            decoration: const InputDecoration(
-              labelText: 'Opis',
-              border: OutlineInputBorder(),
-            ),
-            maxLines: 3,
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: Get.back,
-          child: const Text('Anuluj'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            if (nameController.text.isEmpty) return;
-
-            final updatedTag = tag.copyWith(
-              tagName: nameController.text,
-              description: descController.text,
-              updatedAt: DateTime.now()
-            );
-
-            await controller.updateTag(updatedTag);
-            Get.back();
-          },
-          child: const Text('Zapisz zmiany'),
-        ),
-      ],
-    ),
-  );
-}
-
-void _confirmDeleteTag(TagsController controller, String tagId) {
-  Get.dialog(
-    AlertDialog(
-      title: const Text('Usuń tag'),
-      /// TO DO:
-      /// dodac check czy istnieja prcownicy z tym tagiem
-      content: const Text('Czy jesteś pewien, że chcesz usunąć ten tag?'),
-      actions: [
-        TextButton(
-          onPressed: Get.back,
-          child: const Text('Cofnij'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            await controller.deleteTag(tagId);
-            Get.back();
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-          ),
-          child: const Text('Usuń'),
-        ),
-      ],
-    ),
-  );
-}
 }

@@ -144,13 +144,15 @@ class EmployeeManagementPage extends StatelessWidget {
             backgroundColor: Colors.blue[50],
           )
           /// nie usuwać tego bo z jakiegos powodu bez tego warunku nie wyswietla XD
-          : Chip(
-            label: Text("Tag nie znaleziony: $tagId"),
-            backgroundColor: Colors.red[50],
-          );
+          // : Chip(
+          //   label: Text("Brak tagów!"),
+          //   backgroundColor: Colors.red[50],
+          // );
+          : Container();
         }).toList(),
       );
     });
   }
+
 
 }
