@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/schedules/controllers/tags_controller.dart';
-import 'package:the_basics/features/schedules/widgets/logged_navbar.dart';
+import 'package:the_basics/features/schedules/widgets/side_menu.dart';
 
 import '../../models/tags_model.dart';
 
@@ -22,7 +22,10 @@ class TagsPage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          LoggedNavBar(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: const SideMenu(),
+          ),
           Expanded(
             child: Obx(() {
               if (tagsController.isLoading.value) {
