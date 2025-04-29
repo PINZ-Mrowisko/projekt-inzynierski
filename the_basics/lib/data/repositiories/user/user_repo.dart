@@ -28,20 +28,7 @@ class UserRepo extends GetxController {
 
   Future<void> addNewEmployee(UserModel employee) async {
     try {
-      await _db.collection('Users').add({
-        'firstName': employee.firstName,
-        'lastName': employee.lastName,
-        'email': employee.email,
-        'marketId': employee.marketId,
-        'phoneNumber': employee.phoneNumber,
-        'contractType': employee.contractType,
-        'maxWeeklyHours': employee.maxWeeklyHours,
-        'shiftPreference': employee.shiftPreference,
-        'tags': employee.tags,
-        'isDeleted': false,
-        'insertedAt': Timestamp.now(),
-        'updatedAt': Timestamp.now(),
-      });
+      await _db.collection('Users').doc(employee.id).set(employee.toMap());
     } on FirebaseException catch (e) {
       throw 'Firebase error: ${e.message}';
     } catch (e) {
@@ -100,7 +87,7 @@ class UserRepo extends GetxController {
   }
 
   /// Updates the whole user based on user id
-  Future<void> updateCurrentUserDetails(UserModel updatedUser) async {
+  Future<void> updateUserDetails(UserModel updatedUser) async {
     try {
       await _db.collection("Users").doc(updatedUser.id).update(updatedUser.toMap());
     } on FirebaseException catch (e) {
@@ -110,7 +97,8 @@ class UserRepo extends GetxController {
     } on PlatformException catch (e) {
       throw MyPlatformException(e.code).message;
     } catch (e) {
-      throw 'Coś poszło nie tak :(';
+      print("Error of update: $e");
+      throw 'Coś poszło nie tak przy aktualizowaniu pracownika :(';
     }
   }
 
@@ -129,10 +117,12 @@ class UserRepo extends GetxController {
     }
   }
 
-  /// remove the account of the current authenticated user
-  Future<void> removeCurrentUser(String userId) async {
+  /// mark the provided user as deleted
+  Future<void> removeUser(String userId) async {
     try {
-      await _db.collection("Users").doc(userId).delete();
+      await _db.collection("Users").doc(userId).update({
+      'isDeleted': true,
+      'updatedAt': Timestamp.now()});
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -140,7 +130,7 @@ class UserRepo extends GetxController {
     } on PlatformException catch (e) {
       throw MyPlatformException(e.code).message;
     } catch (e) {
-      throw 'Coś poszło nie tak :(';
+      throw 'Coś poszło nie tak przy usuwaniu pracownika :(';
     }
   }
 }
