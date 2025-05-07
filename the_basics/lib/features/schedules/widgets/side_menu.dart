@@ -16,7 +16,6 @@ class _SideMenuState extends State<SideMenu> {
 
   bool _isExpanded = true;
   bool _darkMode = false;
-  String _activeRoute = '/main-calendar';
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +229,9 @@ class _SideMenuState extends State<SideMenu> {
     VoidCallback? onTap,
     ValueChanged<bool>? onChanged,
   }) {
-    bool isActive = _activeRoute == route;
+    final currentRoute = ModalRoute.of(context)?.settings.name;
+    bool isActive = currentRoute == route;
+    
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: _isExpanded ? 0 : 8),
       child: SizedBox(
@@ -239,12 +240,7 @@ class _SideMenuState extends State<SideMenu> {
           color: isActive ? AppColors.lightBlue : AppColors.transparent,
           borderRadius: BorderRadius.circular(15),
           child: InkWell(
-            onTap: () {
-              setState(() {
-                _activeRoute = route;
-              });
-              _navigateTo(route);
-            },
+            onTap: onTap,
             hoverColor: AppColors.lightBlue,
             highlightColor: AppColors.lightBlue,
             splashColor: AppColors.lightBlue.withOpacity(0.6),
