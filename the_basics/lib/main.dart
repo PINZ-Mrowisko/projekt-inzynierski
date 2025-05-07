@@ -4,6 +4,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
+import 'package:the_basics/features/schedules/screens/after_login/employee_management.dart';
+import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/themes/theme.dart';
 import 'features/schedules/screens/after_login/main_calendar.dart';
 import 'features/schedules/screens/after_login/tags.dart';
@@ -39,12 +41,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       initialRoute: '/',
+      initialBinding: AppBindings(),
       getPages: [
         GetPage(name: '/', page: () => HomePage()),
         GetPage(name: '/main-calendar', page: () => MainCalendar()),
         GetPage(name: '/about', page: () => AboutPage()),
         GetPage(name: '/tags', page: () => TagsPage()),
         GetPage(name: '/features', page: () => FeaturesPage()),
+        GetPage(name: '/zarzadzaj-pracownikami', page: () => EmployeeManagementPage())
       ],
       title: 'Mrowisko',
       themeMode: ThemeMode.light,
