@@ -25,7 +25,7 @@ class _SideMenuState extends State<SideMenu> {
       height: double.infinity,
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(

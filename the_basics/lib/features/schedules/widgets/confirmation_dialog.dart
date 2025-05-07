@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_basics/utils/app_colors.dart';
-import 'package:the_basics/shared/widgets/base_dialog.dart';
+import 'package:the_basics/features/schedules/widgets/base_dialog.dart';
 
 class ConfirmationDialog extends StatelessWidget {
   final String title;

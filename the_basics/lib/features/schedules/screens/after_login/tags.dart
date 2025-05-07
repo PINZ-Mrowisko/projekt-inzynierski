@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/schedules/controllers/tags_controller.dart';
 import 'package:the_basics/features/schedules/widgets/side_menu.dart';
-import 'package:the_basics/shared/widgets/notification_snackbar.dart';
+import 'package:the_basics/features/schedules/widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../models/tags_model.dart';
-import 'package:the_basics/shared/widgets/confirmation_dialog.dart';
-import 'package:the_basics/shared/widgets/custom_button.dart';
-import 'package:the_basics/shared/widgets/search_bar.dart';
-import 'package:the_basics/shared/widgets/generic_list.dart';
+import 'package:the_basics/features/schedules/widgets/confirmation_dialog.dart';
+import 'package:the_basics/features/schedules/widgets/custom_button.dart';
+import 'package:the_basics/features/schedules/widgets/search_bar.dart';
+import 'package:the_basics/features/schedules/widgets/generic_list.dart';
 
 class TagsPage extends StatelessWidget {
   const TagsPage({super.key});
