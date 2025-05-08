@@ -25,7 +25,7 @@ class UserModel {
     this.contractType = "Umowa o pracę",
     this.maxWeeklyHours = 40,
     this.shiftPreference = "Brak preferencji",
-    required this.tags,
+    this.tags = const [],
     this.isDeleted = false,
     required this.insertedAt,
     required this.updatedAt,
@@ -77,6 +77,7 @@ class UserModel {
     }
   }
 
+  // we currently use the fromMap method instead of this
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     if (!doc.exists) return UserModel.empty();
 
@@ -98,7 +99,13 @@ class UserModel {
     );
   }
 
-  // Copy with method for updates
+  UserModel copyWithUpdatedTags(String oldTagName, String newTagName) {
+    final updatedTags = tags.map((tag) => tag == oldTagName ? newTagName : tag)
+        .toList();
+    return copyWith(tags: updatedTags);
+  }
+
+    // Copy with method for updates
   UserModel copyWith({
     String? firstName,
     String? lastName,
