@@ -132,6 +132,19 @@ class EmployeeManagementPage extends StatelessWidget {
 
   Widget _buildTagsChips(List<String> tagIds) {
     return Obx(() {
+      if (tagsController.isLoading.value) {
+        return const CircularProgressIndicator();
+      }
+
+      // Handle empty/null cases
+      if (tagIds.isEmpty) {
+        return const Chip(
+          label: Text('No tags'),
+          backgroundColor: Colors.red,
+        );
+      }
+
+
       return Wrap(
         spacing: 4,
         children: tagIds.map((tagId) {
@@ -143,11 +156,6 @@ class EmployeeManagementPage extends StatelessWidget {
             label: Text(tag.tagName),
             backgroundColor: Colors.blue[50],
           )
-          /// nie usuwać tego bo z jakiegos powodu bez tego warunku nie wyswietla XD
-          // : Chip(
-          //   label: Text("Brak tagów!"),
-          //   backgroundColor: Colors.red[50],
-          // );
           : Container();
         }).toList(),
       );

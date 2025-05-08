@@ -25,7 +25,7 @@ class UserModel {
     this.contractType = "Umowa o pracę",
     this.maxWeeklyHours = 40,
     this.shiftPreference = "Brak preferencji",
-    required this.tags,
+    this.tags = const [],
     this.isDeleted = false,
     required this.insertedAt,
     required this.updatedAt,
@@ -77,6 +77,7 @@ class UserModel {
     }
   }
 
+  // we currently use the fromMap method instead of this
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     if (!doc.exists) return UserModel.empty();
 

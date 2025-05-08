@@ -41,6 +41,8 @@ class AddTagDialog extends StatelessWidget {
             if (controller.nameController.text.isEmpty) return;
             await controller.saveTag(
                 controller.userController.employee.value.marketId);
+            controller.nameController.clear();
+            controller.descController.clear();
             Get.back();
           },
           child: const Text('Dodaj'),

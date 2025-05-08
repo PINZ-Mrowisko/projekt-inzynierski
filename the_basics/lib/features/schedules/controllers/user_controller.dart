@@ -138,15 +138,16 @@ class UserController extends GetxController {
 
   /// deletes the provided employee
   /// TODO LATER: check whether employee is part of any schedules before deleting
-  Future<void> deleteEmployee(String employeeId) async {
+  Future<bool> deleteEmployee(String employeeId) async {
     try {
       isLoading(true);
       await userRepo.removeUser(employeeId);
       await fetchAllEmployees(); // Refresh the list
       Get.snackbar('Sukces', 'Pracownik usunięty pomyślnie!');
+      return true;
     } catch (e) {
       Get.snackbar('Error', 'Nie udało się usunąć pracownika: ${e.toString()}');
-      rethrow;
+      return false;
     } finally {
       isLoading(false);
     }

@@ -52,18 +52,28 @@ class AddEmployeeDialog extends StatelessWidget {
             ]),
             const SizedBox(height: 16),
             const Text('Wybierz tagi:'),
-            Obx(() => Wrap(
+            // Obx(() => Wrap(
+            //   spacing: 8,
+            //   children: tagsController.allTags.map((tag) {
+            //     return FilterChip(
+            //       label: Text(tag.tagName),
+            //       selected: selectedTags.contains(tag.tagName),
+            //       onSelected: (selected) {
+            //         selected ? selectedTags.add(tag.tagName) : selectedTags.remove(tag.tagName);
+            //       },
+            //     );
+            //   }).toList(),
+            // )),
+            Wrap(
               spacing: 8,
-              children: tagsController.allTags.map((tag) {
-                return FilterChip(
-                  label: Text(tag.tagName),
-                  selected: selectedTags.contains(tag.tagName),
-                  onSelected: (selected) {
-                    selected ? selectedTags.add(tag.tagName) : selectedTags.remove(tag.tagName);
-                  },
-                );
-              }).toList(),
-            )),
+              children: tagsController.allTags.map((tag) => Obx(() => FilterChip(
+                label: Text(tag.tagName),
+                selected: selectedTags.contains(tag.tagName),
+                onSelected: (selected) {
+                  selected ? selectedTags.add(tag.tagName) : selectedTags.remove(tag.tagName);
+                },
+              ))).toList(),
+            )
           ],
         ),
       ),
@@ -81,6 +91,7 @@ class AddEmployeeDialog extends StatelessWidget {
 
             final userId = FirebaseFirestore.instance.collection('Users').doc().id;
             print("oto user id $userId");
+            print('Selected tags: ${selectedTags.toList()}');
             final newEmployee = UserModel(
               id: userId,
               firstName: firstNameController.text,
