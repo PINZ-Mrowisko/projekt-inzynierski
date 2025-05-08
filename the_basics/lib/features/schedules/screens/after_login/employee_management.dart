@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/schedules/controllers/tags_controller.dart';
 import 'package:the_basics/features/schedules/controllers/user_controller.dart';
+import 'package:the_basics/features/schedules/widgets/side_menu.dart';
 import '../../widgets/employee_dialogs/add_dialog.dart';
 import '../../widgets/employee_dialogs/delete_dialog.dart';
 import '../../widgets/employee_dialogs/edit_dialog.dart';
@@ -18,15 +19,28 @@ class EmployeeManagementPage extends StatelessWidget {
     print("All tags: ${tagsController.allTags.map((e) => e.tagName)}");
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
+      body: Row(
         children: [
-          // add a temp refresh button to pull all employees in
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => userController.fetchAllEmployees(),
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
+            child: const SideMenu(),
           ),
           Expanded(
-            child: _buildEmployeeList(),
+            child: Column(
+              children: [
+                // add a temp refresh button to pull all employees in
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () => userController.fetchAllEmployees(),
+                  ),
+                ),
+                Expanded(
+                  child: _buildEmployeeList(),
+                ),
+              ],
+            ),
           ),
         ],
       ),

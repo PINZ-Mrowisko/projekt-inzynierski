@@ -116,7 +116,7 @@ class _SideMenuState extends State<SideMenu> {
         icon: Icons.people,
         text: 'Pracownicy',
         route: '/employees',
-        onTap: () => _navigateTo('/employees'),
+        onTap: () => _navigateTo('/zarzadzaj-pracownikami'),
       ),
       const SizedBox(height: 30),
       _buildMenuItem(
