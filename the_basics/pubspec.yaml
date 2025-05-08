@@ -32,6 +32,7 @@ dependencies:
   get: ^4.7.2
   get_storage: ^2.1.1
   iconsax: ^0.0.8
+  flutter_svg: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -51,6 +52,7 @@ flutter:
     - assets/mrowisko_logo.JPG
     - assets/mrowisko_logo2.JPG
     - assets/mrowisko_logo3.JPG
+    - assets/mrowisko_logo_blue.svg
 
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
