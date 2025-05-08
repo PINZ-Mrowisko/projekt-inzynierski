@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
@@ -26,13 +25,9 @@ class UserController extends GetxController {
     try {
       isLoading(true);
       final user = await fetchCurrentUserRecord();
-      print("After await fetchCurrentUserRecord: User=${user.firstName}, MarketID=${user.marketId}");
 
-      if (user != null) {
-        print("After await fetchCurrentUserRecord: User=${employee.value.firstName}, MarketID=${employee.value.marketId}");
-        await fetchAllEmployees();
-      }
-    } catch (e) {
+      await fetchAllEmployees();
+        } catch (e) {
       errorMessage(e.toString());
     } finally {
       isLoading(false);
@@ -100,8 +95,6 @@ class UserController extends GetxController {
       isLoading(true);
       errorMessage('');
 
-
-
       // Validate market ID
       if (employee.marketId.isEmpty) {
         throw "Market ID not available";
@@ -117,6 +110,44 @@ class UserController extends GetxController {
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Error', 'Nie udało się dodać pracownika: ${e.toString()}');
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  /// updates the provided employee
+  Future<void> updateEmployee(UserModel updatedEmployee) async {
+    try {
+      print("oto imie usera ${updatedEmployee.firstName}");
+      print("oto id usera ${updatedEmployee.id}");
+      if (updatedEmployee.id == null || updatedEmployee.id!.isEmpty) {
+        throw 'ID użytkownika jest pusty – nie można wykonać aktualizacji.';
+      }
+      print("oto id usera ${updatedEmployee.id}");
+      isLoading(true);
+      await userRepo.updateUserDetails(updatedEmployee);
+      await fetchAllEmployees(); // Refresh the list
+      Get.snackbar('Sukces', 'Pracownik edytowany pomyślnie!');
+    } catch (e) {
+      Get.snackbar('Error', 'Nie udało się zaktualizować pracownika: ${e.toString()}');
+      rethrow;
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  /// deletes the provided employee
+  /// TODO LATER: check whether employee is part of any schedules before deleting
+  Future<bool> deleteEmployee(String employeeId) async {
+    try {
+      isLoading(true);
+      await userRepo.removeUser(employeeId);
+      await fetchAllEmployees(); // Refresh the list
+      Get.snackbar('Sukces', 'Pracownik usunięty pomyślnie!');
+      return true;
+    } catch (e) {
+      Get.snackbar('Error', 'Nie udało się usunąć pracownika: ${e.toString()}');
+      return false;
     } finally {
       isLoading(false);
     }

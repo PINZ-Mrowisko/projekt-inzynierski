@@ -123,14 +123,81 @@ class TagsController extends GetxController {
     }
   }
 
-  /// deletes a tag with a specific id
-  Future<void> deleteTag(String tagId) async {
+  /// przez nasza strukture plikow musimy wykonywac takie dziedziczne aktualizowanie
+  /// uzytkownicy posiadaja nazwy tagów w sobie - przy aktualizacji nazwy tagu, musimy zmienic ja
+  /// u wszystkich affected uzytkowników
+  /// wyszukujemy tych co mają stary tag, wysyłamy ich do aktualizacji, aktualizujemy tag w kolekcji tagów
+  /// w obu kontrolerach aktualizujemy listy wszystkich tagów i pracowników, tak aby zawierały najnowsze dane
+
+  Future<void> updateTagAndUsers(TagsModel oldTag, TagsModel newTag) async {
     try {
       isLoading(true);
-      await _tagsRepo.deleteTag(tagId);
 
-      // odświeżamy listę tagów
+      // 1. Robimy batch (zeby wszystko bylo ladnie zgrabnie atomowo)
+      final batch = FirebaseFirestore.instance.batch();
+
+
+      // 2. Przechodzimy przez wszystkich userów z tagiem i zmieniamy w nich wartosci
+      for (final user in userController.allEmployees) {
+        if (user.tags.contains(oldTag.tagName)) {
+          final updatedUser = user.copyWithUpdatedTags(oldTag.tagName, newTag.tagName);
+
+          final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
+          batch.update(userRef, {'tags': updatedUser.tags});
+        }
+      }
+
+      // 3. Aktualizujemy tag w kolekcji Tags
+      final tagRef = FirebaseFirestore.instance.collection('Tags').doc(oldTag.id);
+      batch.update(tagRef, newTag.toMap());
+
+      // 4. Wykonujemy wszystkie operacje naraz (atomowo)
+      await batch.commit();
+
+      // 5. Odświeżamy dane
       await fetchTags();
+      userController.fetchAllEmployees();
+
+      Get.snackbar('Sukces!', 'Zaktualizowano tag i powiązanych użytkowników');
+    } catch (e) {
+      Get.snackbar('Błąd', 'Nie udało się zaktualizować tagu: ${e.toString()}');
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  /// returns the count of users with specified tag !
+  int countUsersWithTag(String tagName) {
+    return userController.allEmployees
+        .where((user) => user.tags.contains(tagName))
+        .length;
+  }
+
+  /// deletes a tag with a specific id - also in users collection !
+  Future<void> deleteTag(String tagId, String tagName) async {
+    try {
+      isLoading(true);
+
+      // 1. Za pomocą batcha będziemy usuwac tagi z pracownikow i tagi z tagow
+      final batch = FirebaseFirestore.instance.batch();
+      for (final user in userController.allEmployees.where((u) => u.tags.contains(tagName))) {
+        final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
+        batch.update(userRef, {
+          'tags': FieldValue.arrayRemove([tagId]),
+          'updatedAt': Timestamp.now()
+        });
+      }
+
+      // 2. Usuwamy tag z kolekcji Tags
+      final tagRef = FirebaseFirestore.instance.collection('Tags').doc(tagId);
+      batch.delete(tagRef);
+
+      await batch.commit();
+      //await _tagsRepo.deleteTag(tagId);
+
+      // odświeżamy listę tagów i pracownikow
+      await fetchTags();
+      userController.fetchAllEmployees();
 
       // zamykamy dialog edycji
       Get.back();

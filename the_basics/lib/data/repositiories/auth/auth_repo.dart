@@ -57,7 +57,7 @@ class AuthRepo extends GetxController {
 
       // Verify marketId after user data loads
       final marketId = userController.employee.value.marketId;
-      final idk = userController.employee;
+
 
       if (marketId.isEmpty) {
         throw "MarketID not available after user load";

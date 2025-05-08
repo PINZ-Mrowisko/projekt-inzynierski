@@ -416,7 +416,7 @@ class TagsPage extends StatelessWidget {
                             width: 109,
                             height: 40,
                             child: ElevatedButton(
-                              onPressed: () => _confirmDeleteTag(controller, tag.id),
+                              onPressed: () => _confirmDeleteTag(controller, tag.id, tag.tagName),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 shape: RoundedRectangleBorder(
@@ -479,7 +479,7 @@ class TagsPage extends StatelessWidget {
     );
   }
 
-  void _confirmDeleteTag(TagsController controller, String tagId) {
+  void _confirmDeleteTag(TagsController controller, String tagId, String tagName) {
     Get.dialog(
       ConfirmationDialog(
         title: 'Czy na pewno chcesz\nusunąć Tag?',
@@ -489,7 +489,7 @@ class TagsPage extends StatelessWidget {
         confirmTextColor: Colors.white,
         onConfirm: () async {
           Get.back();
-          await controller.deleteTag(tagId);
+          await controller.deleteTag(tagId, tagName);
           Get.back();
           showCustomSnackbar(Get.context!, 'Tag został pomyślnie usunięty.');
         },

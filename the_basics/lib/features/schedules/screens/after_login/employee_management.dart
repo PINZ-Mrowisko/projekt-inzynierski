@@ -1,10 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/schedules/controllers/tags_controller.dart';
 import 'package:the_basics/features/schedules/controllers/user_controller.dart';
-import '../../widgets/logged_navbar.dart';
+import '../../widgets/employee_dialogs/add_dialog.dart';
+import '../../widgets/employee_dialogs/delete_dialog.dart';
+import '../../widgets/employee_dialogs/edit_dialog.dart';
 
 class EmployeeManagementPage extends StatelessWidget {
   EmployeeManagementPage({super.key});
@@ -14,11 +15,11 @@ class EmployeeManagementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("All tags: ${tagsController.allTags.map((e) => e.tagName)}");
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          const LoggedNavBar(),
           // add a temp refresh button to pull all employees in
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -31,7 +32,7 @@ class EmployeeManagementPage extends StatelessWidget {
       ),
       /// add new employees
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddEmployeeDialog(context),
+        onPressed: () => Get.dialog(AddEmployeeDialog()),
         child: const Icon(Icons.add),
       ),
     );
@@ -80,6 +81,9 @@ class EmployeeManagementPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+            Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
               Text(
                 '${employee.firstName} ${employee.lastName}',
                 style: const TextStyle(
@@ -87,8 +91,30 @@ class EmployeeManagementPage extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              PopupMenuButton(
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Text('Edit'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Delete', style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    Get.dialog(EditEmployeeDialog(employee: employee));
+                  } else if (value == 'delete') {
+                    showConfirmDeleteDialog(employee.id);
+                  }
+                },
+              ),
+            ],
+          ),
+
               const SizedBox(height: 8),
-              Text(employee.email),
+              Text(employee.id),
               const SizedBox(height: 4),
               Text('Contract: ${employee.contractType}'),
               const SizedBox(height: 4),
@@ -103,182 +129,36 @@ class EmployeeManagementPage extends StatelessWidget {
   }
 
   Widget _buildTagsChips(List<String> tagIds) {
-    return Wrap(
-      spacing: 4,
-      children: tagIds.map((tagId) {
-        final tag = tagsController.allTags.firstWhereOrNull(
-              (t) => t.id == tagId,
+    return Obx(() {
+      if (tagsController.isLoading.value) {
+        return const CircularProgressIndicator();
+      }
+
+      // Handle empty/null cases
+      if (tagIds.isEmpty) {
+        return const Chip(
+          label: Text('No tags'),
+          backgroundColor: Colors.red,
         );
-        return tag != null
-            ? Chip(
-          label: Text(tag.tagName),
-          backgroundColor: Colors.blue[50],
-        )
-            : const SizedBox.shrink();
-      }).toList(),
-    );
+      }
+
+
+      return Wrap(
+        spacing: 4,
+        children: tagIds.map((tagId) {
+          final tag = tagsController.allTags.firstWhereOrNull(
+                (t) => t.tagName == tagId,
+          );
+          return tag != null
+              ? Chip(
+            label: Text(tag.tagName),
+            backgroundColor: Colors.blue[50],
+          )
+          : Container();
+        }).toList(),
+      );
+    });
   }
 
-  void _showAddEmployeeDialog(BuildContext context) {
-    final firstNameController = TextEditingController();
-    final lastNameController = TextEditingController();
-    final emailController = TextEditingController();
-    final phoneController = TextEditingController();
-    final hoursController = TextEditingController(text: '40');
 
-    String? contractType;
-    String? shiftPreference;
-    final selectedTags = <String>[].obs;
-
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Dodaj nowego pracownika'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: firstNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Imię',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: lastNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nazwisko',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Numer telefonu',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Typ umowy o pracę',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'Umowa o pracę',
-                    child: Text('Umowa o pracę'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Umowa zlecenie',
-                    child: Text('Umowa zlecenie'),
-                  ),
-                ],
-                onChanged: (value) => contractType = value,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: hoursController,
-                decoration: const InputDecoration(
-                  labelText: 'Maksymalne godziny tygodniowo',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Preferencje zmian',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'Poranne',
-                    child: Text('Poranne'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Popołudniowe',
-                    child: Text('Popołudniowe'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Brak preferencji',
-                    child: Text('Brak preferencji'),
-                  ),
-                ],
-                onChanged: (value) => shiftPreference = value,
-              ),
-              const SizedBox(height: 16),
-              const Text('Wybierz tagi:'),
-              Obx(() => Wrap(
-                spacing: 8,
-                children: tagsController.allTags.map((tag) {
-                  return FilterChip(
-                    label: Text(tag.tagName),
-                    selected: selectedTags.contains(tag.tagName),
-                    onSelected: (selected) {
-                      if (selected) {
-                        selectedTags.add(tag.tagName);
-                      } else {
-                        selectedTags.remove(tag.tagName);
-                      }
-                    },
-                  );
-                }).toList(),
-              )),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: Get.back,
-            child: const Text('Anuluj'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (firstNameController.text.isEmpty ||
-                  lastNameController.text.isEmpty ||
-                  emailController.text.isEmpty ||
-                  contractType == null) {
-                Get.snackbar('Error', 'Wypełnij wszystkie wymagane pola');
-                return;
-              }
-              final userId = FirebaseFirestore.instance.collection('Users').doc().id;
-
-              final newEmployee = UserModel(
-                id: userId, // Will be generated by Firestore
-                firstName: firstNameController.text,
-                lastName: lastNameController.text,
-                email: emailController.text,
-                marketId: userController.employee.value.marketId,
-                phoneNumber: phoneController.text,
-                contractType: contractType!,
-                maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
-                shiftPreference: shiftPreference ?? 'Flexible',
-                tags: selectedTags.toList(),
-                isDeleted: false,
-                insertedAt: DateTime.now(),
-                updatedAt: DateTime.now(),
-              );
-
-              await userController.addNewEmployee(newEmployee);
-              Get.back();
-            },
-            child: const Text('Add Employee'),
-          ),
-        ],
-      ),
-    );
-  }
 }
