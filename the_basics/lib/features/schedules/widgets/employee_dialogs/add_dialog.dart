@@ -90,8 +90,8 @@ class AddEmployeeDialog extends StatelessWidget {
             }
 
             final userId = FirebaseFirestore.instance.collection('Users').doc().id;
-            print("oto user id $userId");
-            print('Selected tags: ${selectedTags.toList()}');
+            //("oto user id $userId");
+            //print('Selected tags: ${selectedTags.toList()}');
             final newEmployee = UserModel(
               id: userId,
               firstName: firstNameController.text,
@@ -108,8 +108,24 @@ class AddEmployeeDialog extends StatelessWidget {
               updatedAt: DateTime.now(),
             );
 
-            await userController.addNewEmployee(newEmployee);
-            Get.back();
+            /// handle adding employee correctly
+    try {
+      // Show loading indicator
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+      await userController.addNewEmployee(newEmployee);
+
+      // close both dialogs (loading and add employee)
+      Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // loading
+      Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // confirmation
+
+    } catch (e){
+      Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // close loading dialog if error occurs
+      Get.snackbar('Błąd', 'Nie udało się dodać pracownika: ${e.toString()}');
+    }
+
           },
           child: const Text('Dodaj pracownika'),
         ),

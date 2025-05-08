@@ -255,8 +255,14 @@ class TagsPage extends StatelessWidget {
                             height: 40,
                             child: ElevatedButton(
                               onPressed: () async {
+                                /// handle adding of a tag
                                 if (controller.nameController.text.isEmpty) return;
                                 await controller.saveTag(controller.userController.employee.value.marketId);
+
+                                // clear controller for later use
+                                controller.descController.clear();
+                                controller.nameController.clear();
+
                                 Get.back();
                               },
                               style: ElevatedButton.styleFrom(
@@ -480,9 +486,19 @@ class TagsPage extends StatelessWidget {
   }
 
   void _confirmDeleteTag(TagsController controller, String tagId, String tagName) {
+    final userCount = controller.countUsersWithTag(tagName);
+    String warningText;
+    if (userCount == 1) {
+      warningText = '$userCount użytkownik ma ten tag!\nCzy na pewno chcesz usunąć "$tagName"?';
+    } else if (userCount > 1) {
+      warningText = '$userCount użytkowników ma ten tag!\nCzy na pewno chcesz usunąć "$tagName"?';
+    } else {
+      warningText = 'Czy na pewno chcesz usunąć tag "$tagName"?';
+    }
+
     Get.dialog(
       ConfirmationDialog(
-        title: 'Czy na pewno chcesz\nusunąć Tag?',
+        title: warningText,
         confirmText: 'Usuń',
         cancelText: 'Anuluj',
         confirmButtonColor: AppColors.warning,
