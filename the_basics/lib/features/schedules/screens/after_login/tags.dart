@@ -488,8 +488,8 @@ class TagsPage extends StatelessWidget {
         confirmButtonColor: AppColors.warning,
         confirmTextColor: Colors.white,
         onConfirm: () async {
-          Get.back();
           await controller.deleteTag(tagId, tagName);
+          Get.back();
           Get.back();
           showCustomSnackbar(Get.context!, 'Tag został pomyślnie usunięty.');
         },
