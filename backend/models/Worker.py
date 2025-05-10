@@ -12,9 +12,8 @@ class Worker:
         self.is_deleted = False
 
     def __str__(self):
-        print(f"{self.firstname}|{self.lastname}|{self.age}|{self.type_of_deal}|{self.get_max_working_hours()}h/tydzień")
-        print("\n")
-        print(f"{self.tags}")
+        tags_str = ', '.join([tag.name for tag in self.tags])
+        return f"{self.firstname}|{self.lastname}|{self.age}|{self.type_of_deal}|{tags_str}|{self.get_max_working_hours()}h/tydzień"
 
     def get_type_of_deal(self):
         return self.type_of_deal
