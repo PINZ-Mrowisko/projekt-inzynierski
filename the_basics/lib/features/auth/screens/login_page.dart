@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:the_basics/features/auth/controllers/login_controller.dart';
+import 'package:the_basics/features/auth/screens/forget_pswd.dart';
 import 'package:the_basics/features/auth/screens/signup.dart';
 import 'package:the_basics/utils/validators/validation.dart';
 
@@ -92,6 +93,17 @@ class LoginPage extends StatelessWidget {
                           Text("Zapamiętaj mnie"),
                         ],
                       ),
+
+                      TextButton(
+                        onPressed: () => Get.to(() => ForgetPswd()),
+                        child: Text(
+                          'Zapomniales hasla?',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      )
                     ],
                   ),
                 ),

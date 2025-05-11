@@ -14,7 +14,7 @@ class AuthRepo extends GetxController {
   static AuthRepo get instance => Get.find();
 
   final deviceStorage = GetStorage();
-  final _auth = FirebaseAuth.instance; //get the instance initialized from mian
+  final _auth = FirebaseAuth.instance; //get the instance initialized from main
 
   /// get auth user data
   User? get authUser => _auth.currentUser;
@@ -100,6 +100,8 @@ class AuthRepo extends GetxController {
     try {
       // the current authenticated user that just registered will by recalled by the firebase instance
       return _auth.currentUser?.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      throw MyFirebaseException(e.code).message;
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -114,6 +116,8 @@ class AuthRepo extends GetxController {
   Future<UserCredential> loginWithEmailAndPassword(String mail, String password) async {
     try {
       return await _auth.signInWithEmailAndPassword(email: mail, password: password);
+    }on FirebaseAuthException catch (e) {
+      throw MyFirebaseException(e.code).message;
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -131,7 +135,27 @@ class AuthRepo extends GetxController {
       await FirebaseAuth.instance.signOut();
       // logout and show the home page
       Get.offAll(() => HomePage());
+    } on FirebaseAuthException catch (e) {
+      throw MyFirebaseException(e.code).message;
     } on FirebaseException catch (e) {
+      throw MyFirebaseException(e.code).message;
+    } on FormatException catch (_) {
+      throw const MyFormatException();
+    } on PlatformException catch (e) {
+      throw MyPlatformException(e.code).message;
+    } catch (e) {
+      throw 'Coś poszło nie tak :(';
+    }
+  }
+
+
+  /// RESET PSWD
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw MyFirebaseException(e.code).message;
+    }on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
       throw const MyFormatException();
