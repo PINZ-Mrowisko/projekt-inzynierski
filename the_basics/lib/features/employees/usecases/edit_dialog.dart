@@ -90,7 +90,24 @@ class EditEmployeeDialog extends StatelessWidget {
               tags: selectedTags.toList(),
             );
 
-            await userController.updateEmployee(updatedEmployee);
+            try {
+              // Show loading indicator
+              Get.dialog(
+                const Center(child: CircularProgressIndicator()),
+                barrierDismissible: false,
+              );
+              await userController.updateEmployee(updatedEmployee);
+
+              // close both dialogs (loading and add employee)
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // loading
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // confirmation
+
+            } catch (e){
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // close loading dialog if error occurs
+              Get.snackbar('Błąd', 'Nie udało się zaktualizować pracownika: ${e.toString()}');
+            }
+
+
             Get.back();
           },
           child: const Text('Zapisz zmiany'),

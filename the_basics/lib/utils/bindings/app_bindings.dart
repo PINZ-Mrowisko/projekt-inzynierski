@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
@@ -10,7 +9,8 @@ class AppBindings implements Bindings {
   @override
   void dependencies() {
     // Repositories
-    Get.put(AuthRepo());
+    //todo if something is broken uncomment the get put auth repo
+    //Get.put(AuthRepo());
     Get.put(UserRepo());
     Get.put(TagsRepo());
     // Get.lazyPut(() => AuthRepo(), fenix: true);

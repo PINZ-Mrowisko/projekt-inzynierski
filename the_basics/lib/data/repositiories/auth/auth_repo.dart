@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../features/auth/screens/verify_email.dart';
 import '../../../features/tags/controllers/tags_controller.dart';
@@ -13,8 +13,13 @@ import '../exceptions.dart';
 class AuthRepo extends GetxController {
   static AuthRepo get instance => Get.find();
 
-  final deviceStorage = GetStorage();
   final _auth = FirebaseAuth.instance; //get the instance initialized from main
+
+  /// get a sharedPreferences instane - we use it to store user tokens after login
+  final SharedPreferences _prefs;
+
+  // try this - if doesnt work change later
+  AuthRepo(this._prefs);
 
   /// get auth user data
   User? get authUser => _auth.currentUser;
@@ -113,9 +118,27 @@ class AuthRepo extends GetxController {
     }
   }
 
-  Future<UserCredential> loginWithEmailAndPassword(String mail, String password) async {
+  Future<UserCredential> loginWithEmailAndPassword(String mail, String password, bool rememberMe) async {
     try {
-      return await _auth.signInWithEmailAndPassword(email: mail, password: password);
+      //print('=== STARTING LOGIN ===');
+
+      final userCredential = await _auth.signInWithEmailAndPassword(email: mail, password: password);
+
+      //print('Remember me enabled: $rememberMe');
+
+
+      if(rememberMe) {
+        await _prefs.setBool("remember_me", true);
+
+        final token = await userCredential.user!.getIdToken();
+        //print('Obtained token: ${token != null ? "[exists]" : "null"}');
+
+        if(token != null){
+          await _persistToken(token);
+        }
+      }
+
+      return userCredential;
     }on FirebaseAuthException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FirebaseException catch (e) {
@@ -132,6 +155,10 @@ class AuthRepo extends GetxController {
   /// LOGOUT
   Future<void> logout() async {
     try {
+      /// remove saved prefs if user chooses a manual log out
+      await _prefs.remove('remember_me');
+      await _prefs.remove('auth_token');
+
       await FirebaseAuth.instance.signOut();
       // logout and show the home page
       Get.offAll(() => HomePage());
@@ -163,6 +190,59 @@ class AuthRepo extends GetxController {
       throw MyPlatformException(e.code).message;
     } catch (e) {
       throw 'Coś poszło nie tak :(';
+    }
+  }
+
+  /// HANDLE REMEMBER ME FEATURE
+/// we will use a token system: firebase provides a user token after login
+/// we will store it if user checks remember me - this system will be safer than
+/// just storing the email+pswd, or email+hashed_pswd
+/// the only thing stored will be  user_token
+
+
+  /// TOKEN MANAGEMENT
+
+  Future<void> _persistToken(String token) async {
+    await _prefs.setString('auth_token', token);
+  }
+
+  Future<String?> _getStoredToken() async {
+    return await _prefs.getString('auth_token');
+  }
+
+
+  Future<bool> tryAutoLogin() async {
+    //print('=== STARTING AUTO-LOGIN ===');
+    try {
+      // check if "remember me" was enabled
+      //print('All SharedPreferences keys: ${_prefs.getKeys()}');
+
+      final rememberMe = _prefs.getBool('remember_me') ?? false;
+
+      //print('Remember me status: $rememberMe');
+
+      if (!rememberMe) {
+        //print('Remember me disabled - skipping auto-login');
+        return false;
+      }
+
+      // check Firebases native token (auto-refreshed by SDK)
+      if (_auth.currentUser != null) {
+        //print('User already authenticated');
+        return true;
+      }
+
+      final token = await _getStoredToken();
+      //print('Retrieved token: ${token != null ? "[exists]" : "null"}');
+
+      if (token != null) {
+        await _auth.signInWithCustomToken(token);
+        return _auth.currentUser != null;
+      }
+      return false;
+    } catch (e) {
+      await logout();
+      return false;
     }
   }
 }

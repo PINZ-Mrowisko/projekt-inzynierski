@@ -19,6 +19,12 @@ class LoginController extends GetxController {
   // allows us to access data from the form
   GlobalKey<FormState> loginFormKey = GlobalKey<FormState>();
 
+  void clearControllers() {
+    email.clear();
+    pswd.clear();
+    hidePswd.value = true;
+  }
+
   Future<void> emailAndPasswordSignIn() async {
     try {
       // start Loading
@@ -26,22 +32,16 @@ class LoginController extends GetxController {
         return;
       }
 
-      // save data locally if Remember Me is selected
-      if (rememberMe.value) {
-        localStorage.write('REMEMBER_ME_EMAIL', email.text.trim());
-        localStorage.write('REMEMBER_ME_PASSWORD', pswd.text.trim());
-      }
-
       // login user using Email & Password auth
       final userCredentials = await AuthRepo.instance
           .loginWithEmailAndPassword(
         email.text.trim(),
         pswd.text.trim(),
+        rememberMe.value
       );
 
-      /// TO DO:
-      /// implement a remember me feature to shorten login
-
+      email.clear();
+      pswd.clear();
 
       // redirect using our fancy func
       AuthRepo.instance.screenRedirect();

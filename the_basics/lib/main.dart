@@ -1,9 +1,10 @@
 // flutterfile configure - jesli zmieniacie cos w conf firestora to odswiezcie ustawienia
 
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
+import 'package:the_basics/features/auth/screens/login_page.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/themes/theme.dart';
@@ -20,22 +21,36 @@ import 'package:get_storage/get_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  //initialize local storage
-  await GetStorage.init();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  ).then(
-    //if user is authenticated, we will move them to the home screen
-    //otherwise login/register screen
-      (FirebaseApp value) => Get.put(AuthRepo()),
-  );
+    await GetStorage.init();
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform );
 
-  runApp(MyApp());
+  final prefs = await SharedPreferences.getInstance();
+
+  //print('Prefs initialized with keys: ${prefs.getKeys()}');
+  Get.put<AuthRepo>(AuthRepo(prefs), permanent: true);
+
+  final authRepo = Get.find<AuthRepo>();
+
+  // about to destrpy eveything
+  //runApp(MyApp());
+  runApp(FutureBuilder<bool>(
+      /// first thing the app does is check whether it has an user saved
+      future: authRepo.tryAutoLogin(), //
+      builder: (context, snapshot){
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const MaterialApp(home: Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),);
+        }
+        return MyApp(isLoggedIn: snapshot.data ?? false);
+      }));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+
+  const MyApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +69,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       theme: MyAppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      home: const HomePage(),
+      home: isLoggedIn? MainCalendar() : LoginPage(),
     );
   }
 }

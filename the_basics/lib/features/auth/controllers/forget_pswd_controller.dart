@@ -2,11 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/features/auth/screens/reset_pswd.dart';
-import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 class ForgetPswdController extends GetxController {
   static ForgetPswdController get instance => Get.find();
-  //TODO : create the controller in our init
 
   final email = TextEditingController();
   GlobalKey<FormState> forgetPswdFormKey = GlobalKey<FormState>();
