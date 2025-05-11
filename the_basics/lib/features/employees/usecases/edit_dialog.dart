@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../auth/models/user_model.dart';
-import '../../controllers/tags_controller.dart';
-import '../../controllers/user_controller.dart';
+import '../../auth/models/user_model.dart';
+import '../../tags/controllers/tags_controller.dart';
+import '../controllers/user_controller.dart';
 
 class EditEmployeeDialog extends StatelessWidget {
   final UserModel employee;

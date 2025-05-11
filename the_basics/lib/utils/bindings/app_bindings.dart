@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
-import 'package:the_basics/features/schedules/controllers/tags_controller.dart';
-import 'package:the_basics/features/schedules/controllers/user_controller.dart';
+import 'package:the_basics/features/tags/controllers/tags_controller.dart';
+import 'package:the_basics/features/employees/controllers/user_controller.dart';
 
 import '../../data/repositiories/other/tags_repo.dart';
 

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
-import 'package:the_basics/features/schedules/controllers/tags_controller.dart';
-import 'package:the_basics/features/schedules/controllers/user_controller.dart';
-import 'package:the_basics/features/schedules/widgets/side_menu.dart';
-import '../../widgets/employee_dialogs/add_dialog.dart';
-import '../../widgets/employee_dialogs/delete_dialog.dart';
-import '../../widgets/employee_dialogs/edit_dialog.dart';
+import 'package:the_basics/features/tags/controllers/tags_controller.dart';
+import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import '../../../utils/common_widgets/side_menu.dart';
+import '../../employees/usecases/add_dialog.dart';
+import '../../employees/usecases/delete_dialog.dart';
+import '../../employees/usecases/edit_dialog.dart';
 
 class EmployeeManagementPage extends StatelessWidget {
   EmployeeManagementPage({super.key});

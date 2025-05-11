@@ -4,8 +4,8 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import '../../../features/auth/screens/verify_email.dart';
-import '../../../features/schedules/controllers/tags_controller.dart';
-import '../../../features/schedules/controllers/user_controller.dart';
+import '../../../features/tags/controllers/tags_controller.dart';
+import '../../../features/employees/controllers/user_controller.dart';
 import '../../../features/schedules/screens/before_login/home_page.dart';
 import '../../../features/schedules/screens/after_login/main_calendar.dart';
 import '../exceptions.dart';

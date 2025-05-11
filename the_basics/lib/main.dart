@@ -4,11 +4,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
-import 'package:the_basics/features/schedules/screens/after_login/employee_management.dart';
+import 'package:the_basics/features/employees/screens/employee_management.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/themes/theme.dart';
 import 'features/schedules/screens/after_login/main_calendar.dart';
-import 'features/schedules/screens/after_login/tags.dart';
+import 'features/tags/screens/tags.dart';
 import 'features/schedules/screens/before_login/about_page.dart';
 import 'features/schedules/screens/before_login/features_page.dart';
 import 'features/schedules/screens/before_login/home_page.dart';
