@@ -74,13 +74,8 @@ def main():
                 for role in worker.tags:
                     all_shifts[(worker, day, shift, role)] = model.new_bool_var(f"shift: {worker} | {day} | {shift} | {role}")
 
-    # for day in range(constraints.days):
-    #     for shift in range(constraints.shifts):
-    #         model.add(all_shifts[(cashier, day, shift, role)] for cashier in cashiers)
-
     for day in range(constraints.days):
         for shift in range(constraints.shifts):
-            # Sum of cashiers working in 'kasjer' role for this shift/day
 
             cashier_assignments = [
                 all_shifts[(cashier, day, shift, kasjer)]
@@ -97,15 +92,48 @@ def main():
 
             model.Add(sum(wozkowicze_assignments) >= 1)
 
-            # coordinator_assignments = [
-            #     all_shifts[(coordinator, day, shift, koordynator)]
-            #     for coordinator in coordiantors
-            # ]
-
             model.add_exactly_one(all_shifts[coordinator, day, shift, koordynator] for coordinator in coordiantors)
-
             model.add_exactly_one(all_shifts[manager, day, shift, kierownik] for manager in managers)
 
+    for worker in workers:
+        for day in range(constraints.days):
+            for shift in range(constraints.shifts):
+                model.add_at_most_one(all_shifts[(worker, day, shift, role)] for role in worker.tags)
+
+
+    class ShiftPrinter(cp_model.CpSolverSolutionCallback):
+        def __init__(self, all_shifts, workers, constraints):
+            cp_model.CpSolverSolutionCallback.__init__(self)
+            self._all_shifts = all_shifts
+            self._workers = workers
+            self._days = constraints.days
+            self._shifts = constraints.shifts
+            self._solution_count = 0
+
+        def on_solution_callback(self):
+            print(f"\nSolution {self._solution_count + 1}:\n")
+            for day in range(self._days):
+                print(f"Day {day + 1}")
+                for shift in range(self._shifts):
+                    print(f"  Shift {shift + 1}:")
+                    for worker in self._workers:
+                        for role in worker.tags:
+                            var = self._all_shifts.get((worker, day, shift, role))
+                            if self.BooleanValue(var):
+                                print(f"    {worker.firstname} {worker.lastname} as {role.name}")
+                print()
+            self._solution_count += 1
+
+    solver = cp_model.CpSolver()
+    printer = ShiftPrinter(all_shifts, workers, constraints)
+
+    status = solver.Solve(model, printer)
+
+    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+        print("\nFinal Solution:")
+        printer.on_solution_callback()
+    else:
+        print("No solution found.")
 
 if __name__ == "__main__":
     main()
