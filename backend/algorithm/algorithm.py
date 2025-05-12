@@ -24,6 +24,8 @@ def main():
     cashier4 = Worker("Alan", "Nala", 20, "umowa zlecenie", 222, "123@wp.pl")
     cashier5 = Worker("Barbara", "Arabrab", 20, "umowa zlecenie", 222, "123@wp.pl")
     cashier6 = Worker("Cecylia", "Ailycec", 20, "umowa zlecenie", 222, "123@wp.pl")
+    cashier7 = Worker("CCCCC", "CCCCC", 20, "umowa zlecenie", 222, "123@wp.pl")
+
 
     cashier1.add_tag(kasjer)
     cashier1.add_tag(wozek_widlowy)
@@ -32,6 +34,9 @@ def main():
     cashier4.add_tag(kasjer)
     cashier5.add_tag(kasjer)
     cashier6.add_tag(kasjer)
+    cashier7.add_tag(kasjer)
+    cashier7.add_tag(koordynator)
+
 
     wozkowy1 = Worker("Damian", "Naimad", 20, "umowa zlecenie", 222, "123@wp.pl")
     wozkowy2 = Worker("Duda", "Adud", 20, "umowa zlecenie", 222, "123@wp.pl")
@@ -55,8 +60,11 @@ def main():
     coordinator1.add_tag(koordynator)
     coordinator2.add_tag(koordynator)
 
-    workers = [cashier1, cashier2, cashier3, cashier4, cashier5, cashier6, wozkowy1, wozkowy2, wozkowy3, manager1,
-               vice_manager1, vice_manager2, coordinator1, coordinator2]
+    workers = [cashier1, cashier2, cashier3, cashier4, cashier5, cashier6, cashier7,
+               wozkowy1, wozkowy2, wozkowy3,
+               manager1, vice_manager1, vice_manager2,
+               coordinator1, coordinator2
+               ]
 
     cashiers = [c for c in workers if kasjer in c.tags]
     wozkowicze = [w for w in workers if wozek_widlowy in w.tags]
@@ -82,7 +90,7 @@ def main():
                 for cashier in cashiers
             ]
 
-            model.Add(sum(cashier_assignments) == 3)
+            model.add(sum(cashier_assignments) == 3)
 
             wozkowicze_assignments = [
                 all_shifts[(wozkowicz, day, shift, wozek_widlowy)]
@@ -90,17 +98,50 @@ def main():
 
             ]
 
-            model.Add(sum(wozkowicze_assignments) >= 1)
+            model.add(sum(wozkowicze_assignments) >= 1)
 
             model.add_exactly_one(all_shifts[coordinator, day, shift, koordynator] for coordinator in coordiantors)
             model.add_exactly_one(all_shifts[manager, day, shift, kierownik] for manager in managers)
 
+            worker_assigned = []
+            for worker in workers:
+                assigned_vars = [
+                    all_shifts[(worker, day, shift, role)]
+                    for role in worker.tags
+                ]
+
+                is_assigned = model.NewBoolVar(f"{worker}_{day}_{shift}_assigned")
+                model.AddMaxEquality(is_assigned, assigned_vars)
+                worker_assigned.append(is_assigned)
+
+            model.Add(sum(worker_assigned) >= 6)
+            model.Add(sum(worker_assigned) <= 7)
+
+    for worker in workers:
+        shifts_assigned = [
+            all_shifts[(worker, day, shift, role)]
+            for day in range(constraints.days)
+            for shift in range(constraints.shifts)
+            for role in worker.tags
+        ]
+        model.add(sum(shifts_assigned) < 10)
+
     for worker in workers:
         for day in range(constraints.days):
+            shift_presence = []
             for shift in range(constraints.shifts):
-                model.add_at_most_one(all_shifts[(worker, day, shift, role)] for role in worker.tags)
+                role_assignments = [
+                    all_shifts[(worker, day, shift, role)]
+                    for role in worker.tags
+                ]
+                model.Add(sum(role_assignments) <= 1)
+                works_this_shift = model.NewBoolVar(f"{worker}_{day}_{shift}_works")
+                model.AddMaxEquality(works_this_shift, role_assignments)
+                shift_presence.append(works_this_shift)
 
+            model.Add(sum(shift_presence) <= 1)
 
+    ### Solver ###
     class ShiftPrinter(cp_model.CpSolverSolutionCallback):
         def __init__(self, all_shifts, workers, constraints):
             cp_model.CpSolverSolutionCallback.__init__(self)
