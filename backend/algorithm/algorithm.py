@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from ortools.sat.python import cp_model
 
 from backend.models.Constraints import Constraints
@@ -7,16 +5,44 @@ from backend.models.Tags import Tags
 from backend.models.Worker import Worker
 
 
+def generate_all_shifts(days, shifts, workers):
+    all_shifts = {}
+
+    for worker in workers:
+        for day in range(days):
+            for shift in range(shifts):
+                for role in worker.tags:
+                    all_shifts[(worker, day, shift, role)] = model.new_bool_var(
+                        f"shift: {worker} | {day} | {shift} | {role}")
+    return all_shifts
+
+def create_tag_group(workers, tag):
+    return [worker for worker in workers if tag in worker.tags]
+
+def divide_workers_by_tags(workers, tags):
+    tag_groups = {}
+    for tag in tags:
+        tag_groups[tag] = create_tag_group(workers, tag)
+    return tag_groups
+
+def RULE_working_tags_number(all_shifts, tag_groups, day, shift, tag, minimum, maximum):
+    role_assignments = [
+        all_shifts[(cashier, day, shift, tag)]
+        for cashier in tag_groups[tag]
+    ]
+    model.add(sum(role_assignments) >= minimum)
+    model.add(sum(role_assignments) <= maximum)
+    return
+
+
 def main():
-
-    model = cp_model.CpModel()
-
-    constraints = Constraints()
 
     kasjer = Tags("kasjer", "ten co sprzedaje")
     wozek_widlowy = Tags("wózek widłowy", "z uprawnieniami na wózek widłowy")
     kierownik = Tags("kierownik", "pan i władca")
     koordynator = Tags("koordynator", "logistyka tego typu")
+
+    tags = [kasjer, wozek_widlowy, kierownik, koordynator]
 
     cashier1 = Worker("Adam", "Mada", 20, "umowa zlecenie", 222, "123@wp.pl")
     cashier2 = Worker("Bartek", "Ketrab", 20, "umowa zlecenie", 222, "123@wp.pl")
@@ -24,18 +50,14 @@ def main():
     cashier4 = Worker("Alan", "Nala", 20, "umowa zlecenie", 222, "123@wp.pl")
     cashier5 = Worker("Barbara", "Arabrab", 20, "umowa zlecenie", 222, "123@wp.pl")
     cashier6 = Worker("Cecylia", "Ailycec", 20, "umowa zlecenie", 222, "123@wp.pl")
-    cashier7 = Worker("CCCCC", "CCCCC", 20, "umowa zlecenie", 222, "123@wp.pl")
 
 
     cashier1.add_tag(kasjer)
-    cashier1.add_tag(wozek_widlowy)
     cashier2.add_tag(kasjer)
     cashier3.add_tag(kasjer)
     cashier4.add_tag(kasjer)
     cashier5.add_tag(kasjer)
     cashier6.add_tag(kasjer)
-    cashier7.add_tag(kasjer)
-    cashier7.add_tag(koordynator)
 
 
     wozkowy1 = Worker("Damian", "Naimad", 20, "umowa zlecenie", 222, "123@wp.pl")
@@ -60,21 +82,18 @@ def main():
     coordinator1.add_tag(koordynator)
     coordinator2.add_tag(koordynator)
 
-    workers = [cashier1, cashier2, cashier3, cashier4, cashier5, cashier6, cashier7,
+    workers = [cashier1, cashier2, cashier3, cashier4, cashier5, cashier6,
                wozkowy1, wozkowy2, wozkowy3,
                manager1, vice_manager1, vice_manager2,
                coordinator1, coordinator2
                ]
 
-    cashiers = [c for c in workers if kasjer in c.tags]
-    wozkowicze = [w for w in workers if wozek_widlowy in w.tags]
-    coordiantors = [c for c in workers if koordynator in c.tags]
-    managers = [m for m in workers if kierownik in m.tags]
+    tag_groups = divide_workers_by_tags(workers, tags)
 
     all_workers = len(workers)
     print("Number of workers: ", all_workers)
 
-    all_shifts = {}
+    all_shifts = generate_all_shifts(constraints.days, constraints.shifts, workers)
 
     for worker in workers:
         for day in range(constraints.days):
@@ -85,23 +104,10 @@ def main():
     for day in range(constraints.days):
         for shift in range(constraints.shifts):
 
-            cashier_assignments = [
-                all_shifts[(cashier, day, shift, kasjer)]
-                for cashier in cashiers
-            ]
-
-            model.add(sum(cashier_assignments) == 3)
-
-            wozkowicze_assignments = [
-                all_shifts[(wozkowicz, day, shift, wozek_widlowy)]
-                for wozkowicz in wozkowicze
-
-            ]
-
-            model.add(sum(wozkowicze_assignments) >= 1)
-
-            model.add_exactly_one(all_shifts[coordinator, day, shift, koordynator] for coordinator in coordiantors)
-            model.add_exactly_one(all_shifts[manager, day, shift, kierownik] for manager in managers)
+            RULE_working_tags_number(all_shifts, tag_groups, day, shift, kasjer, 3, 3)
+            RULE_working_tags_number(all_shifts, tag_groups, day, shift, wozek_widlowy, 1, constraints.max_num_workers)
+            RULE_working_tags_number(all_shifts, tag_groups, day, shift, koordynator, 1, 1)
+            RULE_working_tags_number(all_shifts, tag_groups, day, shift, kierownik, 1, 1)
 
             worker_assigned = []
             for worker in workers:
@@ -177,4 +183,6 @@ def main():
         print("No solution found.")
 
 if __name__ == "__main__":
+    model = cp_model.CpModel()
+    constraints = Constraints()
     main()
