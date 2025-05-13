@@ -115,7 +115,7 @@ class _SideMenuState extends State<SideMenu> {
       _buildMenuItem(
         icon: Icons.people,
         text: 'Pracownicy',
-        route: '/employees',
+        route: '/zarzadzaj-pracownikami',
         onTap: () => _navigateTo('/zarzadzaj-pracownikami'),
       ),
       const SizedBox(height: 30),
@@ -229,8 +229,7 @@ class _SideMenuState extends State<SideMenu> {
     VoidCallback? onTap,
     ValueChanged<bool>? onChanged,
   }) {
-    final currentRoute = ModalRoute.of(context)?.settings.name;
-    bool isActive = currentRoute == route;
+    bool isActive = Get.currentRoute == route;
     
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: _isExpanded ? 0 : 8),

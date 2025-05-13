@@ -26,7 +26,7 @@ class ConfirmationDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseDialog(
       width: 551,
-      height: subtitle != null ? 301 : 285,
+      height: subtitle != null ? 350 : 300,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

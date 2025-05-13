@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/schedules/controllers/tags_controller.dart';
+import 'package:the_basics/features/schedules/widgets/form_dialog.dart';
 import 'package:the_basics/features/schedules/widgets/side_menu.dart';
 import 'package:the_basics/features/schedules/widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/app_colors.dart';
@@ -93,6 +94,7 @@ class TagsPage extends StatelessWidget {
     );
   }
 
+  //need to implement logic
   Widget _buildSearchBar() {
     return const CustomSearchBar(
       hintText: 'Wyszukaj tag',
@@ -130,165 +132,41 @@ class TagsPage extends StatelessWidget {
   }
 
   void _showAddTagDialog(BuildContext context, TagsController controller) {
+    controller.nameController.clear();
+    controller.descController.clear();
+
     Get.dialog(
-      Material(
-        type: MaterialType.transparency,
-        child: Center(
-          child: Container(
-            width: 547,
-            height: 463,
-            decoration: BoxDecoration(
-              color: AppColors.pageBackground,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  right: 16,
-                  top: 16,
-                  child: IconButton(
-                    icon: const Icon(Icons.close, size: 24),
-                    onPressed: () {
-                      if (controller.nameController.text.isNotEmpty || 
-                          controller.descController.text.isNotEmpty) {
-                        _showExitConfirmationDialog(() => Get.back());
-                      } else {
-                        Get.back();
-                      }
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Dodaj Tag',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Nazwa',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.textColor1,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 56,
-                            child: TextField(
-                              controller: controller.nameController,
-                              textAlignVertical: TextAlignVertical.center,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: AppColors.white,
-                                hoverColor: Colors.transparent, 
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(28),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16, 
-                                  horizontal: 16
-                                ),
-                              ),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 22),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Opis',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.textColor1,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 56,
-                            child: TextField(
-                              controller: controller.descController,
-                              textAlignVertical: TextAlignVertical.center,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: AppColors.white,
-                                hoverColor: Colors.transparent,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(28),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16, 
-                                  horizontal: 16
-                                ),
-                              ),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          SizedBox(
-                            width: 109,
-                            height: 40,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                /// handle adding of a tag
-                                if (controller.nameController.text.isEmpty) return;
-                                await controller.saveTag(controller.userController.employee.value.marketId);
-
-                                // clear controller for later use
-                                controller.descController.clear();
-                                controller.nameController.clear();
-
-                                Get.back();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.blue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                              ),
-                              child: const Text(
-                                'Dodaj Tag',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.textColor2,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+      CustomFormDialog(
+        title: 'Dodaj nowy Tag',
+        onClose: () => Get.back(),
+        fields: [
+          DialogInputField(
+            label: 'Nazwa',
+            controller: controller.nameController,
           ),
-        ),
+          DialogInputField(
+            label: 'Opis',
+            controller: controller.descController,
+          ),
+        ],
+        actions: [
+          DialogActionButton(
+            label: 'Dodaj Tag',
+            onPressed: () async {
+              try {
+                if (controller.nameController.text.isEmpty) {
+                  showCustomSnackbar(context, 'Nazwa tagu nie może być pusta');
+                  return;
+                }
+                await controller.saveTag(controller.userController.employee.value.marketId);
+                Get.back();
+                showCustomSnackbar(context, 'Tag został dodany.');
+              } catch (e) {
+                showCustomSnackbar(context, 'Błąd podczas dodawania tagu: ${e.toString()}');
+              }
+            },
+          ),
+        ],
       ),
       barrierDismissible: false,
     );
@@ -299,187 +177,57 @@ class TagsPage extends StatelessWidget {
     final descController = TextEditingController(text: tag.description);
 
     Get.dialog(
-      Material(
-        type: MaterialType.transparency,
-        child: Center(
-          child: Container(
-            width: 547,
-            height: 463,
-            decoration: BoxDecoration(
-              color: AppColors.pageBackground,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  right: 16,
-                  top: 16,
-                  child: IconButton(
-                    icon: const Icon(Icons.close, size: 24),
-                    onPressed: () {
-                      if (nameController.text != tag.tagName || 
-                          descController.text != tag.description) {
-                        _showExitConfirmationDialog(() => Get.back());
-                      } else {
-                        Get.back();
-                      }
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Edytuj Tag',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Nazwa',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.textColor1,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 56,
-                            child: TextField(
-                              controller: nameController,
-                              textAlignVertical: TextAlignVertical.center,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: AppColors.white,
-                                hoverColor: Colors.transparent,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(28),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16, 
-                                  horizontal: 16
-                                ),
-                              ),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 22),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Opis',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.textColor1,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 56,
-                            child: TextField(
-                              controller: descController,
-                              textAlignVertical: TextAlignVertical.center,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: AppColors.white,
-                                hoverColor: Colors.transparent,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(28),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16, 
-                                  horizontal: 16
-                                ),
-                              ),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          SizedBox(
-                            width: 109,
-                            height: 40,
-                            child: ElevatedButton(
-                              onPressed: () => _confirmDeleteTag(controller, tag.id, tag.tagName),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                              ),
-                              child: const Text(
-                                'Usuń Tag',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          SizedBox(
-                            width: 109,
-                            height: 40,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                if (nameController.text.isEmpty) return;
-                                
-                                _showSaveConfirmationDialog(() async {
-                                  final updatedTag = tag.copyWith(
-                                    tagName: nameController.text,
-                                    description: descController.text,
-                                    updatedAt: DateTime.now()
-                                  );
-                                  await controller.updateTag(updatedTag);
-                                  Get.back();
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.blue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                              ),
-                              child: const Text(
-                                'Zapisz',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.textColor2,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+      CustomFormDialog(
+        title: 'Edytuj Tag',
+        onClose: () => Get.back(),
+        fields: [
+          DialogInputField(
+            label: 'Nazwa',
+            controller: nameController,
           ),
-        ),
+          DialogInputField(
+            label: 'Opis',
+            controller: descController,
+          ),
+        ],
+        actions: [
+          DialogActionButton(
+            label: 'Usuń',
+            onPressed: () => _confirmDeleteTag(controller, tag.id, tag.tagName),
+            backgroundColor: Colors.red,
+            textColor: AppColors.white,
+          ),
+          DialogActionButton(
+            label: 'Zapisz',
+            onPressed: () {
+              try {
+                if (nameController.text.isEmpty) {
+                  showCustomSnackbar(context, 'Nazwa tagu nie może być pusta');
+                  return;
+                }
+                _showSaveConfirmationDialog(() async {
+                  try {
+                    final updatedTag = tag.copyWith(
+                      tagName: nameController.text,
+                      description: descController.text,
+                      updatedAt: DateTime.now(),
+                    );
+                    await controller.updateTag(updatedTag);
+                    Get.back();
+                    Get.back();
+                    showCustomSnackbar(context, 'Zmiany zostały zapisane.');
+                  } catch (e) {
+                    showCustomSnackbar(context, 'Błąd podczas aktualizacji tagu: ${e.toString()}');
+                  }
+                });
+              } catch (e) {
+                showCustomSnackbar(context, 'Wystąpił nieoczekiwany błąd');
+              }
+            },
+            backgroundColor: AppColors.blue,
+            textColor: AppColors.textColor2,
+          ),
+        ],
       ),
       barrierDismissible: false,
     );
@@ -488,40 +236,37 @@ class TagsPage extends StatelessWidget {
   void _confirmDeleteTag(TagsController controller, String tagId, String tagName) {
     final userCount = controller.countUsersWithTag(tagName);
     String warningText;
+    String? confirmText;
     if (userCount == 1) {
-      warningText = '$userCount użytkownik ma ten tag!\nCzy na pewno chcesz usunąć "$tagName"?';
+      warningText = '$userCount użytkownik ma ten tag!';
+      confirmText = 'Czy na pewno chcesz usunąć "$tagName"?';
     } else if (userCount > 1) {
-      warningText = '$userCount użytkowników ma ten tag!\nCzy na pewno chcesz usunąć "$tagName"?';
+      warningText = '$userCount użytkowników ma ten tag!';
+      confirmText = 'Czy na pewno chcesz usunąć "$tagName"?';
     } else {
       warningText = 'Czy na pewno chcesz usunąć tag "$tagName"?';
+      confirmText = null;
     }
 
     Get.dialog(
       ConfirmationDialog(
         title: warningText,
+        subtitle: confirmText,
         confirmText: 'Usuń',
         cancelText: 'Anuluj',
         confirmButtonColor: AppColors.warning,
         confirmTextColor: Colors.white,
         onConfirm: () async {
-          await controller.deleteTag(tagId, tagName);
-          Get.back();
-          Get.back();
-          showCustomSnackbar(Get.context!, 'Tag został pomyślnie usunięty.');
+          try {
+            await controller.deleteTag(tagId, tagName);
+            Get.back();
+            Get.back();
+            showCustomSnackbar(Get.context!, 'Tag został pomyślnie usunięty.');
+          } catch (e) {
+            Get.back();
+            showCustomSnackbar(Get.context!, 'Błąd podczas usuwania tagu: ${e.toString()}',);
+          }
         },
-      ),
-      barrierDismissible: false,
-    );
-  }
-
-  void _showExitConfirmationDialog(VoidCallback onConfirmExit) {
-    Get.dialog(
-      ConfirmationDialog(
-        title: 'Czy na pewno chcesz wyjść?',
-        subtitle: 'Twój progres nie zostanie zapisany.',
-        confirmText: 'Wyjdź',
-        cancelText: 'Anuluj',
-        onConfirm: onConfirmExit,
       ),
       barrierDismissible: false,
     );
