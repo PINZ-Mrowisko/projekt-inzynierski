@@ -120,22 +120,23 @@ class AuthRepo extends GetxController {
 
   Future<UserCredential> loginWithEmailAndPassword(String mail, String password, bool rememberMe) async {
     try {
-      //print('=== STARTING LOGIN ===');
+
+
+      await FirebaseAuth.instance.setPersistence(
+        rememberMe ? Persistence.LOCAL : Persistence.SESSION,
+      );
 
       final userCredential = await _auth.signInWithEmailAndPassword(email: mail, password: password);
 
       //print('Remember me enabled: $rememberMe');
-
-
       if(rememberMe) {
         await _prefs.setBool("remember_me", true);
 
-        final token = await userCredential.user!.getIdToken();
+        //final token = await userCredential.user!.getIdToken();
         //print('Obtained token: ${token != null ? "[exists]" : "null"}');
-
-        if(token != null){
-          await _persistToken(token);
-        }
+        // if(token != null){
+        //   await _persistToken(token);
+        // }
       }
 
       return userCredential;
@@ -194,11 +195,6 @@ class AuthRepo extends GetxController {
   }
 
   /// HANDLE REMEMBER ME FEATURE
-/// we will use a token system: firebase provides a user token after login
-/// we will store it if user checks remember me - this system will be safer than
-/// just storing the email+pswd, or email+hashed_pswd
-/// the only thing stored will be  user_token
-
 
   /// TOKEN MANAGEMENT
 
@@ -210,15 +206,19 @@ class AuthRepo extends GetxController {
     return await _prefs.getString('auth_token');
   }
 
+  static Future<User?> getFirebaseUser() async {
+    User? firebaseUser = await FirebaseAuth.instance.currentUser;
+    if (firebaseUser == null){
+      firebaseUser = await FirebaseAuth.instance.authStateChanges().first;
+    }
+    return firebaseUser;
+  }
+
 
   Future<bool> tryAutoLogin() async {
-    //print('=== STARTING AUTO-LOGIN ===');
     try {
       // check if "remember me" was enabled
-      //print('All SharedPreferences keys: ${_prefs.getKeys()}');
-
       final rememberMe = _prefs.getBool('remember_me') ?? false;
-
       //print('Remember me status: $rememberMe');
 
       if (!rememberMe) {
@@ -226,19 +226,23 @@ class AuthRepo extends GetxController {
         return false;
       }
 
+      final currUser = getFirebaseUser();
+
       // check Firebases native token (auto-refreshed by SDK)
-      if (_auth.currentUser != null) {
+      if (currUser != null) {
         //print('User already authenticated');
         return true;
       }
 
-      final token = await _getStoredToken();
+      //final token = await _getStoredToken();
       //print('Retrieved token: ${token != null ? "[exists]" : "null"}');
 
-      if (token != null) {
-        await _auth.signInWithCustomToken(token);
-        return _auth.currentUser != null;
-      }
+      // if (token != null) {
+      //   await _auth.signInWithCustomToken(token);
+      //   return _auth.currentUser != null;
+      // }
+
+
       return false;
     } catch (e) {
       await logout();

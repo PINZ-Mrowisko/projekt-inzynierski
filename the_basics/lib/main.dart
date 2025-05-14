@@ -1,5 +1,6 @@
 // flutterfile configure - jesli zmieniacie cos w conf firestora to odswiezcie ustawienia
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,9 +22,8 @@ import 'package:get_storage/get_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-
-    await GetStorage.init();
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform );
+  await GetStorage.init();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform );
 
   final prefs = await SharedPreferences.getInstance();
 
@@ -32,30 +32,16 @@ void main() async {
 
   final authRepo = Get.find<AuthRepo>();
 
-  // about to destrpy eveything
-  //runApp(MyApp());
-  runApp(FutureBuilder<bool>(
-      /// first thing the app does is check whether it has an user saved
-      future: authRepo.tryAutoLogin(), //
-      builder: (context, snapshot){
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const MaterialApp(home: Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),);
-        }
-        return MyApp(isLoggedIn: snapshot.data ?? false);
-      }));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final bool isLoggedIn;
-
-  const MyApp({super.key, required this.isLoggedIn});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      initialRoute: '/',
+      //initialRoute: '/',
       initialBinding: AppBindings(),
       getPages: [
         GetPage(name: '/', page: () => HomePage()),
@@ -69,7 +55,27 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       theme: MyAppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      home: isLoggedIn? MainCalendar() : LoginPage(),
+      //home: isLoggedIn? MainCalendar() :MainCalendar(),
+      home: AuthWrapper(),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+
+    return StreamBuilder<User?>(
+      stream: _auth.userChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && (!snapshot.data!.isAnonymous)) {
+          return MainCalendar();
+        }
+        return LoginPage();
+      },
     );
   }
 }
