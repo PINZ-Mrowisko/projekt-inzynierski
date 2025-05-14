@@ -1,7 +1,8 @@
 class Worker:
-    def __init__(self, firstname, lastname, age, type_of_deal, phone_number, email, max_working_hours = None):
+    def __init__(self, firstname, lastname, sex, age, type_of_deal, phone_number, email, max_working_hours = None):
         self.firstname = firstname
         self.lastname = lastname
+        self.sex = sex
         self.age = age
         self.type_of_deal = type_of_deal
         self.phone_number = phone_number
