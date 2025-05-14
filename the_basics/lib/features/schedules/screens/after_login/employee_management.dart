@@ -20,6 +20,8 @@ class EmployeeManagementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
+    final tagsController = Get.find<TagsController>();
+    final selectedTags = <String>[].obs;
 
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
@@ -49,6 +51,11 @@ class EmployeeManagementPage extends StatelessWidget {
                           ),
                         ),
                         const Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: _buildTagFilterDropdown(tagsController, selectedTags),
+                        ),
+                        const SizedBox(width: 16),
                         _buildSearchBar(),
                         const SizedBox(width: 16),
                         _buildAddEmployeeButton(context, userController),
@@ -87,6 +94,20 @@ class EmployeeManagementPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  //need to implement actual logic
+  Widget _buildTagFilterDropdown(TagsController tagsController, RxList<String> selectedTags) {
+    return Obx(() => CustomMultiSelectDropdown(
+      items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+      selectedItems: selectedTags,
+      onSelectionChanged: (selected) {
+        selectedTags.assignAll(selected);
+      },
+      hintText: 'Filtruj po tagach',
+      width: 360,
+      leadingIcon: Icons.filter_alt_outlined,
+    ));
   }
 
   Widget _buildAddEmployeeButton(BuildContext context, UserController controller) {
@@ -152,10 +173,10 @@ class EmployeeManagementPage extends StatelessWidget {
             fontSize: 12,
             height: 1.33,
             letterSpacing: 0.5,
-            color: Color(0xFF49454F),
+            color: AppColors.textColor2,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: const BorderSide(
@@ -184,29 +205,32 @@ class EmployeeManagementPage extends StatelessWidget {
     final shiftPreference = RxnString();
 
     final fields = [
-      DialogInputField(label: 'Imię', controller: firstNameController),
-      DialogInputField(label: 'Nazwisko', controller: lastNameController),
-      DialogInputField(
-        label: 'Email',
-        controller: emailController,
-      ),
-      DialogInputField(
-        label: 'Numer telefonu',
-        controller: phoneController,
-      ),
-      DropdownDialogField(
-        label: 'Typ umowy o pracę',
-        hintText: 'Wybierz typ umowy...',
-        items: [
-          DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
-          DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
-        ],
-        onChanged: (value) => contractType.value = value,
-      ),
-      DialogInputField(
-        label: 'Maksymalne godziny tygodniowo',
-        controller: hoursController,
-      ),
+      RowDialogField(children: [
+        DialogInputField(label: 'Imię', controller: firstNameController),
+        DialogInputField(label: 'Nazwisko', controller: lastNameController),
+      ]),
+      
+      RowDialogField(children: [
+        DialogInputField(label: 'Email', controller: emailController),
+        DialogInputField(label: 'Numer telefonu', controller: phoneController),
+      ]),
+      
+      RowDialogField(children: [
+        DropdownDialogField(
+          label: 'Typ umowy o pracę',
+          hintText: 'Wybierz typ umowy...',
+          items: [
+            DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
+            DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
+          ],
+          onChanged: (value) => contractType.value = value,
+        ),
+        DialogInputField(
+          label: 'Maksymalna ilość godzin tygodniowo',
+          controller: hoursController,
+        ),
+      ]),
+      
       DropdownDialogField(
         label: 'Preferencje zmian',
         hintText: 'Wybierz preferencje...',
@@ -217,6 +241,7 @@ class EmployeeManagementPage extends StatelessWidget {
         ],
         onChanged: (value) => shiftPreference.value = value,
       ),
+      
       MultiSelectDialogField(
         label: 'Tagi',
         items: tagsController.allTags.map((tag) => tag.tagName).toList(),
@@ -276,7 +301,7 @@ class EmployeeManagementPage extends StatelessWidget {
         fields: fields,
         actions: actions,
         onClose: Get.back,
-        height: 1100,
+        height: 750,
         width: 700,
       ),
       barrierDismissible: false
@@ -297,33 +322,36 @@ class EmployeeManagementPage extends StatelessWidget {
     final shiftPreference = RxnString(employee.shiftPreference);
 
     final fields = [
-      DialogInputField(label: 'Imię', controller: firstNameController),
-      DialogInputField(label: 'Nazwisko', controller: lastNameController),
-      DialogInputField(
-        label: 'Email',
-        controller: emailController,
-      ),
-      DialogInputField(
-        label: 'Numer telefonu',
-        controller: phoneController,
-      ),
-      DropdownDialogField(
-        label: 'Typ umowy o pracę',
-        selectedValue: contractType.value,
-        hintText: 'Wybierz typ umowy...',
-        items: [
-          DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
-          DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
-        ],
-        onChanged: (value) => contractType.value = value,
-      ),
-      DialogInputField(
-        label: 'Maksymalne godziny tygodniowo',
-        controller: hoursController,
-      ),
+      RowDialogField(children: [
+        DialogInputField(label: 'Imię', controller: firstNameController),
+        DialogInputField(label: 'Nazwisko', controller: lastNameController),
+      ]),
+      
+      RowDialogField(children: [
+        DialogInputField(label: 'Email', controller: emailController),
+        DialogInputField(label: 'Numer telefonu', controller: phoneController),
+      ]),
+      
+      RowDialogField(children: [
+        DropdownDialogField(
+          label: 'Typ umowy o pracę',
+          selectedValue: contractType.value,
+          hintText: 'Wybierz typ umowy...',
+          items: [
+            DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
+            DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
+          ],
+          onChanged: (value) => contractType.value = value,
+        ),
+        DialogInputField(
+          label: 'Maksymalna ilość godzin tygodniowo',
+          controller: hoursController,
+        ),
+      ]),
+      
       DropdownDialogField(
         label: 'Preferencje zmian',
-        selectedValue: shiftPreference.value, 
+        selectedValue: shiftPreference.value,
         hintText: 'Wybierz preferencje...',
         items: [
           DropdownItem(value: 'Poranne', label: 'Poranne'),
@@ -332,6 +360,7 @@ class EmployeeManagementPage extends StatelessWidget {
         ],
         onChanged: (value) => shiftPreference.value = value,
       ),
+      
       MultiSelectDialogField(
         label: 'Tagi',
         items: tagsController.allTags.map((tag) => tag.tagName).toList(),
@@ -397,7 +426,7 @@ class EmployeeManagementPage extends StatelessWidget {
         fields: fields,
         actions: actions,
         onClose: Get.back,
-        height: 1100,
+        height: 750,
         width: 700,
       ),
       barrierDismissible: false
@@ -411,7 +440,7 @@ class EmployeeManagementPage extends StatelessWidget {
         confirmText: 'Usuń',
         cancelText: 'Anuluj',
         confirmButtonColor: AppColors.warning,
-        confirmTextColor: Colors.white,
+        confirmTextColor: AppColors.white,
         onConfirm: () async {
           try {
             Get.back();

@@ -194,7 +194,7 @@ class TagsPage extends StatelessWidget {
           DialogActionButton(
             label: 'Usuń',
             onPressed: () => _confirmDeleteTag(controller, tag.id, tag.tagName),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.warning,
             textColor: AppColors.white,
           ),
           DialogActionButton(
@@ -255,7 +255,7 @@ class TagsPage extends StatelessWidget {
         confirmText: 'Usuń',
         cancelText: 'Anuluj',
         confirmButtonColor: AppColors.warning,
-        confirmTextColor: Colors.white,
+        confirmTextColor: AppColors.white,
         onConfirm: () async {
           try {
             await controller.deleteTag(tagId, tagName);

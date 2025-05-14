@@ -13,20 +13,25 @@ class SideMenu extends StatefulWidget {
 
 class _SideMenuState extends State<SideMenu> {
   final userController = UserController.instance;
-
   bool _isExpanded = true;
   bool _darkMode = false;
+
+  double get _scaleFactor {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 1600) return 0.8;
+    return 1.0;
+  }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      width: _isExpanded ? 360 : 104,
+      width: _isExpanded ? 360 * _scaleFactor : 104 * _scaleFactor,
       height: double.infinity,
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15 * _scaleFactor),
       ),
       child: Column(
         children: [
@@ -50,10 +55,10 @@ class _SideMenuState extends State<SideMenu> {
   Widget _buildHeader() {
     return Padding(
       padding: EdgeInsets.only(
-        top: 24,
-        left: _isExpanded ? 16 : 0,
-        right: _isExpanded ? 16 : 0,
-        bottom: 24,
+        top: 24 * _scaleFactor,
+        left: _isExpanded ? 16 * _scaleFactor : 0,
+        right: _isExpanded ? 16 * _scaleFactor : 0,
+        bottom: 24 * _scaleFactor,
       ),
       child: _isExpanded
           ? Row(
@@ -61,23 +66,28 @@ class _SideMenuState extends State<SideMenu> {
               children: [
                 Flexible(
                   child: Container(
-                    constraints: BoxConstraints(maxWidth: _isExpanded ? 250 : 60),
+                    constraints: BoxConstraints(
+                        maxWidth: _isExpanded ? 250 * _scaleFactor : 60 * _scaleFactor),
                     child: SvgPicture.asset(
                       'assets/mrowisko_logo_blue.svg',
-                      height: 50,
+                      height: 50 * _scaleFactor,
                       semanticsLabel: 'Mrowisko Logo',
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.menu, size: 40, color: AppColors.black),
+                  icon: Icon(Icons.menu, 
+                    size: 40 * _scaleFactor, 
+                    color: AppColors.black),
                   onPressed: () => setState(() => _isExpanded = !_isExpanded),
                 ),
               ],
             )
           : Center(
               child: IconButton(
-                icon: const Icon(Icons.menu, size: 30, color: AppColors.black),
+                icon: Icon(Icons.menu, 
+                  size: 30 * _scaleFactor, 
+                  color: AppColors.black),
                 onPressed: () => setState(() => _isExpanded = !_isExpanded),
               ),
             ),
@@ -86,7 +96,7 @@ class _SideMenuState extends State<SideMenu> {
 
   Widget _buildMenuSection() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: _isExpanded ? 8 : 0),
+      padding: EdgeInsets.symmetric(horizontal: _isExpanded ? 8 * _scaleFactor : 0),
       child: Obx(() {
         final isAdmin = userController.isAdmin.value;
         return Column(
@@ -99,54 +109,68 @@ class _SideMenuState extends State<SideMenu> {
   List<Widget> _buildAdminMenuItems() {
     return [
       _buildMenuItem(
+        icon: Icons.dashboard,
+        text: 'Dashboard',
+        route: '/dashboard',
+        onTap: () => _navigateTo('/dashboard'),
+      ),
+      SizedBox(height: 4 * _scaleFactor),
+      _buildMenuItem(
         icon: Icons.schedule,
         text: 'Grafik ogólny',
         route: '/main-calendar',
         onTap: () => _navigateTo('/main-calendar'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.calendar_today,
         text: 'Grafik indywidualny',
         route: '/personal-schedule',
         onTap: () => _navigateTo('/personal-schedule'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
+      _buildMenuItem(
+        icon: Icons.sunny,
+        text: 'Wnioski urlopowe',
+        route: '/wnioski-urlopowe',
+        onTap: () => _navigateTo('/wnioski-urlopowe'),
+      ),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.people,
         text: 'Pracownicy',
         route: '/zarzadzaj-pracownikami',
         onTap: () => _navigateTo('/zarzadzaj-pracownikami'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.tag,
         text: 'Tagi',
         route: '/tags',
         onTap: () => _navigateTo('/tags'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.view_module,
         text: 'Szablony',
         route: '/templates',
         onTap: () => _navigateTo('/templates'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.bar_chart,
         text: 'Raporty',
         route: '/reports',
         onTap: () => _navigateTo('/reports'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.change_circle_outlined,
         text: 'Giełda',
         route: '/market',
         onTap: () => _navigateTo('/market'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.person,
         text: 'Twój profil',
@@ -164,21 +188,28 @@ class _SideMenuState extends State<SideMenu> {
         route: '/main-calendar',
         onTap: () => _navigateTo('/main-calendar'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.calendar_today,
         text: 'Grafik indywidualny',
         route: '/personal-schedule',
         onTap: () => _navigateTo('/personal-schedule'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
+      _buildMenuItem(
+        icon: Icons.sunny,
+        text: 'Wnioski urlopowe',
+        route: '/wnioski-urlopowe',
+        onTap: () => _navigateTo('/wnioski-urlopowe'),
+      ),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.change_circle_outlined,
         text: 'Giełda',
         route: '/market',
         onTap: () => _navigateTo('/market'),
       ),
-      const SizedBox(height: 30),
+      SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.person,
         text: 'Twój profil',
@@ -192,22 +223,25 @@ class _SideMenuState extends State<SideMenu> {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: _isExpanded ? 8 : 0),
+          padding: EdgeInsets.symmetric(horizontal: _isExpanded ? 8 * _scaleFactor : 0),
           child: const Divider(color: AppColors.divider),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: _isExpanded ? 8 : 0, vertical: 16),
+          padding: EdgeInsets.symmetric(
+            horizontal: _isExpanded ? 8 * _scaleFactor : 0, 
+            vertical: 16 * _scaleFactor,
+          ),
           child: Column(
             children: [
               _buildDarkModeSwitch(),
-              const SizedBox(height: 30),
+              SizedBox(height: 4 * _scaleFactor),
               _buildMenuItem(
                 icon: Icons.settings,
                 text: 'Ustawienia',
                 route: '/settings',
                 onTap: () => _navigateTo('/settings'),
               ),
-              const SizedBox(height: 30),
+              SizedBox(height: 4 * _scaleFactor),
               _buildMenuItem(
                 icon: Icons.logout,
                 text: 'Logout',
@@ -232,26 +266,26 @@ class _SideMenuState extends State<SideMenu> {
     bool isActive = Get.currentRoute == route;
     
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: _isExpanded ? 0 : 8),
+      padding: EdgeInsets.symmetric(horizontal: _isExpanded ? 0 : 8 * _scaleFactor),
       child: SizedBox(
-        height: 56,
+        height: 56 * _scaleFactor,
         child: Material(
           color: isActive ? AppColors.lightBlue : AppColors.transparent,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(15 * _scaleFactor),
           child: InkWell(
             onTap: onTap,
             hoverColor: AppColors.lightBlue,
             highlightColor: AppColors.lightBlue,
             splashColor: AppColors.lightBlue.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15 * _scaleFactor),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8 * _scaleFactor),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _isExpanded
                       ? SizedBox(
-                          width: 56,
+                          width: 56 * _scaleFactor,
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: isSwitch
@@ -262,7 +296,7 @@ class _SideMenuState extends State<SideMenu> {
                                   )
                                 : Icon(
                                     icon,
-                                    size: 30,
+                                    size: 30 * _scaleFactor,
                                     color: AppColors.textColor1,
                                   ),
                           ),
@@ -275,15 +309,29 @@ class _SideMenuState extends State<SideMenu> {
                                     onChanged: onChanged,
                                     activeColor: AppColors.logo,
                                   )
-                                : Icon(
-                                    icon,
-                                    size: 30,
-                                    color: AppColors.textColor1,
+                                : Tooltip(
+                                    message: text,
+                                    padding: EdgeInsets.all(8 * _scaleFactor),
+                                    textStyle: TextStyle(
+                                      fontSize: 14 * _scaleFactor,
+                                      color: AppColors.textColor2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.pageBackground,
+                                      borderRadius: BorderRadius.circular(4 * _scaleFactor),
+                                    ),
+                                    preferBelow: false,
+                                    verticalOffset: 10 * _scaleFactor,
+                                    child: Icon(
+                                      icon,
+                                      size: 30 * _scaleFactor,
+                                      color: AppColors.textColor1,
+                                    ),
                                   ),
                           ),
                         ),
                   if (_isExpanded && !isSwitch) ...[
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12 * _scaleFactor),
                     Expanded(
                       child: AnimatedOpacity(
                         opacity: _isExpanded ? 1.0 : 0.0,
@@ -293,10 +341,10 @@ class _SideMenuState extends State<SideMenu> {
                           maxLines: 1,
                           softWrap: false,
                           overflow: TextOverflow.fade,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Roboto',
-                            fontSize: 28,
-                            color: Color(0xFF49454F),
+                            fontSize: 28 * _scaleFactor,
+                            color: AppColors.textColor2,
                           ),
                         ),
                       ),
@@ -313,7 +361,7 @@ class _SideMenuState extends State<SideMenu> {
 
   Widget _buildDarkModeSwitch() {
     return SizedBox(
-      height: 56,
+      height: 56 * _scaleFactor,
       child: InkWell(
         onTap: () => setState(() => _darkMode = !_darkMode),
         child: Row(
@@ -321,7 +369,7 @@ class _SideMenuState extends State<SideMenu> {
           children: [
             _isExpanded
                 ? SizedBox(
-                    width: 56,
+                    width: 56 * _scaleFactor,
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Switch(
@@ -341,17 +389,17 @@ class _SideMenuState extends State<SideMenu> {
                     ),
                   ),
             if (_isExpanded) ...[
-              const SizedBox(width: 12),
+              SizedBox(width: 12 * _scaleFactor),
               Expanded(
                 child: AnimatedOpacity(
                   opacity: _isExpanded ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeInOut,
-                  child: const Text(
+                  child: Text(
                     'Tryb ciemny',
                     style: TextStyle(
                       fontFamily: 'Roboto',
-                      fontSize: 28,
+                      fontSize: 28 * _scaleFactor,
                       color: AppColors.textColor2,
                     ),
                     overflow: TextOverflow.ellipsis,

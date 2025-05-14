@@ -30,25 +30,27 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
   final ValueNotifier<bool> hasChanges = ValueNotifier(false);
 
   @override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  for (var field in widget.fields) {
-    if (field is DropdownDialogField) {
-      field.onInternalChanged = () {
-        hasChanges.value = true;
-      };
-    } else if (field is MultiSelectDialogField) {
-      field.onInternalChanged = () {
-        hasChanges.value = true;
-      };
-    } else {
-      field.controller?.addListener(() {
-        hasChanges.value = true;
-      });
+    void processField(DialogInputField field) {
+      if (field is DropdownDialogField) {
+        field.onInternalChanged = () => hasChanges.value = true;
+      } else if (field is MultiSelectDialogField) {
+        field.onInternalChanged = () => hasChanges.value = true;
+      } else if (field is RowDialogField) {
+        for (var child in field.children) {
+          processField(child);
+        }
+      } else if (field.controller != null) {
+        field.controller?.addListener(() => hasChanges.value = true);
+      }
+    }
+
+    for (var field in widget.fields) {
+      processField(field);
     }
   }
-}
 
   @override
   void dispose() {
@@ -92,52 +94,65 @@ void initState() {
                 ),
               Padding(
                 padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    ...widget.fields.map((field) => _buildInputField(field)),
-                    const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: widget.actions
-                          .map((action) => Padding(
-                                padding: const EdgeInsets.only(left: 16.0),
-                                child: SizedBox(
-                                  width: 109,
-                                  height: 40,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      action.onPressed();
-                                      hasChanges.value = false;
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: action.backgroundColor,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(100),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      action.label,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: action.textColor,
-                                      ),
-                                    ),
-                                  ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.title,
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w400,
                                 ),
-                              ))
-                          .toList(),
-                    ),
-                  ],
+                              ),
+                              const SizedBox(height: 40),
+                              ...widget.fields.map((field) => _buildInputField(field)),
+                              const Spacer(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: widget.actions
+                                    .map((action) => Padding(
+                                          padding: const EdgeInsets.only(left: 16.0),
+                                          child: SizedBox(
+                                            width: 109,
+                                            height: 40,
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                action.onPressed();
+                                                hasChanges.value = false;
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: action.backgroundColor,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(100),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                action.label,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: action.textColor,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -155,6 +170,8 @@ void initState() {
         return _buildDropdownField(field as DropdownDialogField);
       case DialogInputType.multiSelect:
         return _buildMultiSelectField(field as MultiSelectDialogField);
+      case DialogInputType.row:
+        return _buildRowField(field as RowDialogField);
       default:
         return _buildTextField(field);
     }
@@ -180,7 +197,7 @@ void initState() {
             decoration: InputDecoration(
               filled: true,
               fillColor: AppColors.white,
-              hoverColor: Colors.transparent,
+              hoverColor: AppColors.transparent,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(28),
                 borderSide: BorderSide.none,
@@ -246,7 +263,7 @@ void initState() {
             decoration: InputDecoration(
               filled: true,
               fillColor: AppColors.white,
-              hoverColor: Colors.transparent,
+              hoverColor: AppColors.transparent,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(28),
                 borderSide: BorderSide.none,
@@ -287,7 +304,6 @@ void initState() {
       barrierDismissible: false,
     );
   }
-}
 
   Widget _buildMultiSelectField(MultiSelectDialogField field) {
     return Column(
@@ -317,7 +333,25 @@ void initState() {
     );
   }
 
-enum DialogInputType { text, dropdown, multiSelect }
+  Widget _buildRowField(RowDialogField field) {
+    return Column(
+      children: [
+        Row(
+          children: field.children
+              .map((child) => Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: _buildInputField(child),
+                    ),
+                  ))
+              .toList(),
+        ),
+      ],
+    );
+  }
+}
+
+enum DialogInputType { text, dropdown, multiSelect, row }
 
 class DialogInputField {
   final String label;
@@ -397,4 +431,15 @@ class MultiSelectDialogField extends DialogInputField {
           label: label,
           type: DialogInputType.multiSelect,
         );
+}
+
+class RowDialogField extends DialogInputField {
+  final List<DialogInputField> children;
+  
+  RowDialogField({
+    required this.children,
+  }) : super(
+    label: '',
+    type: DialogInputType.row,
+  );
 }
