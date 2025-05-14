@@ -1,3 +1,7 @@
+/// THIS IS THE OLD METHOD
+/// TO DO: move current implementation from employee_managemnt to here
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

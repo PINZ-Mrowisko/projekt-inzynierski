@@ -183,7 +183,7 @@ class TagsController extends GetxController {
       for (final user in userController.allEmployees.where((u) => u.tags.contains(tagName))) {
         final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
         batch.update(userRef, {
-          'tags': FieldValue.arrayRemove([tagId]),
+          'tags': FieldValue.arrayRemove([tagName]),
           'updatedAt': Timestamp.now()
         });
       }

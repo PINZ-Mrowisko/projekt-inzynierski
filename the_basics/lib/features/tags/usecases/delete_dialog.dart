@@ -25,6 +25,7 @@ void confirmDeleteTag(TagsController controller, String tagId, String tagName) {
       confirmButtonColor: AppColors.warning,
       confirmTextColor: Colors.white,
       onConfirm: () async {
+        // should delete tag from employees too
         await controller.deleteTag(tagId, tagName);
         Get.back();
         Get.back();

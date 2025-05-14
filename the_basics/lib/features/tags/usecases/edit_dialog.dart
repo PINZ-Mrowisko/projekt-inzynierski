@@ -135,6 +135,7 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
                           width: 109,
                           height: 40,
                           child: ElevatedButton(
+                            /// DELETING LOGIC
                             onPressed: () => confirmDeleteTag(controller, tag.id, tag.tagName),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
@@ -165,9 +166,11 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
                                     description: descController.text,
                                     updatedAt: DateTime.now()
                                 );
-                                await controller.updateTag(updatedTag);
-                                Get.back();
+                                await controller.updateTagAndUsers(tag, updatedTag);
+
+                                Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
                               });
+
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.blue,

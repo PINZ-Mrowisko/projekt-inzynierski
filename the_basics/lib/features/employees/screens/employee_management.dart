@@ -1,24 +1,32 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
-import 'package:the_basics/features/tags/controllers/tags_controller.dart';
-import 'package:the_basics/features/employees/controllers/user_controller.dart';
+
+import '../../../utils/app_colors.dart';
+import '../../../utils/common_widgets/confirmation_dialog.dart';
+import '../../../utils/common_widgets/custom_button.dart';
+import '../../../utils/common_widgets/form_dialog.dart';
+import '../../../utils/common_widgets/generic_list.dart';
+import '../../../utils/common_widgets/multi_select_dropdown.dart';
+import '../../../utils/common_widgets/notification_snackbar.dart';
+import '../../../utils/common_widgets/search_bar.dart';
 import '../../../utils/common_widgets/side_menu.dart';
-import '../../employees/usecases/add_dialog.dart';
-import '../../employees/usecases/delete_dialog.dart';
-import '../../employees/usecases/edit_dialog.dart';
+import '../../tags/controllers/tags_controller.dart';
+import '../controllers/user_controller.dart';
+
 
 class EmployeeManagementPage extends StatelessWidget {
-  EmployeeManagementPage({super.key});
-
-  final UserController userController = Get.find();
-  final TagsController tagsController = Get.find();
+  const EmployeeManagementPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    print("All tags: ${tagsController.allTags.map((e) => e.tagName)}");
+    final userController = Get.find<UserController>();
+    final tagsController = Get.find<TagsController>();
+    final selectedTags = <String>[].obs;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.pageBackground,
       body: Row(
         children: [
           Padding(
@@ -26,153 +34,443 @@ class EmployeeManagementPage extends StatelessWidget {
             child: const SideMenu(),
           ),
           Expanded(
-            child: Column(
-              children: [
-                // add a temp refresh button to pull all employees in
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: () => userController.fetchAllEmployees(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 80,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Pracownicy',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.logo,
+                          ),
+                        ),
+                        const Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: _buildTagFilterDropdown(tagsController, selectedTags),
+                        ),
+                        const SizedBox(width: 16),
+                        _buildSearchBar(),
+                        const SizedBox(width: 16),
+                        _buildAddEmployeeButton(context, userController),
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildEmployeeList(),
-                ),
-              ],
+                  Expanded(
+                    child: Obx(() {
+                      if (userController.isLoading.value) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (userController.errorMessage.value.isNotEmpty) {
+                        return Center(child: Text(userController.errorMessage.value));
+                      }
+                      if (userController.allEmployees.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Brak dostępnych pracowników'),
+                              ElevatedButton(
+                                onPressed: () => _showAddEmployeeDialog(context, userController),
+                                child: const Text('Dodaj pierwszego pracownika'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      return _buildEmployeesList(context, userController);
+                    }),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
-      /// add new employees
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.dialog(AddEmployeeDialog()),
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
-  Widget _buildEmployeeList() {
-    return Obx(() {
-      if (userController.isLoading.value && userController.allEmployees.isEmpty) {
-        return const Center(child: CircularProgressIndicator());
-      }
+  //need to implement actual logic
+  Widget _buildTagFilterDropdown(TagsController tagsController, RxList<String> selectedTags) {
+    return Obx(() => CustomMultiSelectDropdown(
+      items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+      selectedItems: selectedTags,
+      onSelectionChanged: (selected) {
+        selectedTags.assignAll(selected);
+      },
+      hintText: 'Filtruj po tagach',
+      width: 360,
+      leadingIcon: Icons.filter_alt_outlined,
+    ));
+  }
 
-      if (userController.allEmployees.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('No employees found'),
-              const SizedBox(height: 16),
+  Widget _buildAddEmployeeButton(BuildContext context, UserController controller) {
+    return CustomButton(
+      text: 'Dodaj Pracownika',
+      icon: Icons.add,
+      width: 184,
+      onPressed: () => _showAddEmployeeDialog(context, controller),
+    );
+  }
 
-            ],
+  //need to implement logic
+  Widget _buildSearchBar() {
+    return const CustomSearchBar(
+      hintText: 'Wyszukaj pracownika',
+    );
+  }
+
+  Widget _buildEmployeesList(BuildContext context, UserController controller) {
+    return GenericList<UserModel>(
+      items: controller.allEmployees,
+      onItemTap: (employee) => _showEditEmployeeDialog(context, controller, employee),
+      itemBuilder: (context, employee) {
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
           ),
+          title: Text(
+            '${employee.firstName} ${employee.lastName}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textColor1,
+            ),
+          ),
+          subtitle: _buildEmployeeTags(employee.tags),
         );
-      }
+      },
+    );
+  }
 
-      return RefreshIndicator(
-        onRefresh: () => userController.fetchAllEmployees(),
-        child: ListView.builder(
-          padding: const EdgeInsets.only(bottom: 80),
-          itemCount: userController.allEmployees.length,
-          itemBuilder: (context, index) {
-            final employee = userController.allEmployees[index];
-            return _buildEmployeeCard(employee);
-          },
+  Widget _buildEmployeeTags(List<String> tags) {
+    if (tags.isEmpty) {
+      return const Text(
+        'Brak tagów',
+        style: TextStyle(
+          fontSize: 14,
+          color: AppColors.textColor2,
         ),
       );
-    });
-  }
+    }
 
-  Widget _buildEmployeeCard(UserModel employee) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: InkWell(
-        onTap: () {}, // Add navigation to employee details if needed
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-            Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${employee.firstName} ${employee.lastName}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              PopupMenuButton(
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Text('Edit'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Text('Delete', style: TextStyle(color: Colors.red)),
-                  ),
-                ],
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    Get.dialog(EditEmployeeDialog(employee: employee));
-                  } else if (value == 'delete') {
-                    showConfirmDeleteDialog(employee.id);
-                  }
-                },
-              ),
-            ],
-          ),
-
-              const SizedBox(height: 8),
-              Text(employee.id),
-              const SizedBox(height: 4),
-              Text('Contract: ${employee.contractType}'),
-              const SizedBox(height: 4),
-              Text('Max hours: ${employee.maxWeeklyHours}'),
-              const SizedBox(height: 8),
-              _buildTagsChips(employee.tags),
-            ],
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: tags.map((tag) => RawChip(
+        label: Text(
+          tag,
+          style: const TextStyle(
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            height: 1.33,
+            letterSpacing: 0.5,
+            color: AppColors.textColor2,
           ),
         ),
-      ),
+        backgroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(
+            color: Color(0xFFCAC4D0),
+            width: 1,
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      )).toList(),
     );
   }
 
-  Widget _buildTagsChips(List<String> tagIds) {
-    return Obx(() {
-      if (tagsController.isLoading.value) {
-        return const CircularProgressIndicator();
-      }
+  void _showAddEmployeeDialog(BuildContext context, UserController userController) {
+    final firstNameController = TextEditingController();
+    final lastNameController = TextEditingController();
+    final emailController = TextEditingController();
+    final phoneController = TextEditingController();
+    final hoursController = TextEditingController(text: '40');
 
-      // Handle empty/null cases
-      if (tagIds.isEmpty) {
-        return const Chip(
-          label: Text('No tags'),
-          backgroundColor: Colors.red,
-        );
-      }
+    final selectedTags = <String>[].obs;
+    final tagsController = Get.find<TagsController>();
 
+    final contractType = RxnString();
+    final shiftPreference = RxnString();
 
-      return Wrap(
-        spacing: 4,
-        children: tagIds.map((tagId) {
-          final tag = tagsController.allTags.firstWhereOrNull(
-                (t) => t.tagName == tagId,
+    final fields = [
+      RowDialogField(children: [
+        DialogInputField(label: 'Imię', controller: firstNameController),
+        DialogInputField(label: 'Nazwisko', controller: lastNameController),
+      ]),
+
+      RowDialogField(children: [
+        DialogInputField(label: 'Email', controller: emailController),
+        DialogInputField(label: 'Numer telefonu', controller: phoneController),
+      ]),
+
+      RowDialogField(children: [
+        DropdownDialogField(
+          label: 'Typ umowy o pracę',
+          hintText: 'Wybierz typ umowy...',
+          items: [
+            DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
+            DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
+          ],
+          onChanged: (value) => contractType.value = value,
+        ),
+        DialogInputField(
+          label: 'Maksymalna ilość godzin tygodniowo',
+          controller: hoursController,
+        ),
+      ]),
+
+      DropdownDialogField(
+        label: 'Preferencje zmian',
+        hintText: 'Wybierz preferencje...',
+        items: [
+          DropdownItem(value: 'Poranne', label: 'Poranne'),
+          DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
+          DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
+        ],
+        onChanged: (value) => shiftPreference.value = value,
+      ),
+
+      MultiSelectDialogField(
+        label: 'Tagi',
+        items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+        selectedItems: selectedTags,
+        onSelectionChanged: (selected) {
+          selectedTags.assignAll(selected);
+        },
+        width: double.infinity,
+      )
+    ];
+
+    final actions = [
+      DialogActionButton(
+        label: 'Dodaj',
+        onPressed: () async {
+          if (firstNameController.text.isEmpty ||
+              lastNameController.text.isEmpty ||
+              emailController.text.isEmpty ||
+              contractType.value == null) {
+            showCustomSnackbar(context, 'Wypełnij wszystkie wymagane pola');
+            return;
+          }
+
+          final userId = FirebaseFirestore.instance.collection('Users').doc().id;
+          final newEmployee = UserModel(
+            id: userId,
+            firstName: firstNameController.text,
+            lastName: lastNameController.text,
+            email: emailController.text,
+            marketId: userController.employee.value.marketId,
+            phoneNumber: phoneController.text,
+            contractType: contractType.value!,
+            maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
+            shiftPreference: shiftPreference.value ?? 'Brak preferencji',
+            tags: selectedTags.toList(),
+            isDeleted: false,
+            insertedAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           );
-          return tag != null
-              ? Chip(
-            label: Text(tag.tagName),
-            backgroundColor: Colors.blue[50],
-          )
-          : Container();
-        }).toList(),
-      );
-    });
+
+          try {
+            Get.back();
+            await userController.addNewEmployee(newEmployee);
+            Get.back();
+            showCustomSnackbar(context, 'Pracownik został pomyślnie dodany.');
+          } catch (e) {
+            Get.back();
+            showCustomSnackbar(context, 'Nie udało się dodać pracownika: ${e.toString()}');
+          }
+        },
+      ),
+    ];
+
+    Get.dialog(
+        CustomFormDialog(
+          title: 'Dodaj nowego Pracownika',
+          fields: fields,
+          actions: actions,
+          onClose: Get.back,
+          height: 750,
+          width: 700,
+        ),
+        barrierDismissible: false
+    );
   }
 
+  void _showEditEmployeeDialog(BuildContext context, UserController userController, UserModel employee) {
+    final firstNameController = TextEditingController(text: employee.firstName);
+    final lastNameController = TextEditingController(text: employee.lastName);
+    final emailController = TextEditingController(text: employee.email);
+    final phoneController = TextEditingController(text: employee.phoneNumber);
+    final hoursController = TextEditingController(text: employee.maxWeeklyHours.toString());
 
+    final selectedTags = <String>[].obs..addAll(employee.tags);
+    final tagsController = Get.find<TagsController>();
+
+    final contractType = RxnString(employee.contractType);
+    final shiftPreference = RxnString(employee.shiftPreference);
+
+    final fields = [
+      RowDialogField(children: [
+        DialogInputField(label: 'Imię', controller: firstNameController),
+        DialogInputField(label: 'Nazwisko', controller: lastNameController),
+      ]),
+
+      RowDialogField(children: [
+        DialogInputField(label: 'Email', controller: emailController),
+        DialogInputField(label: 'Numer telefonu', controller: phoneController),
+      ]),
+
+      RowDialogField(children: [
+        DropdownDialogField(
+          label: 'Typ umowy o pracę',
+          selectedValue: contractType.value,
+          hintText: 'Wybierz typ umowy...',
+          items: [
+            DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
+            DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
+          ],
+          onChanged: (value) => contractType.value = value,
+        ),
+        DialogInputField(
+          label: 'Maksymalna ilość godzin tygodniowo',
+          controller: hoursController,
+        ),
+      ]),
+
+      DropdownDialogField(
+        label: 'Preferencje zmian',
+        selectedValue: shiftPreference.value,
+        hintText: 'Wybierz preferencje...',
+        items: [
+          DropdownItem(value: 'Poranne', label: 'Poranne'),
+          DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
+          DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
+        ],
+        onChanged: (value) => shiftPreference.value = value,
+      ),
+
+      MultiSelectDialogField(
+        label: 'Tagi',
+        items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+        selectedItems: selectedTags,
+        onSelectionChanged: (selected) {
+          selectedTags.assignAll(selected);
+        },
+        width: double.infinity,
+      )
+    ];
+
+    final actions = [
+      DialogActionButton(
+        label: 'Usuń',
+        backgroundColor: AppColors.warning,
+        textColor: AppColors.white,
+        onPressed: () => _confirmDeleteEmployee(userController, employee.id, employee.firstName),
+      ),
+      DialogActionButton(
+        label: 'Zapisz',
+        onPressed: () {
+          try {
+            if (firstNameController.text.isEmpty ||
+                lastNameController.text.isEmpty ||
+                emailController.text.isEmpty) {
+              showCustomSnackbar(context, 'Wypełnij wszystkie wymagane pola');
+              return;
+            }
+
+            _showSaveConfirmationDialog(() async {
+              try {
+                final updatedEmployee = employee.copyWith(
+                  firstName: firstNameController.text,
+                  lastName: lastNameController.text,
+                  email: emailController.text,
+                  phoneNumber: phoneController.text,
+                  contractType: contractType.value,
+                  maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
+                  shiftPreference: shiftPreference.value,
+                  tags: selectedTags.toList(),
+                );
+                Get.back();
+                await userController.updateEmployee(updatedEmployee);
+                Get.back();
+                showCustomSnackbar(context, 'Zmiany zostały zapisane.');
+              } catch (e) {
+                showCustomSnackbar(
+                    context,
+                    'Nie udało się zapisać zmian: ${e.toString()}'
+                );
+              }
+            });
+          } catch (e) {
+            showCustomSnackbar(context, 'Wystąpił nieoczekiwany błąd',);
+          }
+        },
+      ),
+    ];
+
+    Get.dialog(
+        CustomFormDialog(
+          title: 'Edytuj Pracownika',
+          fields: fields,
+          actions: actions,
+          onClose: Get.back,
+          height: 750,
+          width: 700,
+        ),
+        barrierDismissible: false
+    );
+  }
+
+  void _confirmDeleteEmployee(UserController controller, String employeeId, String employeeName) {
+    Get.dialog(
+      ConfirmationDialog(
+        title: 'Czy na pewno chcesz usunąć pracownika "$employeeName"?',
+        confirmText: 'Usuń',
+        cancelText: 'Anuluj',
+        confirmButtonColor: AppColors.warning,
+        confirmTextColor: AppColors.white,
+        onConfirm: () async {
+          try {
+            Get.back();
+            await controller.deleteEmployee(employeeId);
+            Get.back();
+            showCustomSnackbar(Get.context!, 'Pracownik został pomyślnie usunięty.');
+          } catch (e) {
+            Get.back();
+            showCustomSnackbar(
+                Get.context!,
+                'Błąd podczas usuwania pracownika: ${e.toString()}'
+            );
+          }
+        },
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  void _showSaveConfirmationDialog(VoidCallback onConfirmSave) {
+    Get.dialog(
+      ConfirmationDialog(
+        title: 'Czy chcesz zatwierdzić zmiany?',
+        confirmText: 'Zatwierdź',
+        cancelText: 'Anuluj',
+        onConfirm: onConfirmSave,
+      ),
+      barrierDismissible: false,
+    );
+  }
 }

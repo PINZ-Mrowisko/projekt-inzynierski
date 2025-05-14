@@ -198,13 +198,13 @@ class AuthRepo extends GetxController {
 
   /// TOKEN MANAGEMENT
 
-  Future<void> _persistToken(String token) async {
-    await _prefs.setString('auth_token', token);
-  }
-
-  Future<String?> _getStoredToken() async {
-    return await _prefs.getString('auth_token');
-  }
+  // Future<void> _persistToken(String token) async {
+  //   await _prefs.setString('auth_token', token);
+  // }
+  //
+  // Future<String?> _getStoredToken() async {
+  //   return await _prefs.getString('auth_token');
+  // }
 
   static Future<User?> getFirebaseUser() async {
     User? firebaseUser = await FirebaseAuth.instance.currentUser;
@@ -229,10 +229,10 @@ class AuthRepo extends GetxController {
       final currUser = getFirebaseUser();
 
       // check Firebases native token (auto-refreshed by SDK)
-      if (currUser != null) {
-        //print('User already authenticated');
-        return true;
-      }
+      // if (currUser != null) {
+      //   //print('User already authenticated');
+      //   return true;
+      // }
 
       //final token = await _getStoredToken();
       //print('Retrieved token: ${token != null ? "[exists]" : "null"}');
