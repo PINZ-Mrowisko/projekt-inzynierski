@@ -100,17 +100,24 @@ class EmployeeManagementPage extends StatelessWidget {
 
   //need to implement actual logic
   Widget _buildTagFilterDropdown(TagsController tagsController, RxList<String> selectedTags) {
-    return Obx(() => CustomMultiSelectDropdown(
+  return Obx(() {
+    double screenWidth = MediaQuery.of(Get.context!).size.width;
+    double dropdownWidth = screenWidth * 0.2;
+    if (dropdownWidth > 360) dropdownWidth = 360;
+
+    return CustomMultiSelectDropdown(
       items: tagsController.allTags.map((tag) => tag.tagName).toList(),
       selectedItems: selectedTags,
       onSelectionChanged: (selected) {
         selectedTags.assignAll(selected);
       },
       hintText: 'Filtruj po tagach',
-      width: 360,
+      width: dropdownWidth,
       leadingIcon: Icons.filter_alt_outlined,
-    ));
-  }
+    );
+  });
+}
+
 
   Widget _buildAddEmployeeButton(BuildContext context, UserController controller) {
     return CustomButton(
@@ -123,10 +130,16 @@ class EmployeeManagementPage extends StatelessWidget {
 
   //need to implement logic
   Widget _buildSearchBar() {
-    return const CustomSearchBar(
-      hintText: 'Wyszukaj pracownika',
-    );
-  }
+  double screenWidth = MediaQuery.of(Get.context!).size.width;
+  double searchBarWidth = screenWidth * 0.2;
+  if (searchBarWidth > 360) searchBarWidth = 360;
+
+  return CustomSearchBar(
+    hintText: 'Wyszukaj pracownika',
+    width: searchBarWidth,
+  );
+}
+
 
   Widget _buildEmployeesList(BuildContext context, UserController controller) {
     return GenericList<UserModel>(
