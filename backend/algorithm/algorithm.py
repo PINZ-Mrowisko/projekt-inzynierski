@@ -59,29 +59,28 @@ def main():
             female_assigned = []
 
             for worker in workers:
-                assigned_vars = [
+                group_b = [role for role in worker.tags if role.name != "kierownik"]
+
+                if not group_b:
+                    continue
+
+                non_kierownik_assignments = [
                     all_shifts[(worker, day, shift, role)]
-                    for role in worker.tags
+                    for role in group_b
                 ]
+                is_non_kierownik_assigned = model.NewBoolVar(f"{worker}_{day}_{shift}_assigned_non_kierownik")
+                model.AddMaxEquality(is_non_kierownik_assigned, non_kierownik_assignments)
+
+                worker_assigned.append(is_non_kierownik_assigned)
 
                 if worker.sex == 'male':
-                    male_assigned.extend([
-                        all_shifts[(worker, day, shift, role)]
-                        for role in worker.tags
-                    ])
+                    male_assigned.append(is_non_kierownik_assigned)
                 else:
-                    female_assigned.extend([
-                        all_shifts[(worker, day, shift, role)]
-                        for role in worker.tags
-                    ])
+                    female_assigned.append(is_non_kierownik_assigned)
 
-                is_assigned = model.NewBoolVar(f"{worker}_{day}_{shift}_assigned")
-                model.AddMaxEquality(is_assigned, assigned_vars)
-                worker_assigned.append(is_assigned)
-
-            model.Add(sum(worker_assigned) >= 6)
-            model.Add(sum(worker_assigned) <= 7)
-            model.Add(sum(male_assigned) >= 3)
+            model.Add(sum(worker_assigned) >= constraints.min_num_workers)
+            model.Add(sum(worker_assigned) <= constraints.max_num_workers)
+            model.Add(sum(male_assigned) >= constraints.male_number[0])
             model.Add(sum(female_assigned) >= constraints.female_number[0])
             model.Add(sum(female_assigned) <= constraints.female_number[1])
             model.Add(sum(male_assigned) <= constraints.male_number[1])
