@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../features/auth/screens/verify_email.dart';
-import '../../../features/schedules/controllers/tags_controller.dart';
-import '../../../features/schedules/controllers/user_controller.dart';
+import '../../../features/tags/controllers/tags_controller.dart';
+import '../../../features/employees/controllers/user_controller.dart';
 import '../../../features/schedules/screens/before_login/home_page.dart';
 import '../../../features/schedules/screens/after_login/main_calendar.dart';
 import '../exceptions.dart';
@@ -13,8 +13,13 @@ import '../exceptions.dart';
 class AuthRepo extends GetxController {
   static AuthRepo get instance => Get.find();
 
-  final deviceStorage = GetStorage();
-  final _auth = FirebaseAuth.instance; //get the instance initialized from mian
+  final _auth = FirebaseAuth.instance; //get the instance initialized from main
+
+  /// get a sharedPreferences instane - we use it to store user tokens after login
+  final SharedPreferences _prefs;
+
+  // try this - if doesnt work change later
+  AuthRepo(this._prefs);
 
   /// get auth user data
   User? get authUser => _auth.currentUser;
@@ -100,6 +105,8 @@ class AuthRepo extends GetxController {
     try {
       // the current authenticated user that just registered will by recalled by the firebase instance
       return _auth.currentUser?.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      throw MyFirebaseException(e.code).message;
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -111,9 +118,30 @@ class AuthRepo extends GetxController {
     }
   }
 
-  Future<UserCredential> loginWithEmailAndPassword(String mail, String password) async {
+  Future<UserCredential> loginWithEmailAndPassword(String mail, String password, bool rememberMe) async {
     try {
-      return await _auth.signInWithEmailAndPassword(email: mail, password: password);
+
+
+      await FirebaseAuth.instance.setPersistence(
+        rememberMe ? Persistence.LOCAL : Persistence.SESSION,
+      );
+
+      final userCredential = await _auth.signInWithEmailAndPassword(email: mail, password: password);
+
+      //print('Remember me enabled: $rememberMe');
+      if(rememberMe) {
+        await _prefs.setBool("remember_me", true);
+
+        //final token = await userCredential.user!.getIdToken();
+        //print('Obtained token: ${token != null ? "[exists]" : "null"}');
+        // if(token != null){
+        //   await _persistToken(token);
+        // }
+      }
+
+      return userCredential;
+    }on FirebaseAuthException catch (e) {
+      throw MyFirebaseException(e.code).message;
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -128,9 +156,15 @@ class AuthRepo extends GetxController {
   /// LOGOUT
   Future<void> logout() async {
     try {
+      /// remove saved prefs if user chooses a manual log out
+      await _prefs.remove('remember_me');
+      await _prefs.remove('auth_token');
+
       await FirebaseAuth.instance.signOut();
       // logout and show the home page
       Get.offAll(() => HomePage());
+    } on FirebaseAuthException catch (e) {
+      throw MyFirebaseException(e.code).message;
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -139,6 +173,80 @@ class AuthRepo extends GetxController {
       throw MyPlatformException(e.code).message;
     } catch (e) {
       throw 'Coś poszło nie tak :(';
+    }
+  }
+
+
+  /// RESET PSWD
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw MyFirebaseException(e.code).message;
+    }on FirebaseException catch (e) {
+      throw MyFirebaseException(e.code).message;
+    } on FormatException catch (_) {
+      throw const MyFormatException();
+    } on PlatformException catch (e) {
+      throw MyPlatformException(e.code).message;
+    } catch (e) {
+      throw 'Coś poszło nie tak :(';
+    }
+  }
+
+  /// HANDLE REMEMBER ME FEATURE
+
+  /// TOKEN MANAGEMENT
+
+  // Future<void> _persistToken(String token) async {
+  //   await _prefs.setString('auth_token', token);
+  // }
+  //
+  // Future<String?> _getStoredToken() async {
+  //   return await _prefs.getString('auth_token');
+  // }
+
+  static Future<User?> getFirebaseUser() async {
+    User? firebaseUser = await FirebaseAuth.instance.currentUser;
+    if (firebaseUser == null){
+      firebaseUser = await FirebaseAuth.instance.authStateChanges().first;
+    }
+    return firebaseUser;
+  }
+
+
+  Future<bool> tryAutoLogin() async {
+    try {
+      // check if "remember me" was enabled
+      final rememberMe = _prefs.getBool('remember_me') ?? false;
+      //print('Remember me status: $rememberMe');
+
+      if (!rememberMe) {
+        //print('Remember me disabled - skipping auto-login');
+        return false;
+      }
+
+      final currUser = getFirebaseUser();
+
+      // check Firebases native token (auto-refreshed by SDK)
+      // if (currUser != null) {
+      //   //print('User already authenticated');
+      //   return true;
+      // }
+
+      //final token = await _getStoredToken();
+      //print('Retrieved token: ${token != null ? "[exists]" : "null"}');
+
+      // if (token != null) {
+      //   await _auth.signInWithCustomToken(token);
+      //   return _auth.currentUser != null;
+      // }
+
+
+      return false;
+    } catch (e) {
+      await logout();
+      return false;
     }
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/features/schedules/controllers/user_controller.dart';
+import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import '/utils/app_colors.dart';
 
 class SideMenu extends StatefulWidget {

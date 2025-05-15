@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/other/tags_repo.dart';
-import 'package:the_basics/features/schedules/controllers/user_controller.dart';
-import 'package:the_basics/features/schedules/models/tags_model.dart';
+import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import 'package:the_basics/features/tags/models/tags_model.dart';
 
 class TagsController extends GetxController {
   static TagsController get instance => Get.find();
@@ -183,7 +183,7 @@ class TagsController extends GetxController {
       for (final user in userController.allEmployees.where((u) => u.tags.contains(tagName))) {
         final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
         batch.update(userRef, {
-          'tags': FieldValue.arrayRemove([tagId]),
+          'tags': FieldValue.arrayRemove([tagName]),
           'updatedAt': Timestamp.now()
         });
       }

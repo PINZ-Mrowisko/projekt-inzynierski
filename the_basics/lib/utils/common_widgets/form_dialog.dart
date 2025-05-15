@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/utils/common_widgets/confirmation_dialog.dart';
-import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
+
 import 'package:the_basics/utils/app_colors.dart';
+
+import 'confirmation_dialog.dart';
+import 'multi_select_dropdown.dart';
 
 class CustomFormDialog extends StatefulWidget {
   final String title;

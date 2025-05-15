@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/features/schedules/widgets/side_menu.dart';
-import '../../controllers/user_controller.dart';
+import '../../../../utils/common_widgets/side_menu.dart';
+import '../../../employees/controllers/user_controller.dart';
 
 class MainCalendar extends StatelessWidget {
   const MainCalendar({super.key});
