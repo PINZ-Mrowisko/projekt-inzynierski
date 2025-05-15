@@ -23,8 +23,8 @@ def divide_workers_by_tags(all_workers, all_tags):
 
 def RULE_working_tags_number(all_shifts, tag_groups, day, shift, tag, minimum, maximum):
     role_assignments = [
-        all_shifts[(cashier, day, shift, tag)]
-        for cashier in tag_groups[tag]
+        all_shifts[(worker, day, shift, tag)]
+        for worker in tag_groups[tag]
     ]
     model.add(sum(role_assignments) >= minimum)
     model.add(sum(role_assignments) <= maximum)
@@ -55,11 +55,25 @@ def main():
             RULE_working_tags_number(all_shifts, tag_groups, day, shift, tags[3], 1, 1)
 
             worker_assigned = []
+            male_assigned = []
+            female_assigned = []
+
             for worker in workers:
                 assigned_vars = [
                     all_shifts[(worker, day, shift, role)]
                     for role in worker.tags
                 ]
+
+                if worker.sex == 'male':
+                    male_assigned.extend([
+                        all_shifts[(worker, day, shift, role)]
+                        for role in worker.tags
+                    ])
+                else:
+                    female_assigned.extend([
+                        all_shifts[(worker, day, shift, role)]
+                        for role in worker.tags
+                    ])
 
                 is_assigned = model.NewBoolVar(f"{worker}_{day}_{shift}_assigned")
                 model.AddMaxEquality(is_assigned, assigned_vars)
@@ -67,6 +81,10 @@ def main():
 
             model.Add(sum(worker_assigned) >= 6)
             model.Add(sum(worker_assigned) <= 7)
+            model.Add(sum(male_assigned) >= 3)
+            model.Add(sum(female_assigned) >= constraints.female_number[0])
+            model.Add(sum(female_assigned) <= constraints.female_number[1])
+            model.Add(sum(male_assigned) <= constraints.male_number[1])
 
     for worker in workers:
         shifts_assigned = [
