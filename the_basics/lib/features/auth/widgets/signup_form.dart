@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:the_basics/features/auth/controllers/signup_controller.dart';
 import 'package:the_basics/utils/validators/validation.dart';
-import 'package:the_basics/features/schedules/widgets/custom_button.dart';
+import 'package:the_basics/utils/common_widgets/custom_button.dart';
 
 class MySignUpForm extends StatelessWidget {
   const MySignUpForm({super.key});

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:the_basics/features/auth/controllers/login_controller.dart';
+import 'package:the_basics/features/auth/screens/forget_pswd.dart';
 import 'package:the_basics/features/auth/screens/signup.dart';
 import 'package:the_basics/utils/validators/validation.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:the_basics/features/schedules/widgets/custom_button.dart';
+import 'package:the_basics/utils/common_widgets/custom_button.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -15,30 +16,35 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(LoginController());
 
-    return Scaffold(
-      backgroundColor: AppColors.pageBackground,
-      body: Center(
-        child: Container(
-          width: 400,
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(color: Colors.black12, blurRadius: 12, spreadRadius: 2),
-            ],
-          ),
-
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (bool didPop) async{
+        if (didPop) {controller.clearControllers();}
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.pageBackground,
+        body: Center(
+          child: Container(
+            width: 400,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(color: Colors.black12, blurRadius: 12, spreadRadius: 2),
+              ],
+            ),
+  
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-
+              mainAxisSize: MainAxisSize.min,
+  
             children: [
-              Form(
-                key: controller.loginFormKey,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Column(
-                    children: [
+                  Form(
+                  key: controller.loginFormKey,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      children: [
                       SvgPicture.asset(
                         'assets/mrowisko_logo_blue.svg',
                         height: 48,
@@ -56,7 +62,7 @@ class LoginPage extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
                       /// hasło
                       Obx(
@@ -84,54 +90,66 @@ class LoginPage extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                      /// funkcja remember me
-                      Row(
-                        children: [
-                          Obx(
-                            () => Checkbox(
-                              value: controller.rememberMe.value,
-                              onChanged:
-                                  (value) =>
-                                      controller.rememberMe.value =
-                                          !controller.rememberMe.value,
+                        /// funkcja remember me
+                        Row(
+                            children: [
+                            Obx(
+                              () => Checkbox(
+                                value: controller.rememberMe.value,
+                                onChanged:
+                                    (value) =>
+                                        controller.rememberMe.value =
+                                            !controller.rememberMe.value,
+                              ),
+                            ),
+                            Text("Pamiętaj mnie"),
+                          ],
+                        ),
+
+                        TextButton(
+                          onPressed: () => Get.to(() => ForgetPswd()),
+                          child: Text(
+                            'Zapomniales hasla?',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
                             ),
                           ),
-                          Text("Pamiętaj mnie"),
-                        ],
-                      ),
-                    ],
+                        )
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              // const SizedBox(height: 10),
-              CustomButton(
-                onPressed: () {
-                  controller.emailAndPasswordSignIn();
-                },
-                text: 'Zaloguj się',
-              ),
+                // const SizedBox(height: 10),
+                CustomButton(
+                  onPressed: () {
+                    controller.emailAndPasswordSignIn();
+                  },
+                  text: 'Zaloguj się',
+                ),
 
-              const SizedBox(height: 10),
-
+                const SizedBox(height: 10),
+  
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Nie masz konta? "),
                   TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => SignUpPage()),
-                      );
-                    },
-                    child: const Text("Zarejestruj się"),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignUpPage()),
+                        );
+                      },
+                      child: const Text("Zarejestruj się"),
                   ),
                 ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

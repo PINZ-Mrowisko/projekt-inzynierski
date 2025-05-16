@@ -1,7 +1,10 @@
+/// THIS IS THE OLD METHOD
+/// TO DO: move current implementation from employee_managemnt to here
+///
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../controllers/user_controller.dart';
+import '../controllers/user_controller.dart';
 
 void showConfirmDeleteDialog(String employeeId) {
   final userController = Get.find<UserController>();

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../schedules/widgets/navbar.dart';
+import '../../../utils/common_widgets/navbar.dart';
 import '../controllers/verify_email_controller.dart';
-import 'package:the_basics/features/schedules/widgets/custom_button.dart';
+import 'package:the_basics/utils/common_widgets/custom_button.dart';
 
 class VerifyEmailScreen extends StatelessWidget {
   const VerifyEmailScreen({super.key, this.email});

@@ -2,17 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
-import 'package:the_basics/features/schedules/controllers/tags_controller.dart';
-import 'package:the_basics/features/schedules/controllers/user_controller.dart';
-import 'package:the_basics/features/schedules/widgets/form_dialog.dart';
-import 'package:the_basics/features/schedules/widgets/multi_select_dropdown.dart';
-import 'package:the_basics/features/schedules/widgets/side_menu.dart';
-import 'package:the_basics/features/schedules/widgets/notification_snackbar.dart';
-import 'package:the_basics/utils/app_colors.dart';
-import 'package:the_basics/features/schedules/widgets/confirmation_dialog.dart';
-import 'package:the_basics/features/schedules/widgets/custom_button.dart';
-import 'package:the_basics/features/schedules/widgets/search_bar.dart';
-import 'package:the_basics/features/schedules/widgets/generic_list.dart';
+
+import '../../../utils/app_colors.dart';
+import '../../../utils/common_widgets/confirmation_dialog.dart';
+import '../../../utils/common_widgets/custom_button.dart';
+import '../../../utils/common_widgets/form_dialog.dart';
+import '../../../utils/common_widgets/generic_list.dart';
+import '../../../utils/common_widgets/multi_select_dropdown.dart';
+import '../../../utils/common_widgets/notification_snackbar.dart';
+import '../../../utils/common_widgets/search_bar.dart';
+import '../../../utils/common_widgets/side_menu.dart';
+import '../../tags/controllers/tags_controller.dart';
+import '../controllers/user_controller.dart';
+
 
 class EmployeeManagementPage extends StatelessWidget {
   const EmployeeManagementPage({super.key});
@@ -98,17 +100,24 @@ class EmployeeManagementPage extends StatelessWidget {
 
   //need to implement actual logic
   Widget _buildTagFilterDropdown(TagsController tagsController, RxList<String> selectedTags) {
-    return Obx(() => CustomMultiSelectDropdown(
+  return Obx(() {
+    double screenWidth = MediaQuery.of(Get.context!).size.width;
+    double dropdownWidth = screenWidth * 0.2;
+    if (dropdownWidth > 360) dropdownWidth = 360;
+
+    return CustomMultiSelectDropdown(
       items: tagsController.allTags.map((tag) => tag.tagName).toList(),
       selectedItems: selectedTags,
       onSelectionChanged: (selected) {
         selectedTags.assignAll(selected);
       },
       hintText: 'Filtruj po tagach',
-      width: 360,
+      width: dropdownWidth,
       leadingIcon: Icons.filter_alt_outlined,
-    ));
-  }
+    );
+  });
+}
+
 
   Widget _buildAddEmployeeButton(BuildContext context, UserController controller) {
     return CustomButton(
@@ -121,10 +130,16 @@ class EmployeeManagementPage extends StatelessWidget {
 
   //need to implement logic
   Widget _buildSearchBar() {
-    return const CustomSearchBar(
-      hintText: 'Wyszukaj pracownika',
-    );
-  }
+  double screenWidth = MediaQuery.of(Get.context!).size.width;
+  double searchBarWidth = screenWidth * 0.2;
+  if (searchBarWidth > 360) searchBarWidth = 360;
+
+  return CustomSearchBar(
+    hintText: 'Wyszukaj pracownika',
+    width: searchBarWidth,
+  );
+}
+
 
   Widget _buildEmployeesList(BuildContext context, UserController controller) {
     return GenericList<UserModel>(
@@ -133,7 +148,7 @@ class EmployeeManagementPage extends StatelessWidget {
       itemBuilder: (context, employee) {
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16, 
+            horizontal: 16,
             vertical: 12,
           ),
           title: Text(
@@ -209,12 +224,12 @@ class EmployeeManagementPage extends StatelessWidget {
         DialogInputField(label: 'Imię', controller: firstNameController),
         DialogInputField(label: 'Nazwisko', controller: lastNameController),
       ]),
-      
+
       RowDialogField(children: [
         DialogInputField(label: 'Email', controller: emailController),
         DialogInputField(label: 'Numer telefonu', controller: phoneController),
       ]),
-      
+
       RowDialogField(children: [
         DropdownDialogField(
           label: 'Typ umowy o pracę',
@@ -230,7 +245,7 @@ class EmployeeManagementPage extends StatelessWidget {
           controller: hoursController,
         ),
       ]),
-      
+
       DropdownDialogField(
         label: 'Preferencje zmian',
         hintText: 'Wybierz preferencje...',
@@ -241,7 +256,7 @@ class EmployeeManagementPage extends StatelessWidget {
         ],
         onChanged: (value) => shiftPreference.value = value,
       ),
-      
+
       MultiSelectDialogField(
         label: 'Tagi',
         items: tagsController.allTags.map((tag) => tag.tagName).toList(),
@@ -296,15 +311,15 @@ class EmployeeManagementPage extends StatelessWidget {
     ];
 
     Get.dialog(
-      CustomFormDialog(
-        title: 'Dodaj nowego Pracownika',
-        fields: fields,
-        actions: actions,
-        onClose: Get.back,
-        height: 750,
-        width: 700,
-      ),
-      barrierDismissible: false
+        CustomFormDialog(
+          title: 'Dodaj nowego Pracownika',
+          fields: fields,
+          actions: actions,
+          onClose: Get.back,
+          height: 750,
+          width: 700,
+        ),
+        barrierDismissible: false
     );
   }
 
@@ -326,12 +341,12 @@ class EmployeeManagementPage extends StatelessWidget {
         DialogInputField(label: 'Imię', controller: firstNameController),
         DialogInputField(label: 'Nazwisko', controller: lastNameController),
       ]),
-      
+
       RowDialogField(children: [
         DialogInputField(label: 'Email', controller: emailController),
         DialogInputField(label: 'Numer telefonu', controller: phoneController),
       ]),
-      
+
       RowDialogField(children: [
         DropdownDialogField(
           label: 'Typ umowy o pracę',
@@ -348,7 +363,7 @@ class EmployeeManagementPage extends StatelessWidget {
           controller: hoursController,
         ),
       ]),
-      
+
       DropdownDialogField(
         label: 'Preferencje zmian',
         selectedValue: shiftPreference.value,
@@ -360,7 +375,7 @@ class EmployeeManagementPage extends StatelessWidget {
         ],
         onChanged: (value) => shiftPreference.value = value,
       ),
-      
+
       MultiSelectDialogField(
         label: 'Tagi',
         items: tagsController.allTags.map((tag) => tag.tagName).toList(),
@@ -408,8 +423,8 @@ class EmployeeManagementPage extends StatelessWidget {
                 showCustomSnackbar(context, 'Zmiany zostały zapisane.');
               } catch (e) {
                 showCustomSnackbar(
-                  context, 
-                  'Nie udało się zapisać zmian: ${e.toString()}'
+                    context,
+                    'Nie udało się zapisać zmian: ${e.toString()}'
                 );
               }
             });
@@ -421,15 +436,15 @@ class EmployeeManagementPage extends StatelessWidget {
     ];
 
     Get.dialog(
-      CustomFormDialog(
-        title: 'Edytuj Pracownika',
-        fields: fields,
-        actions: actions,
-        onClose: Get.back,
-        height: 750,
-        width: 700,
-      ),
-      barrierDismissible: false
+        CustomFormDialog(
+          title: 'Edytuj Pracownika',
+          fields: fields,
+          actions: actions,
+          onClose: Get.back,
+          height: 750,
+          width: 700,
+        ),
+        barrierDismissible: false
     );
   }
 
@@ -450,8 +465,8 @@ class EmployeeManagementPage extends StatelessWidget {
           } catch (e) {
             Get.back();
             showCustomSnackbar(
-              Get.context!, 
-              'Błąd podczas usuwania pracownika: ${e.toString()}'
+                Get.context!,
+                'Błąd podczas usuwania pracownika: ${e.toString()}'
             );
           }
         },

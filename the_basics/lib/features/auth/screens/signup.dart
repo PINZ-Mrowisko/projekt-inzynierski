@@ -46,7 +46,8 @@ import 'package:the_basics/utils/validators/validation.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:the_basics/features/schedules/widgets/custom_button.dart';
+import 'package:the_basics/utils/common_widgets/custom_button.dart';
+
 
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});

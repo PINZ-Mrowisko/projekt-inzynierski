@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/utils/common_widgets/confirmation_dialog.dart';
-import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
+
 import 'package:the_basics/utils/app_colors.dart';
+
+import 'confirmation_dialog.dart';
+import 'multi_select_dropdown.dart';
 
 class CustomFormDialog extends StatefulWidget {
   final String title;
@@ -373,13 +375,14 @@ class DropdownDialogField extends DialogInputField {
   VoidCallback? onInternalChanged;
 
   DropdownDialogField({
-    required super.label,
+    required String label,
     required this.items,
     required this.onChanged,
     this.selectedValue,
     this.hintText = 'Wybierz opcję',
     this.onInternalChanged,
   }) : super(
+          label: label,
           type: DialogInputType.dropdown,
         );
 }
@@ -418,7 +421,7 @@ class MultiSelectDialogField extends DialogInputField {
   VoidCallback? onInternalChanged;
 
   MultiSelectDialogField({
-    required super.label,
+    required String label,
     required this.items,
     required this.selectedItems,
     required this.onSelectionChanged,
@@ -427,6 +430,7 @@ class MultiSelectDialogField extends DialogInputField {
     this.height = 56,
     this.onInternalChanged,
   }) : super(
+          label: label,
           type: DialogInputType.multiSelect,
         );
 }

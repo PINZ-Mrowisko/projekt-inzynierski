@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../features/schedules/models/tags_model.dart';
+import '../../../features/tags/models/tags_model.dart';
 import '../exceptions.dart';
 
 class TagsRepo extends GetxController {

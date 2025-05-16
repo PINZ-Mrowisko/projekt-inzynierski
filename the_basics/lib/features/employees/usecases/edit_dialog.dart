@@ -1,9 +1,12 @@
+/// THIS IS THE OLD METHOD
+/// TO DO: move current implementation from employee_managemnt to here
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../auth/models/user_model.dart';
-import '../../controllers/tags_controller.dart';
-import '../../controllers/user_controller.dart';
+import '../../auth/models/user_model.dart';
+import '../../tags/controllers/tags_controller.dart';
+import '../controllers/user_controller.dart';
 
 class EditEmployeeDialog extends StatelessWidget {
   final UserModel employee;
@@ -90,7 +93,24 @@ class EditEmployeeDialog extends StatelessWidget {
               tags: selectedTags.toList(),
             );
 
-            await userController.updateEmployee(updatedEmployee);
+            try {
+              // Show loading indicator
+              Get.dialog(
+                const Center(child: CircularProgressIndicator()),
+                barrierDismissible: false,
+              );
+              await userController.updateEmployee(updatedEmployee);
+
+              // close both dialogs (loading and add employee)
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // loading
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // confirmation
+
+            } catch (e){
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // close loading dialog if error occurs
+              Get.snackbar('Błąd', 'Nie udało się zaktualizować pracownika: ${e.toString()}');
+            }
+
+
             Get.back();
           },
           child: const Text('Zapisz zmiany'),
