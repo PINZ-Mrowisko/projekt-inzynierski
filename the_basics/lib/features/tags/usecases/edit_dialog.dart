@@ -49,16 +49,18 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
                       description: descController.text,
                       updatedAt: DateTime.now(),
                     );
-                    await controller.updateTag(updatedTag);
-                    Get.back();
-                    Get.back();
+
+
+                    await controller.updateTagAndUsers(tag, updatedTag);
+                    Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+
                     showCustomSnackbar(context, 'Zmiany zostały zapisane.');
                   } catch (e) {
                     showCustomSnackbar(context, 'Błąd podczas aktualizacji tagu: ${e.toString()}');
                   }
                 });
               } catch (e) {
-                showCustomSnackbar(context, 'Wystąpił nieoczekiwany błąd');
+                //showCustomSnackbar(context, 'Wystąpił nieoczekiwany błąd');
               }
             },
             backgroundColor: AppColors.blue,

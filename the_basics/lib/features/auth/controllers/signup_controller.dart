@@ -106,8 +106,6 @@ class SignUpController extends GetxController {
       final userRepo = Get.put(UserRepo());
       userRepo.saveUser(newUser);
 
-      // display a success msg with snackbar ??
-      //print("sukces");
       Get.to(() => VerifyEmailScreen(email: email.text.trim()));
 
       email.clear();
