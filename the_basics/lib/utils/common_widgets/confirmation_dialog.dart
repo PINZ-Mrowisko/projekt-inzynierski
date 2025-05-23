@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:the_basics/utils/app_colors.dart';
-
 import 'base_dialog.dart';
 
 class ConfirmationDialog extends StatelessWidget {
@@ -27,8 +26,8 @@ class ConfirmationDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseDialog(
       width: 551,
-      height: subtitle != null ? 350 : 300,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
