@@ -5,6 +5,9 @@ import 'package:the_basics/features/auth/controllers/login_controller.dart';
 import 'package:the_basics/features/auth/screens/forget_pswd.dart';
 import 'package:the_basics/features/auth/screens/signup.dart';
 import 'package:the_basics/utils/validators/validation.dart';
+import 'package:the_basics/utils/app_colors.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:the_basics/utils/common_widgets/custom_button.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -19,75 +22,79 @@ class LoginPage extends StatelessWidget {
         if (didPop) {controller.clearControllers();}
       },
       child: Scaffold(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: AppColors.pageBackground,
         body: Center(
           child: Container(
-            width: 300,
-            padding: const EdgeInsets.all(30),
+            width: 400,
+            padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
-                BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2),
+                BoxShadow(color: Colors.black12, blurRadius: 12, spreadRadius: 2),
               ],
             ),
-            child: Column(
+  
+          child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.account_circle, size: 50, color: Colors.blue),
-                Form(
+  
+            children: [
+                  Form(
                   key: controller.loginFormKey,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Column(
                       children: [
+                      SvgPicture.asset(
+                        'assets/mrowisko_logo_blue.svg',
+                        height: 48,
+                      ),
 
-                        /// email
-                        TextFormField(
-                          controller: controller.email,
-                          validator: (value) => MyValidator.validateEmail(value),
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            border: const OutlineInputBorder(),
-                            prefixIcon: Icon(Iconsax.direct_right),
-                          ),
+                      const SizedBox(height: 40),
+
+                      /// email
+                      TextFormField(
+                        controller: controller.email,
+                        validator: (value) => MyValidator.validateEmail(value),
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          border: const OutlineInputBorder(),
                         ),
+                      ),
 
                         const SizedBox(height: 20),
 
-                        /// hasło
-                        Obx(
-                          () => TextFormField(
-                            expands: false,
-                            decoration: InputDecoration(
-                              labelText: "Hasło",
-                              prefixIcon: Icon(Icons.password),
-                              suffixIcon: IconButton(
-                                onPressed:
-                                    () =>
-                                        controller.hidePswd.value =
-                                            !controller.hidePswd.value,
-                                icon: Icon(
-                                  controller.hidePswd.value
-                                      ? Iconsax.eye_slash
-                                      : Iconsax.eye,
-                                ),
+                      /// hasło
+                      Obx(
+                        () => TextFormField(
+                          expands: false,
+                          decoration: InputDecoration(
+                            labelText: "Hasło",
+                            suffixIcon: IconButton(
+                              onPressed:
+                                  () =>
+                                      controller.hidePswd.value =
+                                          !controller.hidePswd.value,
+                              icon: Icon(
+                                controller.hidePswd.value
+                                    ? Iconsax.eye_slash
+                                    : Iconsax.eye,
                               ),
                             ),
-                            maxLines: 1,
-                            controller: controller.pswd,
-                            validator:
-                                (value) => MyValidator.validateEmptyText(value),
-                            obscureText: controller.hidePswd.value,
                           ),
+                          maxLines: 1,
+                          controller: controller.pswd,
+                          validator:
+                              (value) => MyValidator.validateEmptyText(value),
+                          obscureText: controller.hidePswd.value,
                         ),
+                      ),
 
                         const SizedBox(height: 20),
 
                         /// funkcja remember me
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
+                            children: [
                             Obx(
                               () => Checkbox(
                                 value: controller.rememberMe.value,
@@ -97,7 +104,7 @@ class LoginPage extends StatelessWidget {
                                             !controller.rememberMe.value,
                               ),
                             ),
-                            Text("Zapamiętaj mnie"),
+                            Text("Pamiętaj mnie"),
                           ],
                         ),
 
@@ -115,22 +122,31 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 30),
-                ElevatedButton(
+                // const SizedBox(height: 10),
+                CustomButton(
                   onPressed: () {
                     controller.emailAndPasswordSignIn();
                   },
-                  child: const Text('Zaloguj się'),
+                  text: 'Zaloguj się',
                 ),
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => SignUpPage()),
-                    );
-                  },
-                  child: const Text('Zarejestruj się'),
+
+                const SizedBox(height: 10),
+  
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Nie masz konta? "),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignUpPage()),
+                        );
+                      },
+                      child: const Text("Zarejestruj się"),
+                  ),
+                ],
                 ),
               ],
             ),

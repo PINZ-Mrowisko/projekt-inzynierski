@@ -120,7 +120,7 @@ class UserController extends GetxController {
     try {
       print("oto imie usera ${updatedEmployee.firstName}");
       print("oto id usera ${updatedEmployee.id}");
-      if (updatedEmployee.id == null || updatedEmployee.id!.isEmpty) {
+      if (updatedEmployee.id.isEmpty) {
         throw 'ID użytkownika jest pusty – nie można wykonać aktualizacji.';
       }
       print("oto id usera ${updatedEmployee.id}");

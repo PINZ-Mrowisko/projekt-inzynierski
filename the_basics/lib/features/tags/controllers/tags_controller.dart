@@ -5,6 +5,7 @@ import 'package:the_basics/data/repositiories/other/tags_repo.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/tags/models/tags_model.dart';
 
+
 class TagsController extends GetxController {
   static TagsController get instance => Get.find();
 
@@ -114,7 +115,7 @@ class TagsController extends GetxController {
       Get.back();
 
       // wiadomosc o sukcesie
-      Get.snackbar('Sukces', 'Tag zaktualizowany pomyślnie');
+      //Get.snackbar('Sukces', 'Tag zaktualizowany pomyślnie');
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', e.toString());
@@ -158,7 +159,6 @@ class TagsController extends GetxController {
       await fetchTags();
       userController.fetchAllEmployees();
 
-      Get.snackbar('Sukces!', 'Zaktualizowano tag i powiązanych użytkowników');
     } catch (e) {
       Get.snackbar('Błąd', 'Nie udało się zaktualizować tagu: ${e.toString()}');
     } finally {
@@ -203,7 +203,7 @@ class TagsController extends GetxController {
       Get.back();
 
       // wiadomosc o sukcesie
-      Get.snackbar('Sukces', 'Tag został trwale usunięty');
+      //Get.snackbar('Sukces', 'Tag został trwale usunięty');
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', e.toString());
