@@ -115,8 +115,9 @@ def main():
     status = solver.Solve(model, printer)
 
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        print("\nFinal Solution:")
         printer.on_solution_callback()
+        print("\nFinal Solution:")
+        printer.print_best_solution()
     else:
         print("No solution found.")
 

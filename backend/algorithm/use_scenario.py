@@ -31,6 +31,11 @@ def setup_scenario():
     cashier7.add_tag(kasjer)
     cashier8.add_tag(kasjer)
 
+    cashier1.work_time_preference = 1
+    cashier2.work_time_preference = 1
+    cashier3.work_time_preference = 1
+
+
     mrowka1 = Worker("Marcin", "Nicram", "male",20, "umowa zlecenie", 222, "123@wp.pl")
     mrowka2 = Worker("Bartłomiej", "Jeimołtrab", "male",20, "umowa zlecenie", 222, "123@wp.pl")
     mrowka3 = Worker("Paweł", "Łewap", "male",20, "umowa zlecenie", 222, "123@wp.pl")
