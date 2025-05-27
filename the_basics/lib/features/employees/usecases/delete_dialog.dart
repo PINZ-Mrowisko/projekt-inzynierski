@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 
 import '../controllers/user_controller.dart';
 
-void showConfirmDeleteDialog(String employeeId) {
+void showConfirmDeleteDialog(String employeeId, String marketId) {
   final userController = Get.find<UserController>();
 
   Get.dialog(
@@ -29,7 +29,7 @@ void showConfirmDeleteDialog(String employeeId) {
               );
 
               // delete user
-              final success = await userController.deleteEmployee(employeeId);
+              final success = await userController.deleteEmployee(employeeId, marketId);
 
               if (success) {
                 // Close all dialogs

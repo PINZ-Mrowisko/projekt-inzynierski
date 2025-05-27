@@ -68,7 +68,7 @@ class UserController extends GetxController {
       isLoading(true);
       errorMessage('');
 
-      print("im in this function fetching all employees");
+      //print("im in this function fetching all employees");
 
       final marketId = employee.value.marketId;
 
@@ -100,13 +100,29 @@ class UserController extends GetxController {
         throw "Market ID not available";
       }
 
+      if (employee.role.isEmpty) {
+        throw "Rola pracownika jest wymagana";
+      }
+
+      final newUserTemp = UserModel(
+          id: employee.id,
+          firstName: '',
+          lastName: '',
+          email: '',
+          marketId: employee.marketId,
+          tags: [],
+          role: 'admin',
+          insertedAt: DateTime.now(),
+          updatedAt: DateTime.now()
+      );
+
       // Add employee through repository
-      await userRepo.addNewEmployee(employee);
+      await userRepo.addNewEmployee(employee, newUserTemp);
 
       // Refresh the list
       await fetchAllEmployees();
 
-      Get.snackbar('Sukces', 'Pracownik dodany pomyślnie!');
+      //Get.snackbar('Sukces', 'Pracownik dodany pomyślnie!');
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Error', 'Nie udało się dodać pracownika: ${e.toString()}');
@@ -118,12 +134,12 @@ class UserController extends GetxController {
   /// updates the provided employee
   Future<void> updateEmployee(UserModel updatedEmployee) async {
     try {
-      print("oto imie usera ${updatedEmployee.firstName}");
-      print("oto id usera ${updatedEmployee.id}");
+      //print("oto imie usera ${updatedEmployee.firstName}");
+      //print("oto id usera ${updatedEmployee.id}");
       if (updatedEmployee.id.isEmpty) {
         throw 'ID użytkownika jest pusty – nie można wykonać aktualizacji.';
       }
-      print("oto id usera ${updatedEmployee.id}");
+      //print("oto id usera ${updatedEmployee.id}");
       isLoading(true);
       await userRepo.updateUserDetails(updatedEmployee);
       await fetchAllEmployees(); // Refresh the list
@@ -138,12 +154,14 @@ class UserController extends GetxController {
 
   /// deletes the provided employee
   /// TODO LATER: check whether employee is part of any schedules before deleting
-  Future<bool> deleteEmployee(String employeeId) async {
+  Future<bool> deleteEmployee(String employeeId, String marketId) async {
     try {
       isLoading(true);
-      await userRepo.removeUser(employeeId);
+      await userRepo.removeUser(employeeId, marketId);
+
       await fetchAllEmployees(); // Refresh the list
-      Get.snackbar('Sukces', 'Pracownik usunięty pomyślnie!');
+
+      //Get.snackbar('Sukces', 'Pracownik usunięty pomyślnie!');
       return true;
     } catch (e) {
       Get.snackbar('Error', 'Nie udało się usunąć pracownika: ${e.toString()}');

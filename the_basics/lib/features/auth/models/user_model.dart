@@ -11,6 +11,7 @@ class UserModel {
   final int maxWeeklyHours;
   final String shiftPreference;
   final List<String> tags;
+  final String role;
   final bool isDeleted;
   final DateTime insertedAt;
   final DateTime updatedAt;
@@ -26,15 +27,24 @@ class UserModel {
     this.maxWeeklyHours = 40,
     this.shiftPreference = "Brak preferencji",
     this.tags = const [],
+    this.role = 'employee', // default role
     this.isDeleted = false,
     required this.insertedAt,
     required this.updatedAt,
   });
 
-  /// Create an empty user model
-  static UserModel empty() => UserModel(id: '', firstName: '', lastName: '', email: '', marketId: '', tags: [], insertedAt: DateTime.now(), updatedAt: DateTime.now());
+  static UserModel empty() => UserModel(
+    id: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    marketId: '',
+    tags: [],
+    role: 'employee',
+    insertedAt: DateTime.now(),
+    updatedAt: DateTime.now(),
+  );
 
-  /// Convert model to json map for storing in Firestore
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -47,13 +57,13 @@ class UserModel {
       'maxWeeklyHours': maxWeeklyHours,
       'shiftPreference': shiftPreference,
       'tags': tags,
+      'role': role,
       'isDeleted': isDeleted,
       'insertedAt': Timestamp.fromDate(insertedAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
   }
 
-  /// Create User from Firestore document
   factory UserModel.fromMap(DocumentSnapshot<Map<String, dynamic>> doc) {
     if (doc.data() != null) {
       final map = doc.data()!;
@@ -67,6 +77,7 @@ class UserModel {
         maxWeeklyHours: map['maxWeeklyHours'] ?? 40,
         shiftPreference: map['shiftPreference'] ?? 'Brak preferencji',
         tags: List<String>.from(map['tags']),
+        role: map['role'] ?? 'employee',
         isDeleted: map['isDeleted'] ?? false,
         insertedAt: (map['insertedAt']).toDate(),
         updatedAt: (map['updatedAt']).toDate(),
@@ -77,13 +88,12 @@ class UserModel {
     }
   }
 
-  // we currently use the fromMap method instead of this
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     if (!doc.exists) return UserModel.empty();
 
     final data = doc.data()!;
     return UserModel(
-      id: doc.id, // Use document ID instead of field
+      id: doc.id,
       firstName: data['firstName']?.toString() ?? '',
       lastName: data['lastName']?.toString() ?? '',
       email: data['email']?.toString() ?? '',
@@ -92,6 +102,7 @@ class UserModel {
       maxWeeklyHours: (data['maxWeeklyHours'] as num?)?.toInt() ?? 40,
       shiftPreference: data['shiftPreference']?.toString() ?? 'Brak preferencji',
       tags: List<String>.from(data['tags'] ?? []),
+      role: data['role']?.toString() ?? 'employee',
       isDeleted: data['isDeleted'] as bool? ?? false,
       insertedAt: (data['insertedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -100,12 +111,10 @@ class UserModel {
   }
 
   UserModel copyWithUpdatedTags(String oldTagName, String newTagName) {
-    final updatedTags = tags.map((tag) => tag == oldTagName ? newTagName : tag)
-        .toList();
+    final updatedTags = tags.map((tag) => tag == oldTagName ? newTagName : tag).toList();
     return copyWith(tags: updatedTags);
   }
 
-    // Copy with method for updates
   UserModel copyWith({
     String? firstName,
     String? lastName,
@@ -120,7 +129,6 @@ class UserModel {
   }) {
     return UserModel(
       id: id,
-      //userId: userId,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
@@ -130,9 +138,10 @@ class UserModel {
       maxWeeklyHours: maxWeeklyHours ?? this.maxWeeklyHours,
       shiftPreference: shiftPreference ?? this.shiftPreference,
       tags: tags ?? this.tags,
+      role: role,
       isDeleted: isDeleted ?? this.isDeleted,
       insertedAt: insertedAt,
-      updatedAt: DateTime.now(), // Update timestamp on modification
+      updatedAt: DateTime.now(),
     );
   }
 }

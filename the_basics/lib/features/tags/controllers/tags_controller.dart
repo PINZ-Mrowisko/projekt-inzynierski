@@ -60,7 +60,14 @@ class TagsController extends GetxController {
   Future <void> saveTag(String marketId) async{
     try {
       // generate a custom tag id from firebase
-      final tagId = FirebaseFirestore.instance.collection('Tags').doc().id;
+      //final tagId = FirebaseFirestore.instance.collection('Tags').doc().id;
+
+      final tagId = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(marketId)
+          .collection('Tags')
+          .doc()
+          .id;
 
       final newTag = TagsModel(
         id: tagId,
@@ -144,12 +151,27 @@ class TagsController extends GetxController {
           final updatedUser = user.copyWithUpdatedTags(oldTag.tagName, newTag.tagName);
 
           final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
+
+          final userRef2 = FirebaseFirestore.instance
+              .collection('Markets')
+              .doc(user.marketId)
+              .collection('members')
+              .doc(user.id);
+
           batch.update(userRef, {'tags': updatedUser.tags});
+
+          batch.update(userRef2, {'tags': updatedUser.tags});
         }
       }
 
       // 3. Aktualizujemy tag w kolekcji Tags
-      final tagRef = FirebaseFirestore.instance.collection('Tags').doc(oldTag.id);
+      //final tagRef = FirebaseFirestore.instance.collection('Tags').doc(oldTag.id);
+      final tagRef = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(oldTag.marketId)
+          .collection('Tags')
+          .doc(oldTag.id);
+
       batch.update(tagRef, newTag.toMap());
 
       // 4. Wykonujemy wszystkie operacje naraz (atomowo)
@@ -174,7 +196,7 @@ class TagsController extends GetxController {
   }
 
   /// deletes a tag with a specific id - also in users collection !
-  Future<void> deleteTag(String tagId, String tagName) async {
+  Future<void> deleteTag(String tagId, String tagName, String marketId) async {
     try {
       isLoading(true);
 
@@ -182,14 +204,31 @@ class TagsController extends GetxController {
       final batch = FirebaseFirestore.instance.batch();
       for (final user in userController.allEmployees.where((u) => u.tags.contains(tagName))) {
         final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
+
+        final userRef2 = FirebaseFirestore.instance
+            .collection('Markets')
+            .doc(marketId)
+            .collection('members')
+            .doc(user.id);
+
         batch.update(userRef, {
           'tags': FieldValue.arrayRemove([tagName]),
           'updatedAt': Timestamp.now()
         });
+
+        batch.update(userRef2, {
+          'tags': FieldValue.arrayRemove([tagName]),
+          'updatedAt': Timestamp.now(),
+        });
       }
 
       // 2. Usuwamy tag z kolekcji Tags
-      final tagRef = FirebaseFirestore.instance.collection('Tags').doc(tagId);
+      final tagRef = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(marketId)
+          .collection('Tags')
+          .doc(tagId);
+
       batch.delete(tagRef);
 
       await batch.commit();

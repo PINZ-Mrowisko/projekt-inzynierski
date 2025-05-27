@@ -300,7 +300,7 @@ class EmployeeManagementPage extends StatelessWidget {
           try {
             Get.back();
             await userController.addNewEmployee(newEmployee);
-            Get.back();
+            //Get.back();
             showCustomSnackbar(context, 'Pracownik został pomyślnie dodany.');
           } catch (e) {
             Get.back();
@@ -392,7 +392,7 @@ class EmployeeManagementPage extends StatelessWidget {
         label: 'Usuń',
         backgroundColor: AppColors.warning,
         textColor: AppColors.white,
-        onPressed: () => _confirmDeleteEmployee(userController, employee.id, employee.firstName),
+        onPressed: () => _confirmDeleteEmployee(userController, employee.id, employee.firstName, employee.marketId),
       ),
       DialogActionButton(
         label: 'Zapisz',
@@ -448,7 +448,7 @@ class EmployeeManagementPage extends StatelessWidget {
     );
   }
 
-  void _confirmDeleteEmployee(UserController controller, String employeeId, String employeeName) {
+  void _confirmDeleteEmployee(UserController controller, String employeeId, String employeeName, String marketId) {
     Get.dialog(
       ConfirmationDialog(
         title: 'Czy na pewno chcesz usunąć pracownika "$employeeName"?',
@@ -459,7 +459,7 @@ class EmployeeManagementPage extends StatelessWidget {
         onConfirm: () async {
           try {
             Get.back();
-            await controller.deleteEmployee(employeeId);
+            await controller.deleteEmployee(employeeId, marketId);
             Get.back();
             showCustomSnackbar(Get.context!, 'Pracownik został pomyślnie usunięty.');
           } catch (e) {
