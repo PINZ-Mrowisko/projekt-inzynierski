@@ -107,22 +107,23 @@ class LoginPage extends StatelessWidget {
                             Text("Pamiętaj mnie"),
                           ],
                         ),
-
-                        TextButton(
-                          onPressed: () => Get.to(() => ForgetPswd()),
-                          child: Text(
-                            'Zapomniales hasla?',
-                            style: TextStyle(
-                              color: Colors.blue,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        )
                       ],
                     ),
                   ),
                 ),
-                // const SizedBox(height: 10),
+
+                TextButton(
+                  onPressed: () => Get.to(() => ForgetPswd()),
+                    child: Text('Zapomniales hasla?',
+                      style: TextStyle(
+                        color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      
+
+                const SizedBox(height: 10),
+                
                 CustomButton(
                   onPressed: () {
                     controller.emailAndPasswordSignIn();
@@ -144,11 +145,14 @@ class LoginPage extends StatelessWidget {
                           MaterialPageRoute(builder: (context) => SignUpPage()),
                         );
                       },
-                      child: const Text("Zarejestruj się"),
+                      child: Text("Zarejestruj się",
+                        style: TextStyle(
+                          color: Colors.blue)
+                      )
                   ),
                 ],
                 ),
-              ],
+                ],
             ),
           ),
         ),

@@ -1,5 +1,6 @@
 /// THIS IS THE OLD METHOD
 /// TO DO: move current implementation from employee_managemnt to here
+library;
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

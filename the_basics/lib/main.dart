@@ -66,10 +66,10 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
 
     return StreamBuilder<User?>(
-      stream: _auth.userChanges(),
+      stream: auth.userChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData && (!snapshot.data!.isAnonymous)) {
           return MainCalendar();

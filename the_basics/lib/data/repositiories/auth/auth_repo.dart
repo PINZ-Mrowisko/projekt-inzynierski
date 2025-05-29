@@ -207,10 +207,8 @@ class AuthRepo extends GetxController {
   // }
 
   static Future<User?> getFirebaseUser() async {
-    User? firebaseUser = await FirebaseAuth.instance.currentUser;
-    if (firebaseUser == null){
-      firebaseUser = await FirebaseAuth.instance.authStateChanges().first;
-    }
+    User? firebaseUser = FirebaseAuth.instance.currentUser;
+    firebaseUser ??= await FirebaseAuth.instance.authStateChanges().first;
     return firebaseUser;
   }
 

@@ -1,5 +1,6 @@
 /// THIS IS THE OLD METHOD
 /// TO DO: move current implementation from employee_managemnt to here
+library;
 
 
 import 'package:cloud_firestore/cloud_firestore.dart';
