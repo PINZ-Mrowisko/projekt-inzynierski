@@ -442,14 +442,13 @@ class DropdownDialogField extends DialogInputField {
   VoidCallback? onInternalChanged;
 
   DropdownDialogField({
-    required String label,
+    required super.label,
     required this.items,
     required this.onChanged,
     this.selectedValue,
     this.hintText = 'Wybierz opcję',
     this.onInternalChanged,
   }) : super(
-          label: label,
           type: DialogInputType.dropdown,
         );
 }
@@ -488,7 +487,7 @@ class MultiSelectDialogField extends DialogInputField {
   VoidCallback? onInternalChanged;
 
   MultiSelectDialogField({
-    required String label,
+    required super.label,
     required this.items,
     required this.selectedItems,
     required this.onSelectionChanged,
@@ -497,7 +496,6 @@ class MultiSelectDialogField extends DialogInputField {
     this.height = 56,
     this.onInternalChanged,
   }) : super(
-          label: label,
           type: DialogInputType.multiSelect,
         );
 }
