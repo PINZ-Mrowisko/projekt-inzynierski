@@ -12,7 +12,7 @@ class SideMenu extends StatefulWidget {
 }
 
 class _SideMenuState extends State<SideMenu> {
-  final userController = UserController.instance;
+  final userController = Get.find<UserController>();
   bool _isExpanded = true;
   bool _darkMode = false;
 
@@ -132,8 +132,8 @@ class _SideMenuState extends State<SideMenu> {
       _buildMenuItem(
         icon: Icons.sunny,
         text: 'Wnioski urlopowe',
-        route: '/wnioski-urlopowe',
-        onTap: () => _navigateTo('/wnioski-urlopowe'),
+        route: '/wnioski-urlopowe-kierownik',
+        onTap: () => _navigateTo('/wnioski-urlopowe-kierownik'),
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
@@ -199,8 +199,8 @@ class _SideMenuState extends State<SideMenu> {
       _buildMenuItem(
         icon: Icons.sunny,
         text: 'Wnioski urlopowe',
-        route: '/wnioski-urlopowe',
-        onTap: () => _navigateTo('/wnioski-urlopowe'),
+        route: '/wnioski-urlopowe-pracownicy',
+        onTap: () => _navigateTo('/wnioski-urlopowe-pracownicy'),
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
