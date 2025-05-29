@@ -4,6 +4,7 @@ import 'package:the_basics/features/auth/controllers/forget_pswd_controller.dart
 import 'package:the_basics/utils/validators/validation.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ForgetPswd extends StatelessWidget {
   const ForgetPswd({super.key});
@@ -34,11 +35,23 @@ class ForgetPswd extends StatelessWidget {
             ),
 
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/mrowisko_logo_blue.svg',
+                      height: 48,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 const Text("Zapomniałeś hasła?"),
                 const SizedBox(height: 20),
-                const Text("Wpisz adres email to ci zresetujemy"),
+                const Text(
+                  "Podaj swój adres email, a wyślemy Ci link do zresetowania hasła.",
+                ),
                 const SizedBox(height: 20),
 
                 /// email form
@@ -55,9 +68,11 @@ class ForgetPswd extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                CustomButton(
-                  onPressed: () => controller.sendPswdResetEmail(),
-                  text: 'Wyślij maila',
+                Center(
+                  child: CustomButton(
+                    onPressed: () => controller.sendPswdResetEmail(),
+                    text: 'Zresetuj hasło',
+                  ),
                 ),
               ],
             ),
