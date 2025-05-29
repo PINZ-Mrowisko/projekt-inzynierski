@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/features/auth/screens/login_page.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
+import 'package:the_basics/features/leaves/screens/employee_leaves_management.dart';
+import 'package:the_basics/features/leaves/screens/manager_leaves_management.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/themes/theme.dart';
 import 'features/schedules/screens/after_login/main_calendar.dart';
@@ -49,7 +51,9 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/about', page: () => AboutPage()),
         GetPage(name: '/tags', page: () => TagsPage()),
         GetPage(name: '/features', page: () => FeaturesPage()),
-        GetPage(name: '/zarzadzaj-pracownikami', page: () => EmployeeManagementPage())
+        GetPage(name: '/zarzadzaj-pracownikami', page: () => EmployeeManagementPage()),
+        GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => EmployeeLeavesManagementPage()),
+        GetPage(name: '/wnioski-urlopowe-kierownik', page: () => ManagerLeavesManagementPage())
       ],
       title: 'Mrowisko',
       themeMode: ThemeMode.light,
