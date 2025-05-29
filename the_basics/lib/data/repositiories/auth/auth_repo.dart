@@ -160,7 +160,13 @@ class AuthRepo extends GetxController {
       await _prefs.remove('remember_me');
       await _prefs.remove('auth_token');
 
+
+      //removes the saved user so it doesnt log us back after logout
+      await FirebaseAuth.instance.setPersistence(Persistence.NONE);
       await FirebaseAuth.instance.signOut();
+
+      await Future.delayed(Duration(milliseconds: 1000));
+
       // logout and show the home page
       Get.offAll(() => HomePage());
     } on FirebaseAuthException catch (e) {
@@ -207,7 +213,7 @@ class AuthRepo extends GetxController {
   // }
 
   static Future<User?> getFirebaseUser() async {
-    User? firebaseUser = FirebaseAuth.instance.currentUser;
+    User? firebaseUser = await FirebaseAuth.instance.currentUser;
     firebaseUser ??= await FirebaseAuth.instance.authStateChanges().first;
     return firebaseUser;
   }
@@ -224,7 +230,7 @@ class AuthRepo extends GetxController {
         return false;
       }
 
-      final currUser = getFirebaseUser();
+      //final currUser = getFirebaseUser();
 
       // check Firebases native token (auto-refreshed by SDK)
       // if (currUser != null) {

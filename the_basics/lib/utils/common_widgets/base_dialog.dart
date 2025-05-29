@@ -3,14 +3,12 @@ import 'package:the_basics/utils/app_colors.dart';
 
 class BaseDialog extends StatelessWidget {
   final double width;
-  final double height;
   final Widget child;
   final bool showCloseButton;
 
   const BaseDialog({
     super.key,
     required this.width,
-    required this.height,
     required this.child,
     this.showCloseButton = false,
   });
@@ -22,7 +20,6 @@ class BaseDialog extends StatelessWidget {
       child: Center(
         child: Container(
           width: width,
-          height: height,
           decoration: BoxDecoration(
             color: AppColors.pageBackground,
             borderRadius: BorderRadius.circular(15),

@@ -27,8 +27,9 @@ void confirmDeleteTag(TagsController controller, String tagId, String tagName) {
       onConfirm: () async {
         // should delete tag from employees too
         await controller.deleteTag(tagId, tagName);
-        Get.back();
-        Get.back();
+
+        // there is a back method in the controller method
+
         showCustomSnackbar(Get.context!, 'Tag został pomyślnie usunięty.');
       },
     ),
