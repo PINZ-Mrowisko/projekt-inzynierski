@@ -5,6 +5,8 @@ import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
+import '../controllers/leave_controller.dart';
+
 //to implement actual logic prferably with dynamic dropdown items
 void showAddManagerLeaveDialog(BuildContext context) {
   final leaveType = RxnString();
@@ -51,11 +53,22 @@ void showAddManagerLeaveDialog(BuildContext context) {
   final actions = [
     DialogActionButton(
       label: 'Zatwierdź',
-      onPressed: () {
+      onPressed: () async {
         if (leaveType.value == null || selectedRange.value == null) {
           showCustomSnackbar(context, 'Wybierz typ urlopu i zakres dat');
           return;
         }
+        /// HANDLE LEAVE REQUEST LOGIC HERE
+        // Get the controller instance
+        final leaveController = Get.find<LeaveController>();
+        final startDate = selectedRange.value!.startDate;
+        final endDate = selectedRange.value!.endDate ?? selectedRange.value!.startDate;
+
+        // is this even legal
+        final marketId = leaveController.userController.employee.value.marketId;
+
+        await leaveController.saveLeave(startDate!, endDate!, leaveType.value!);
+
         Get.back();
         showCustomSnackbar(context, 'Urlop został dodany do kalendarza');
       },

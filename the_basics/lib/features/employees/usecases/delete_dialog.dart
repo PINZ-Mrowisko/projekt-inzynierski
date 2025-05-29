@@ -5,7 +5,7 @@ import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 import '../controllers/user_controller.dart';
 
-void confirmDeleteEmployee(UserController controller, String employeeId, String employeeName) {
+void confirmDeleteEmployee(UserController controller, String employeeId, String employeeName, String marketId) {
     Get.dialog(
       ConfirmationDialog(
         title: 'Czy na pewno chcesz usunąć pracownika "$employeeName"?',
@@ -16,7 +16,7 @@ void confirmDeleteEmployee(UserController controller, String employeeId, String 
         onConfirm: () async {
           try {
             Get.back();
-            await controller.deleteEmployee(employeeId);
+            await controller.deleteEmployee(employeeId, marketId);
             Get.back();
             showCustomSnackbar(Get.context!, 'Pracownik został pomyślnie usunięty.');
           } catch (e) {

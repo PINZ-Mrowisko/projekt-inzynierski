@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
+import 'package:the_basics/data/repositiories/other/leave_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
+import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 
@@ -13,6 +15,7 @@ class AppBindings implements Bindings {
     //Get.put(AuthRepo());
     Get.put(UserRepo());
     Get.put(TagsRepo());
+    Get.put(LeaveRepo());
     // Get.lazyPut(() => AuthRepo(), fenix: true);
     // Get.lazyPut(() => UserRepo(), fenix: true);
     // Get.lazyPut(() => TagsRepo(), fenix: true);
@@ -24,6 +27,7 @@ class AppBindings implements Bindings {
 
     Get.put(UserController());
     Get.put(TagsController());
+    Get.put(LeaveController());
   }
 }
 

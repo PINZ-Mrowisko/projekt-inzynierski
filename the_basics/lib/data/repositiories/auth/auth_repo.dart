@@ -33,7 +33,8 @@ class AuthRepo extends GetxController {
   // handles which screen to show to the user - if hes authenticated, then .....
   screenRedirect() async {
     final user =  _auth.currentUser;
-
+    print("moved here");
+    print(user?.uid);
 
     if (user != null) {
       if (user.emailVerified){
@@ -52,6 +53,27 @@ class AuthRepo extends GetxController {
       // i guess we remain on the the welcome page
     }
   }
+
+  afterLogin() async {
+    final user =  _auth.currentUser;
+    print("moved here");
+    print(user?.uid);
+
+    if (user != null) {
+        try {
+          // Initialize controllers sequentially
+          await _initializeControllers();
+          _navigateToMainApp();
+        } catch (e) {
+          throw(e.toString());
+        }
+
+
+    } else {
+      print("I failed");
+    }
+  }
+
 
 
   Future<void> _initializeControllers() async {

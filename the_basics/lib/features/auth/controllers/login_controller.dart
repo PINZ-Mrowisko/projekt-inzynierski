@@ -39,12 +39,13 @@ class LoginController extends GetxController {
         pswd.text.trim(),
         rememberMe.value
       );
+      print("success login");
 
       email.clear();
       pswd.clear();
 
       // redirect using our fancy func
-      AuthRepo.instance.screenRedirect();
+      AuthRepo.instance.afterLogin();
     } catch (e) {
       //print("display error msg here....");
     }

@@ -116,6 +116,7 @@ class UserModel {
   }
 
   UserModel copyWith({
+    String? id,
     String? firstName,
     String? lastName,
     String? email,
@@ -128,7 +129,7 @@ class UserModel {
     bool? isDeleted,
   }) {
     return UserModel(
-      id: id,
+      id: id ?? this.id,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,

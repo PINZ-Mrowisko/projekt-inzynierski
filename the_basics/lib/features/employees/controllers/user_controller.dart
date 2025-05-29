@@ -1,7 +1,12 @@
+import 'dart:math';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
+
+import '../../../data/repositiories/auth/auth_repo.dart';
 
 class UserController extends GetxController {
   static UserController get instance => Get.find();
@@ -89,6 +94,32 @@ class UserController extends GetxController {
     }
   }
 
+  String generateSecurePassword({int length = 12}) {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%^&*()-_=+';
+    final rand = Random.secure();
+    return List.generate(length, (_) => chars[rand.nextInt(chars.length)]).join();
+  }
+
+
+  Future<String> createNewEmployeeAccount(String email) async {
+    // after adding the employee to the user list + market members, we also need to allow them to authenticate
+    // we will do it through email+pswd auth
+
+    String pswd = generateSecurePassword();
+
+    // new user gets created - hopefully
+    final userCred = await AuthRepo.instance.registerWithEmailAndPassword(email, pswd);
+
+    // Optionally send password reset email here
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+    print("Created auth account for $email and sent reset email");
+
+    //TODO add some sort of check if user with same email exists already?
+
+    return userCred.user!.uid;
+  }
+
   /// adds a new employee to the FB
   Future<void> addNewEmployee(UserModel employee) async {
     try {
@@ -104,20 +135,24 @@ class UserController extends GetxController {
         throw "Rola pracownika jest wymagana";
       }
 
+      String authUid = await createNewEmployeeAccount(employee.email);
+
       final newUserTemp = UserModel(
-          id: employee.id,
+          id: authUid,
           firstName: '',
           lastName: '',
           email: '',
           marketId: employee.marketId,
           tags: [],
-          role: 'admin',
+          role: 'employee',
           insertedAt: DateTime.now(),
           updatedAt: DateTime.now()
       );
 
+      final newEmp = employee.copyWith(id: authUid);
+
       // Add employee through repository
-      await userRepo.addNewEmployee(employee, newUserTemp);
+      await userRepo.addNewEmployee(newEmp, newUserTemp);
 
       // Refresh the list
       await fetchAllEmployees();

@@ -80,7 +80,7 @@ void showEditEmployeeDialog(BuildContext context, UserController userController,
         label: 'Usuń',
         backgroundColor: AppColors.warning,
         textColor: AppColors.white,
-        onPressed: () => confirmDeleteEmployee(userController, employee.id, employee.firstName),
+        onPressed: () => confirmDeleteEmployee(userController, employee.id, employee.firstName, employee.marketId),
       ),
       DialogActionButton(
         label: 'Zapisz',
