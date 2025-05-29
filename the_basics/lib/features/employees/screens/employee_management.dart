@@ -15,7 +15,6 @@ import '../../../utils/common_widgets/side_menu.dart';
 import '../../tags/controllers/tags_controller.dart';
 import '../controllers/user_controller.dart';
 
-
 class EmployeeManagementPage extends StatelessWidget {
   const EmployeeManagementPage({super.key});
 
@@ -55,22 +54,28 @@ class EmployeeManagementPage extends StatelessWidget {
                         const Spacer(),
                         Padding(
                           padding: const EdgeInsets.only(top: 10.0),
-                          child: _buildTagFilterDropdown(tagsController, selectedTags),
+                          child: buildTagFilterDropdown(
+                            tagsController,
+                            selectedTags,
+                          ),
                         ),
                         const SizedBox(width: 16),
-                        _buildSearchBar(),
+                        buildSearchBar(),
                         const SizedBox(width: 16),
                         _buildAddEmployeeButton(context, userController),
                       ],
                     ),
                   ),
+
                   Expanded(
                     child: Obx(() {
                       if (userController.isLoading.value) {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (userController.errorMessage.value.isNotEmpty) {
-                        return Center(child: Text(userController.errorMessage.value));
+                        return Center(
+                          child: Text(userController.errorMessage.value),
+                        );
                       }
                       if (userController.allEmployees.isEmpty) {
                         return Center(
@@ -79,8 +84,14 @@ class EmployeeManagementPage extends StatelessWidget {
                             children: [
                               const Text('Brak dostępnych pracowników'),
                               ElevatedButton(
-                                onPressed: () => _showAddEmployeeDialog(context, userController),
-                                child: const Text('Dodaj pierwszego pracownika'),
+                                onPressed:
+                                    () => _showAddEmployeeDialog(
+                                      context,
+                                      userController,
+                                    ),
+                                child: const Text(
+                                  'Dodaj pierwszego pracownika',
+                                ),
                               ),
                             ],
                           ),
@@ -98,28 +109,12 @@ class EmployeeManagementPage extends StatelessWidget {
     );
   }
 
-  //need to implement actual logic
-  Widget _buildTagFilterDropdown(TagsController tagsController, RxList<String> selectedTags) {
-  return Obx(() {
-    double screenWidth = MediaQuery.of(Get.context!).size.width;
-    double dropdownWidth = screenWidth * 0.2;
-    if (dropdownWidth > 360) dropdownWidth = 360;
-
-    return CustomMultiSelectDropdown(
-      items: tagsController.allTags.map((tag) => tag.tagName).toList(),
-      selectedItems: selectedTags,
-      onSelectionChanged: (selected) {
-        selectedTags.assignAll(selected);
-      },
-      hintText: 'Filtruj po tagach',
-      width: dropdownWidth,
-      leadingIcon: Icons.filter_alt_outlined,
-    );
-  });
-}
 
 
-  Widget _buildAddEmployeeButton(BuildContext context, UserController controller) {
+  Widget _buildAddEmployeeButton(
+    BuildContext context,
+    UserController controller,
+  ) {
     return CustomButton(
       text: 'Dodaj Pracownika',
       icon: Icons.add,
@@ -128,23 +123,13 @@ class EmployeeManagementPage extends StatelessWidget {
     );
   }
 
-  //need to implement logic
-  Widget _buildSearchBar() {
-  double screenWidth = MediaQuery.of(Get.context!).size.width;
-  double searchBarWidth = screenWidth * 0.2;
-  if (searchBarWidth > 360) searchBarWidth = 360;
-
-  return CustomSearchBar(
-    hintText: 'Wyszukaj pracownika',
-    width: searchBarWidth,
-  );
-}
 
 
   Widget _buildEmployeesList(BuildContext context, UserController controller) {
     return GenericList<UserModel>(
       items: controller.allEmployees,
-      onItemTap: (employee) => _showEditEmployeeDialog(context, controller, employee),
+      onItemTap:
+          (employee) => _showEditEmployeeDialog(context, controller, employee),
       itemBuilder: (context, employee) {
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(
@@ -169,44 +154,49 @@ class EmployeeManagementPage extends StatelessWidget {
     if (tags.isEmpty) {
       return const Text(
         'Brak tagów',
-        style: TextStyle(
-          fontSize: 14,
-          color: AppColors.textColor2,
-        ),
+        style: TextStyle(fontSize: 14, color: AppColors.textColor2),
       );
     }
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: tags.map((tag) => RawChip(
-        label: Text(
-          tag,
-          style: const TextStyle(
-            fontFamily: 'Roboto',
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-            height: 1.33,
-            letterSpacing: 0.5,
-            color: AppColors.textColor2,
-          ),
-        ),
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: const BorderSide(
-            color: Color(0xFFCAC4D0),
-            width: 1,
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-      )).toList(),
+      children:
+          tags
+              .map(
+                (tag) => RawChip(
+                  label: Text(
+                    tag,
+                    style: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      height: 1.33,
+                      letterSpacing: 0.5,
+                      color: AppColors.textColor2,
+                    ),
+                  ),
+                  backgroundColor: AppColors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    side: const BorderSide(color: Color(0xFFCAC4D0), width: 1),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+              )
+              .toList(),
     );
   }
 
-  void _showAddEmployeeDialog(BuildContext context, UserController userController) {
+  void _showAddEmployeeDialog(
+    BuildContext context,
+    UserController userController,
+  ) {
     final firstNameController = TextEditingController();
     final lastNameController = TextEditingController();
     final emailController = TextEditingController();
@@ -220,31 +210,40 @@ class EmployeeManagementPage extends StatelessWidget {
     final shiftPreference = RxnString();
 
     final fields = [
-      RowDialogField(children: [
-        DialogInputField(label: 'Imię', controller: firstNameController),
-        DialogInputField(label: 'Nazwisko', controller: lastNameController),
-      ]),
+      RowDialogField(
+        children: [
+          DialogInputField(label: 'Imię', controller: firstNameController),
+          DialogInputField(label: 'Nazwisko', controller: lastNameController),
+        ],
+      ),
 
-      RowDialogField(children: [
-        DialogInputField(label: 'Email', controller: emailController),
-        DialogInputField(label: 'Numer telefonu', controller: phoneController),
-      ]),
+      RowDialogField(
+        children: [
+          DialogInputField(label: 'Email', controller: emailController),
+          DialogInputField(
+            label: 'Numer telefonu',
+            controller: phoneController,
+          ),
+        ],
+      ),
 
-      RowDialogField(children: [
-        DropdownDialogField(
-          label: 'Typ umowy o pracę',
-          hintText: 'Wybierz typ umowy...',
-          items: [
-            DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
-            DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
-          ],
-          onChanged: (value) => contractType.value = value,
-        ),
-        DialogInputField(
-          label: 'Maksymalna ilość godzin tygodniowo',
-          controller: hoursController,
-        ),
-      ]),
+      RowDialogField(
+        children: [
+          DropdownDialogField(
+            label: 'Typ umowy o pracę',
+            hintText: 'Wybierz typ umowy...',
+            items: [
+              DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
+              DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
+            ],
+            onChanged: (value) => contractType.value = value,
+          ),
+          DialogInputField(
+            label: 'Maksymalna ilość godzin tygodniowo',
+            controller: hoursController,
+          ),
+        ],
+      ),
 
       DropdownDialogField(
         label: 'Preferencje zmian',
@@ -265,7 +264,7 @@ class EmployeeManagementPage extends StatelessWidget {
           selectedTags.assignAll(selected);
         },
         width: double.infinity,
-      )
+      ),
     ];
 
     final actions = [
@@ -280,7 +279,8 @@ class EmployeeManagementPage extends StatelessWidget {
             return;
           }
 
-          final userId = FirebaseFirestore.instance.collection('Users').doc().id;
+          final userId =
+              FirebaseFirestore.instance.collection('Users').doc().id;
           final newEmployee = UserModel(
             id: userId,
             firstName: firstNameController.text,
@@ -304,31 +304,40 @@ class EmployeeManagementPage extends StatelessWidget {
             showCustomSnackbar(context, 'Pracownik został pomyślnie dodany.');
           } catch (e) {
             Get.back();
-            showCustomSnackbar(context, 'Nie udało się dodać pracownika: ${e.toString()}');
+            showCustomSnackbar(
+              context,
+              'Nie udało się dodać pracownika: ${e.toString()}',
+            );
           }
         },
       ),
     ];
 
     Get.dialog(
-        CustomFormDialog(
-          title: 'Dodaj nowego Pracownika',
-          fields: fields,
-          actions: actions,
-          onClose: Get.back,
-          height: 750,
-          width: 700,
-        ),
-        barrierDismissible: false
+      CustomFormDialog(
+        title: 'Dodaj nowego Pracownika',
+        fields: fields,
+        actions: actions,
+        onClose: Get.back,
+        height: 750,
+        width: 700,
+      ),
+      barrierDismissible: false,
     );
   }
 
-  void _showEditEmployeeDialog(BuildContext context, UserController userController, UserModel employee) {
+  void _showEditEmployeeDialog(
+    BuildContext context,
+    UserController userController,
+    UserModel employee,
+  ) {
     final firstNameController = TextEditingController(text: employee.firstName);
     final lastNameController = TextEditingController(text: employee.lastName);
     final emailController = TextEditingController(text: employee.email);
     final phoneController = TextEditingController(text: employee.phoneNumber);
-    final hoursController = TextEditingController(text: employee.maxWeeklyHours.toString());
+    final hoursController = TextEditingController(
+      text: employee.maxWeeklyHours.toString(),
+    );
 
     final selectedTags = <String>[].obs..addAll(employee.tags);
     final tagsController = Get.find<TagsController>();
@@ -337,32 +346,41 @@ class EmployeeManagementPage extends StatelessWidget {
     final shiftPreference = RxnString(employee.shiftPreference);
 
     final fields = [
-      RowDialogField(children: [
-        DialogInputField(label: 'Imię', controller: firstNameController),
-        DialogInputField(label: 'Nazwisko', controller: lastNameController),
-      ]),
+      RowDialogField(
+        children: [
+          DialogInputField(label: 'Imię', controller: firstNameController),
+          DialogInputField(label: 'Nazwisko', controller: lastNameController),
+        ],
+      ),
 
-      RowDialogField(children: [
-        DialogInputField(label: 'Email', controller: emailController),
-        DialogInputField(label: 'Numer telefonu', controller: phoneController),
-      ]),
+      RowDialogField(
+        children: [
+          DialogInputField(label: 'Email', controller: emailController),
+          DialogInputField(
+            label: 'Numer telefonu',
+            controller: phoneController,
+          ),
+        ],
+      ),
 
-      RowDialogField(children: [
-        DropdownDialogField(
-          label: 'Typ umowy o pracę',
-          selectedValue: contractType.value,
-          hintText: 'Wybierz typ umowy...',
-          items: [
-            DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
-            DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
-          ],
-          onChanged: (value) => contractType.value = value,
-        ),
-        DialogInputField(
-          label: 'Maksymalna ilość godzin tygodniowo',
-          controller: hoursController,
-        ),
-      ]),
+      RowDialogField(
+        children: [
+          DropdownDialogField(
+            label: 'Typ umowy o pracę',
+            selectedValue: contractType.value,
+            hintText: 'Wybierz typ umowy...',
+            items: [
+              DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
+              DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
+            ],
+            onChanged: (value) => contractType.value = value,
+          ),
+          DialogInputField(
+            label: 'Maksymalna ilość godzin tygodniowo',
+            controller: hoursController,
+          ),
+        ],
+      ),
 
       DropdownDialogField(
         label: 'Preferencje zmian',
@@ -384,7 +402,7 @@ class EmployeeManagementPage extends StatelessWidget {
           selectedTags.assignAll(selected);
         },
         width: double.infinity,
-      )
+      ),
     ];
 
     final actions = [
@@ -392,7 +410,12 @@ class EmployeeManagementPage extends StatelessWidget {
         label: 'Usuń',
         backgroundColor: AppColors.warning,
         textColor: AppColors.white,
-        onPressed: () => _confirmDeleteEmployee(userController, employee.id, employee.firstName),
+        onPressed:
+            () => _confirmDeleteEmployee(
+              userController,
+              employee.id,
+              employee.firstName,
+            ),
       ),
       DialogActionButton(
         label: 'Zapisz',
@@ -423,32 +446,36 @@ class EmployeeManagementPage extends StatelessWidget {
                 showCustomSnackbar(context, 'Zmiany zostały zapisane.');
               } catch (e) {
                 showCustomSnackbar(
-                    context,
-                    'Nie udało się zapisać zmian: ${e.toString()}'
+                  context,
+                  'Nie udało się zapisać zmian: ${e.toString()}',
                 );
               }
             });
           } catch (e) {
-            showCustomSnackbar(context, 'Wystąpił nieoczekiwany błąd',);
+            showCustomSnackbar(context, 'Wystąpił nieoczekiwany błąd');
           }
         },
       ),
     ];
 
     Get.dialog(
-        CustomFormDialog(
-          title: 'Edytuj Pracownika',
-          fields: fields,
-          actions: actions,
-          onClose: Get.back,
-          height: 750,
-          width: 700,
-        ),
-        barrierDismissible: false
+      CustomFormDialog(
+        title: 'Edytuj Pracownika',
+        fields: fields,
+        actions: actions,
+        onClose: Get.back,
+        height: 750,
+        width: 700,
+      ),
+      barrierDismissible: false,
     );
   }
 
-  void _confirmDeleteEmployee(UserController controller, String employeeId, String employeeName) {
+  void _confirmDeleteEmployee(
+    UserController controller,
+    String employeeId,
+    String employeeName,
+  ) {
     Get.dialog(
       ConfirmationDialog(
         title: 'Czy na pewno chcesz usunąć pracownika "$employeeName"?',
@@ -461,12 +488,15 @@ class EmployeeManagementPage extends StatelessWidget {
             Get.back();
             await controller.deleteEmployee(employeeId);
             Get.back();
-            showCustomSnackbar(Get.context!, 'Pracownik został pomyślnie usunięty.');
+            showCustomSnackbar(
+              Get.context!,
+              'Pracownik został pomyślnie usunięty.',
+            );
           } catch (e) {
             Get.back();
             showCustomSnackbar(
-                Get.context!,
-                'Błąd podczas usuwania pracownika: ${e.toString()}'
+              Get.context!,
+              'Błąd podczas usuwania pracownika: ${e.toString()}',
             );
           }
         },
@@ -487,3 +517,41 @@ class EmployeeManagementPage extends StatelessWidget {
     );
   }
 }
+
+
+  //need to implement logic
+  Widget buildSearchBar() {
+    double screenWidth = MediaQuery.of(Get.context!).size.width;
+    double searchBarWidth = screenWidth * 0.2;
+    if (searchBarWidth > 360) searchBarWidth = 360;
+
+    return CustomSearchBar(
+      hintText: 'Wyszukaj pracownika',
+      width: searchBarWidth,
+    );
+  }
+
+
+
+    //need to implement actual logic
+  Widget buildTagFilterDropdown(
+    TagsController tagsController,
+    RxList<String> selectedTags,
+  ) {
+    return Obx(() {
+      double screenWidth = MediaQuery.of(Get.context!).size.width;
+      double dropdownWidth = screenWidth * 0.2;
+      if (dropdownWidth > 360) dropdownWidth = 360;
+
+      return CustomMultiSelectDropdown(
+        items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+        selectedItems: selectedTags,
+        onSelectionChanged: (selected) {
+          selectedTags.assignAll(selected);
+        },
+        hintText: 'Filtruj po tagach',
+        width: dropdownWidth,
+        leadingIcon: Icons.filter_alt_outlined,
+      );
+    });
+  }
