@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/controllers/forget_pswd_controller.dart';
 import 'package:the_basics/features/auth/screens/login_page.dart';
+import 'package:the_basics/utils/app_colors.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:the_basics/utils/common_widgets/custom_button.dart';
 
 class ResetPswd extends StatelessWidget {
   const ResetPswd({super.key, required this.email});
@@ -11,24 +14,71 @@ class ResetPswd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(30),
-          child: Column(
-            children: [
-              const Text("Email zostal wyslany!"),
-              const SizedBox(height: 20,),
-              const Text("Dostales super fajna wiadomosc na maila ktora mozesz kliknac zeby zresetowac swoje haslo"),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(onPressed: () => Get.offAll(() => LoginPage()), child: const Text("wracam do logowania")),
-              ),
-              const SizedBox(height: 20,),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(onPressed: () => ForgetPswdController.instance.resendPswdResetEmail(email), child: const Text("wyslij mi wiecej maili")),
-              ),
-            ],
+      backgroundColor: AppColors.pageBackground,
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            width: 400,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                // logo
+                Center(
+                  child: SvgPicture.asset(
+                    'assets/mrowisko_logo_blue.svg',
+                    height: 48,
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                const Text("Email został wysłany!"),
+                const SizedBox(height: 20),
+
+                const Text("Na Twój adres email został wysłany link."),
+
+                const Text("Kliknij go, aby ustawić nowe hasło."),
+                const SizedBox(height: 20),
+                Center(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        child: CustomButton(
+                          onPressed: () => Get.offAll(() => const LoginPage()),
+                          text: "Wróć do logowania",
+                          width: 170,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      SizedBox(
+                        child: CustomButton(
+                          onPressed:
+                              () => ForgetPswdController.instance
+                                  .resendPswdResetEmail(email),
+                          text: "Wyślij wiadomość ponownie",
+                          width: 220,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
           ),
         ),
       ),

@@ -46,6 +46,7 @@ class ForgetPswd extends StatelessWidget {
                     ),
                   ),
                 ),
+                
                 const SizedBox(height: 20),
                 const Text("Zapomniałeś hasła?"),
                 const SizedBox(height: 20),
@@ -72,6 +73,7 @@ class ForgetPswd extends StatelessWidget {
                   child: CustomButton(
                     onPressed: () => controller.sendPswdResetEmail(),
                     text: 'Zresetuj hasło',
+                    
                   ),
                 ),
               ],
