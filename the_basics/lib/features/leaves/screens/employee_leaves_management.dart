@@ -66,7 +66,7 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
       text: 'Złóż wniosek o urlop',
       icon: Icons.add,
       width: 190,
-      onPressed: () => showAddLeaveDialog(context),
+      onPressed: () => showAddEmployeeLeaveDialog(context),
     );
   }
 

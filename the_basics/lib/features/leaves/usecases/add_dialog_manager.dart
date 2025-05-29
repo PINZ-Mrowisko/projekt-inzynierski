@@ -5,7 +5,7 @@ import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 //to implement actual logic prferably with dynamic dropdown items
-void showAddLeaveDialog(BuildContext context) {
+void showAddManagerLeaveDialog(BuildContext context) {
   final leaveType = RxnString();
   final selectedRange = Rx<PickerDateRange?>(null);
 

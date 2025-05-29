@@ -10,7 +10,7 @@ import '../../../utils/common_widgets/generic_list.dart';
 import '../../../utils/common_widgets/side_menu.dart';
 import '../../employees/controllers/user_controller.dart';
 
-import '../usecases/add_dialog_employee.dart';
+import '../usecases/add_dialog_manager.dart';
 
 class ManagerLeavesManagementPage extends StatelessWidget {
   const ManagerLeavesManagementPage({super.key});
@@ -81,7 +81,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
       text: 'Dodaj urlop',
       icon: Icons.add,
       width: 140,
-      onPressed: () => showAddLeaveDialog(context),
+      onPressed: () => showAddManagerLeaveDialog(context),
     );
   }
 
