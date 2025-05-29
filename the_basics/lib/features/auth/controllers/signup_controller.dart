@@ -33,6 +33,18 @@ class SignUpController extends GetxController {
   // allows us to access data from the form
   GlobalKey<FormState> signUpFormKey = GlobalKey<FormState>();
 
+  // Future<void> assignRole(String uid) async {
+  //   try {
+  //     HttpsCallable callable = FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('setCustomClaims');
+  //     final result = await callable.call({'uid': uid});
+  //     print('Custom claim set result: ${result.data}');
+  //   } catch (e) {
+  //     print('Error setting custom claims: $e');
+  //     rethrow; // bubble up if needed
+  //   }
+  // }
+
+
 
   /// deals with our Sign Up method
   Future<void> signUp() async {
@@ -49,6 +61,8 @@ class SignUpController extends GetxController {
 
       /// register user in FB
       final userCredential = await AuthRepo.instance.registerWithEmailAndPassword(email.text.trim(), pswd1.text.trim());
+
+      await Future.delayed(const Duration(milliseconds: 200));
 
       /// MARKET
       /// 1 : create a market model locally
