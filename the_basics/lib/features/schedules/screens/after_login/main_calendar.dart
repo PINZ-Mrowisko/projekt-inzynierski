@@ -57,18 +57,19 @@ class MainCalendar extends StatelessWidget {
                         buildSearchBar(),
                         const SizedBox(width: 16),
                         
-                        //button generuj grafik
                         CustomButton(
                           onPressed: () {},
                           text: "Generuj grafik",
-                          //width: 120,
+                          width: 155,
+                          icon: Icons.edit,
                         ),
                         const SizedBox(width: 10),
-                        //button eksportuj
+                        
                         CustomButton(
                           onPressed: () {},
                           text: "Eksportuj",
-                          width: 100,
+                          width: 125,
+                          icon: Icons.download,
                         ),
                       ],
                     ),
