@@ -54,6 +54,7 @@ class MyApp extends StatelessWidget {
       title: 'Mrowisko',
       themeMode: ThemeMode.light,
       theme: MyAppTheme.lightTheme,
+      
       debugShowCheckedModeBanner: false,
       //home: isLoggedIn? MainCalendar() :MainCalendar(),
       home: AuthWrapper(),
@@ -79,3 +80,4 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 }
+

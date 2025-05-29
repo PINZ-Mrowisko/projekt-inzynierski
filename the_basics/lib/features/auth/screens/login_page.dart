@@ -114,7 +114,7 @@ class LoginPage extends StatelessWidget {
 
                 TextButton(
                   onPressed: () => Get.to(() => ForgetPswd()),
-                    child: Text('Zapomniales hasla?',
+                    child: Text('Zapomniałeś hasła?',
                       style: TextStyle(
                         color: Colors.blue,
                             ),
@@ -150,6 +150,7 @@ class LoginPage extends StatelessWidget {
                           color: Colors.blue)
                       )
                   ),
+                  const SizedBox(height: 10),
                 ],
                 ),
                 ],

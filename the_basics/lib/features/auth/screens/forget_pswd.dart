@@ -76,6 +76,7 @@ class ForgetPswd extends StatelessWidget {
                     
                   ),
                 ),
+                const SizedBox(height: 10),
               ],
             ),
           ),

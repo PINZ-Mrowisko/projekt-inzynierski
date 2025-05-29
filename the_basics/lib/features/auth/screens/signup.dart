@@ -182,6 +182,7 @@ class SignUpPage extends StatelessWidget {
                         style: TextStyle(color: Colors.blue),
                       ),
                     ),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ],
