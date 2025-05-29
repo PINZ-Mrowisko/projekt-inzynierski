@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -8,6 +9,23 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 void showAddEmployeeLeaveDialog(BuildContext context) {
   final leaveType = RxnString();
   final selectedRange = Rx<PickerDateRange?>(null);
+
+  //need to implemtnt fetch of leave days left
+  final leaveStatusText = Obx(() {
+    final type = leaveType.value;
+    if (type == null) return const SizedBox.shrink();
+    final statusMap = {
+      'Urlop wypoczynkowy': 'Wykorzystanie urlopu wypoczynkowego 0/20',
+      'Urlop na żądanie': 'Wykorzystanie urlopu na żądanie 0/4',
+    };
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 22.0),
+      child: Text(
+        statusMap[type] ?? '',
+        style: const TextStyle(color: AppColors.logo, fontSize: 14),
+      ),
+    );
+  });
 
   final fields = [
     DropdownDialogField(
@@ -19,6 +37,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
       ],
       onChanged: (value) => leaveType.value = value,
     ),
+    leaveStatusText,
     DatePickerDialogField(
       label: 'Wybierz zakres dat urlopu',
       selectedRange: selectedRange,
@@ -49,7 +68,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
       actions: actions,
       onClose: Get.back,
       width: 500,
-      height: 655,
+      height: 700,
     ),
     barrierDismissible: false,
   );

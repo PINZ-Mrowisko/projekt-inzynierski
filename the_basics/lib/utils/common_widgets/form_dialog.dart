@@ -9,7 +9,7 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class CustomFormDialog extends StatefulWidget {
   final String title;
-  final List<DialogInputField> fields;
+  final List<dynamic> fields;
   final List<DialogActionButton> actions;
   final VoidCallback? onClose;
   final double? width;
@@ -51,7 +51,9 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
     }
 
     for (var field in widget.fields) {
-      processField(field);
+      if (field is DialogInputField) {
+        processField(field);
+      }
     }
   }
 
@@ -116,7 +118,11 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
                                 ),
                               ),
                               const SizedBox(height: 40),
-                              ...widget.fields.map((field) => _buildInputField(field)),
+                              ...widget.fields.map((field) {
+                                if (field is DialogInputField) return _buildInputField(field);
+                                if (field is Widget) return field;
+                                return const SizedBox.shrink();
+                              }),
                               const Spacer(),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
