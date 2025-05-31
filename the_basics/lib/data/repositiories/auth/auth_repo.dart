@@ -192,6 +192,8 @@ class AuthRepo extends GetxController {
       await FirebaseAuth.instance.setPersistence(Persistence.NONE);
       await FirebaseAuth.instance.signOut();
 
+      Get.deleteAll(force: true);
+
       await Future.delayed(Duration(milliseconds: 1000));
 
       // logout and show the home page

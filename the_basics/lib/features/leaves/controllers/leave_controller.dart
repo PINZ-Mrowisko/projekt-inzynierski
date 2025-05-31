@@ -182,7 +182,7 @@ class LeaveController extends GetxController {
       isLoading(true);
       await _leaveRepo.updateLeave(updatedLeave);
       await fetchLeaves();
-      Get.back(); // Zamknij dialog
+      //Get.back(); // Zamknij dialog
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', 'Nie udało się zaktualizować wniosku: $e');

@@ -123,7 +123,7 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
           try {
             Get.back();
             await userController.addNewEmployee(newEmployee);
-            Get.back();
+            //Get.back();
             showCustomSnackbar(context, 'Pracownik został pomyślnie dodany.');
           } catch (e) {
             Get.back();
