@@ -189,4 +189,16 @@ class UserRepo extends GetxController {
       throw 'Coś poszło nie tak przy usuwaniu pracownika :(';
     }
   }
+
+  Future<UserModel> getUserDetails(String userId, String marketId) async {
+    final doc = await _db.collection("Markets")
+        .doc(marketId)
+        .collection("members")
+        .doc(userId).get();
+
+    if (doc.exists) {
+      return UserModel.fromMap(doc);
+    }
+    throw 'Nie mam go';
+  }
 }

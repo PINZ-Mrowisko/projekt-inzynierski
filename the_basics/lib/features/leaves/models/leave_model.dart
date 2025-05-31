@@ -1,14 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LeaveModel {
-  final String id;
+  final String id; // id wniosku
   final String userId; // employeeRequesting
+  final String name; // name of the emp requesting
   final String marketId;
   final DateTime startDate;
   final DateTime endDate;
   final int totalDays;
   final String leaveType;
-  final String status;
+  final String status ;
   final String? managerId;
   final bool isDeleted;
   final DateTime insertedAt;
@@ -18,12 +19,13 @@ class LeaveModel {
   LeaveModel({
     required this.id,
     required this.userId,
+    required this.name,
     required this.marketId,
     required this.startDate,
     required this.endDate,
     required this.totalDays,
     required this.leaveType,
-    required this.status,
+    this.status = "oczekujący",
     this.managerId,
     this.isDeleted = false,
     required this.insertedAt,
@@ -34,12 +36,13 @@ class LeaveModel {
   static LeaveModel empty() => LeaveModel(
     id: '',
     userId: '',
+    name: '',
     marketId: '',
     startDate: DateTime.now(),
     endDate: DateTime.now(),
     totalDays: 0,
-    leaveType: 'wypoczynkowy',
-    status: 'do rozpatrzenia',
+    leaveType: 'Urlop na żądania',
+    status: 'oczekujący',
     insertedAt: DateTime.now(),
     updatedAt: DateTime.now(),
   );
@@ -48,6 +51,7 @@ class LeaveModel {
     return {
       'id': id,
       'userId': userId,
+      'name': name,
       'marketId': marketId,
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
@@ -67,6 +71,7 @@ class LeaveModel {
     return LeaveModel(
       id: map['id'] ?? '',
       userId: map['userId'] ?? '',
+      name: map['name'] ?? '',
       marketId: map['marketId'] ?? '',
       startDate: DateTime.parse(map['startDate']),
       endDate: DateTime.parse(map['endDate']),
@@ -84,6 +89,7 @@ class LeaveModel {
   LeaveModel copyWith({
     String? id,
     String? userId,
+    String? name,
     String? marketId,
     DateTime? startDate,
     DateTime? endDate,
@@ -99,6 +105,7 @@ class LeaveModel {
     return LeaveModel(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      name: name ?? this.name,
       marketId: marketId ?? this.marketId,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,

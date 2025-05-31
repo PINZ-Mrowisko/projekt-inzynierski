@@ -15,6 +15,8 @@ class UserModel {
   final bool isDeleted;
   final DateTime insertedAt;
   final DateTime updatedAt;
+  final int vacationDays;
+  final int onDemandDays;
 
   UserModel({
     required this.id,
@@ -31,6 +33,8 @@ class UserModel {
     this.isDeleted = false,
     required this.insertedAt,
     required this.updatedAt,
+    this.vacationDays = 20,
+    this.onDemandDays = 4
   });
 
   static UserModel empty() => UserModel(
@@ -43,6 +47,8 @@ class UserModel {
     role: 'employee',
     insertedAt: DateTime.now(),
     updatedAt: DateTime.now(),
+    vacationDays: 20,
+    onDemandDays: 4
   );
 
   Map<String, dynamic> toMap() {
@@ -61,6 +67,8 @@ class UserModel {
       'isDeleted': isDeleted,
       'insertedAt': Timestamp.fromDate(insertedAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
+      'vacationDays': vacationDays,
+      'onDemandDays': onDemandDays
     };
   }
 
@@ -82,6 +90,8 @@ class UserModel {
         insertedAt: (map['insertedAt']).toDate(),
         updatedAt: (map['updatedAt']).toDate(),
         marketId: map['marketId'] ?? '',
+        onDemandDays: map['onDemandDays'] ?? '',
+        vacationDays: map['vacationDays'] ?? ''
       );
     } else {
       return UserModel.empty();
@@ -107,6 +117,8 @@ class UserModel {
       insertedAt: (data['insertedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       marketId: data['marketId']?.toString() ?? '',
+        onDemandDays: data['onDemandDays'] ?? '',
+        vacationDays: data['vacationDays'] ?? ''
     );
   }
 
@@ -127,6 +139,8 @@ class UserModel {
     String? shiftPreference,
     List<String>? tags,
     bool? isDeleted,
+    int? vacationDays,
+    int? onDemandDays
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -143,6 +157,8 @@ class UserModel {
       isDeleted: isDeleted ?? this.isDeleted,
       insertedAt: insertedAt,
       updatedAt: DateTime.now(),
+      vacationDays: vacationDays ?? this.vacationDays,
+      onDemandDays: onDemandDays ?? this.onDemandDays
     );
   }
 }

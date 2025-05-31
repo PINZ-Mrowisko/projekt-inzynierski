@@ -27,7 +27,7 @@ class LeaveController extends GetxController {
 
   // we will use this to display in the upper section for the manager
   RxList<LeaveModel> get pendingRequests =>
-      allLeaveRequests.where((r) => r.status == 'do rozpatrzenia').toList().obs;
+      allLeaveRequests.where((r) => r.status == 'oczekujący').toList().obs;
 
   // display historic/ upcoming requests
   RxList<LeaveModel> get reviewedRequests =>
@@ -63,10 +63,11 @@ class LeaveController extends GetxController {
     }
   }
 
-  /// Save a new leave request
-  Future<void> saveLeave(DateTime startDate, DateTime endDate, String leaveType) async {
+  /// Save a new leave request - KIEROWNIK
+  Future<void> saveLeave(DateTime startDate, DateTime endDate, String leaveType, String status) async {
     try {
       final marketId = userController.employee.value.marketId;
+      final requestedDays = endDate.difference(startDate).inDays + 1;
 
       final leaveId = FirebaseFirestore.instance
           .collection('Markets')
@@ -77,12 +78,13 @@ class LeaveController extends GetxController {
 
       final newLeave = LeaveModel(
         id: leaveId,
+        name: '${userController.employee.value.firstName} ${userController.employee.value.lastName}',
         marketId: marketId,
         userId: userController.employee.value.id,
         totalDays: 0,
-        startDate: startDate, // put actual data into those
+        startDate: startDate,
         endDate: endDate,
-        status: 'do rozpatrzenia',
+        status: status,
         insertedAt: DateTime.now(),
         updatedAt: DateTime.now(),
         leaveType: leaveType,
@@ -90,6 +92,82 @@ class LeaveController extends GetxController {
 
       await _leaveRepo.saveLeave(newLeave);
       await fetchLeaves();
+
+      // jako że kierownik nie potrzebuje zatwierdzania - odejmujemy mu od razu dni od licznika
+      if (status == 'mój urlop') {
+        if (leaveType == 'Urlop na żądanie') {
+            userController.updateEmployee(
+              userController.employee.value.copyWith(
+                onDemandDays: userController.employee.value.onDemandDays - requestedDays,
+              ),
+            );
+          } else {
+            userController.updateEmployee(
+              userController.employee.value.copyWith(
+                vacationDays: userController.employee.value.vacationDays - requestedDays,
+              ),
+            );
+          }
+      }
+
+    } catch (e) {
+      errorMessage(e.toString());
+      Get.snackbar('Błąd', 'Nie udało się zapisać wniosku: $e');
+    } finally {
+      isLoading(false);
+    }
+  }
+
+
+  /// FOR EMPLOYEEEES
+  Future<void> saveEmpLeave(DateTime startDate, DateTime endDate, String leaveType, String status) async {
+    try {
+      final marketId = userController.employee.value.marketId;
+      final requestedDays = endDate.difference(startDate).inDays + 1;
+
+      final leaveId = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(marketId)
+          .collection('LeaveReq')
+          .doc()
+          .id;
+
+      final newLeave = LeaveModel(
+        id: leaveId,
+        name: '${userController.employee.value.firstName} ${userController.employee.value.lastName}',
+        marketId: marketId,
+        userId: userController.employee.value.id,
+        totalDays: 0,
+        startDate: startDate,
+        endDate: endDate,
+        status: status,
+        insertedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        leaveType: leaveType,
+      );
+
+      await _leaveRepo.saveLeave(newLeave);
+      await fetchLeaves();
+
+      /// we don't substract the holiday days just yet - only when the Manager accepts the request?
+      ///
+      /// or maybe its better to substract now, and then add them back if the request is denied ?????
+      /// vote today for your favorite option
+      ///
+      if (leaveType == 'Urlop na żądanie') {
+        userController.updateEmployee(
+          userController.employee.value.copyWith(
+            onDemandDays: userController.employee.value.onDemandDays - requestedDays,
+          ),
+        );
+      } else {
+        userController.updateEmployee(
+          userController.employee.value.copyWith(
+            vacationDays: userController.employee.value.vacationDays - requestedDays,
+          ),
+        );
+      }
+
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', 'Nie udało się zapisać wniosku: $e');

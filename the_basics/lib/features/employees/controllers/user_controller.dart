@@ -206,6 +206,14 @@ class UserController extends GetxController {
     }
   }
 
+  Future<UserModel?> getEmployeeById(String userId, String marketId) async {
+    try {
+      return await userRepo.getUserDetails(userId, marketId);
+    } catch (e) {
+      Get.snackbar('Error', 'Nie udało się wyłowić pracownika: ${e.toString()}');
+      return null;
+    }
+  }
 
 
 }

@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
-import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
@@ -22,8 +21,6 @@ class ManagerLeavesManagementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
-    final tagsController = Get.find<TagsController>(); // to delete later
-
     final leaveController = Get.find<LeaveController>();
 
     final selectedEmployees = <String>[].obs;
@@ -64,7 +61,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                         const SizedBox(width: 16),
                         Padding(
                           padding: const EdgeInsets.only(top: 10.0),
-                          child: _buildStatusFilterDropdown(tagsController, selectedStatuses),
+                          child: _buildStatusFilterDropdown(leaveController, selectedStatuses),
                         ),
                         const SizedBox(width: 16),
                         _buildAddLeaveButton(context, userController),
@@ -82,7 +79,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                       if (leaveController.allLeaveRequests.isEmpty) {
                         return const Center(child: Text('Brak wniosków urlopowych'));
                       }
-                      return _buildLeaveList(leaveController);
+                      return _buildLeaveList(leaveController, selectedStatuses, userController);
                     }),
                   ),
                 ],
@@ -127,16 +124,20 @@ class ManagerLeavesManagementPage extends StatelessWidget {
 
 
   /// THIS THINGIE ALLOWS: filter leave requests by status
-  /// TODO : put all requests here instead of tags
-  //need to implement actual logic (!!!! change from tags to dynamic fetch of statuses -> i couldnt hardcode it since dynamic fetch is required for widget to work)
-  Widget _buildStatusFilterDropdown(TagsController tagsController, RxList<String> selectedStatuses) {
+  Widget _buildStatusFilterDropdown(LeaveController leaveController, RxList<String> selectedStatuses) {
     return Obx(() {
       double screenWidth = MediaQuery.of(Get.context!).size.width;
       double dropdownWidth = screenWidth * 0.2;
       if (dropdownWidth > 360) dropdownWidth = 360;
 
+      // Get unique statuses by converting to a Set and back to List
+      final uniqueStatuses = leaveController.allLeaveRequests
+          .map((leave) => leave.status)
+          .toSet() // Removes duplicates
+          .toList();
+
       return CustomMultiSelectDropdown(
-        items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+        items: uniqueStatuses,
         selectedItems: selectedStatuses,
         onSelectionChanged: (selected) {
           selectedStatuses.assignAll(selected);
@@ -149,9 +150,14 @@ class ManagerLeavesManagementPage extends StatelessWidget {
   }
 
   //need to implement actual logic (dynamic fetch of leave requests)
-  Widget _buildLeaveList(LeaveController controller) {
+  Widget _buildLeaveList(LeaveController controller, RxList<String> selectedStatuses, UserController userController) {
+    final filteredRequests = selectedStatuses.isEmpty
+        ? controller.allLeaveRequests // if no status selected, show all
+        : controller.allLeaveRequests.where((request) =>
+        selectedStatuses.contains(request.status)).toList();
+
     return GenericList<LeaveModel>(
-      items: controller.allLeaveRequests,
+      items: filteredRequests,
       itemBuilder: (context, item) {
         final formattedDate = item.startDate == item.endDate
             ? DateFormat('dd.MM.yyyy').format(item.startDate)
@@ -163,7 +169,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
             vertical: 12,
           ),
           title: Text(
-            '${item.userId} - ${item.leaveType}',
+            '${item.name} - ${item.leaveType}',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -178,7 +184,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
             ),
           ),
           trailing: item.status.toLowerCase() == 'oczekujący'
-              ? _buildDecisionButtons(context, item)
+              ? _buildDecisionButtons(context, item, controller, userController)
               : _buildStatusChip(item.status),
         );
       },
@@ -242,7 +248,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDecisionButtons(BuildContext context, LeaveModel leave) {
+  Widget _buildDecisionButtons(BuildContext context, LeaveModel leave, LeaveController controller, UserController userController) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -250,11 +256,35 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           text: 'Odrzuć',
           color: AppColors.logo.withValues(alpha: 0.5),
           icon: Icons.close,
-          onPressed: () {
-            //to implement actual logic
+          onPressed: () async {
+            try {
+              final employee = await userController.getEmployeeById(
+                  leave.userId, leave.marketId);
+              if (employee == null) {
+                showCustomSnackbar(context, 'Nie znaleziono pracownika');
+                return;
+              }
+              // add back the holdiay days to the employee
+              final duration = leave.totalDays;
+              final updatedEmployee = employee.copyWith(
+                vacationDays: leave.leaveType == 'Urlop wypoczynkowy'
+                    ? employee.vacationDays + duration
+                    : employee.vacationDays,
+                onDemandDays: leave.leaveType == 'Urlop na żądanie'
+                    ? employee.onDemandDays + duration
+                    : employee.onDemandDays,
+              );
 
-            /// CHANGE STATUS TO ODRZUCONY
-            showCustomSnackbar(context,'Wniosek odrzucony');
+              // update the leave request
+              final newLeave = leave.copyWith(status: "odrzucony");
+              controller.updateLeave(newLeave);
+
+              showCustomSnackbar(context,'Wniosek odrzucony');
+
+            } catch (e) {
+              showCustomSnackbar(context, 'Błąd: ${e.toString()}');
+            }
+
           },
         ),
         const SizedBox(width: 8),
@@ -263,7 +293,8 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           color: AppColors.logo,
           icon: Icons.check,
           onPressed: () {
-            //to implement actual logic
+            final newLeave = leave.copyWith(status: "zaakceptowany");
+            controller.updateLeave(newLeave);
 
             /// CHNAGE STATUS TO ZAAKCEPTOWANY
             showCustomSnackbar(context,'Wniosek zaakceptowany');

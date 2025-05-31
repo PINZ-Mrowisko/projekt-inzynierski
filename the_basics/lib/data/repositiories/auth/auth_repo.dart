@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 
 import '../../../features/auth/screens/verify_email.dart';
 import '../../../features/tags/controllers/tags_controller.dart';
@@ -92,6 +93,10 @@ class AuthRepo extends GetxController {
 
       final tagsController = Get.find<TagsController>();
       await tagsController.initialize();
+
+
+      final leaveController = Get.find<LeaveController>();
+      await leaveController.initialize();
 
     } catch (e) {
       throw(e.toString());

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
@@ -11,14 +12,17 @@ import '../controllers/leave_controller.dart';
 void showAddManagerLeaveDialog(BuildContext context) {
   final leaveType = RxnString();
   final selectedRange = Rx<PickerDateRange?>(null);
+  final userController = Get.find<UserController>();
+  final employee = userController.employee.value;
 
-  //need to implemtnt fetch of leave days left
+  final errorMessage = RxString('');
+
   final leaveStatusText = Obx(() {
     final type = leaveType.value;
     if (type == null) return const SizedBox.shrink();
     final statusMap = {
-      'Urlop wypoczynkowy': 'Wykorzystanie urlopu wypoczynkowego 0/20',
-      'Urlop na żądanie': 'Wykorzystanie urlopu na żądanie 0/4',
+      'Urlop wypoczynkowy': 'Pozostało dni urlopu wypoczynkowego: ${employee.vacationDays}/20',
+      'Urlop na żądanie': 'pozostało : ${employee.onDemandDays}/4',
     };
     return Padding(
       padding: const EdgeInsets.only(bottom: 22.0),
@@ -29,6 +33,56 @@ void showAddManagerLeaveDialog(BuildContext context) {
     );
   });
 
+  final errorText = Obx(() {
+    if (errorMessage.value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Text(
+        errorMessage.value,
+        style: const TextStyle(color: Colors.red, fontSize: 14),
+      ),
+    );
+  });
+
+  // funkcja walidująca wybrane daty - tutaj do zmiany jesli logika biznesowa wyglada inaczej
+  void validateDates(PickerDateRange? range) {
+    errorMessage.value = '';
+
+    if (range == null || range.startDate == null || leaveType.value == null) return;
+
+    final startDate = range.startDate!;
+    final endDate = range.endDate ?? startDate;
+    final today = DateTime.now();
+    final isOnDemand = leaveType.value == 'Urlop na żądanie';
+    final requestedDays = endDate.difference(startDate).inDays + 1;
+
+    // Walidacja urlopu wypoczynkowego
+    if (!isOnDemand) {
+      if (startDate.isBefore(today)) {
+        errorMessage.value = 'Urlop wypoczynkowy nie może być w przeszłości';
+        return;
+      }
+    }
+
+    // Walidacja dostępnych dni
+    if (isOnDemand) {
+      if (requestedDays > employee.onDemandDays) {
+        errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu na żądanie';
+        return;
+      }
+      if (requestedDays > 1) {
+        errorMessage.value = 'Urlop na żądanie może trwać maksymalnie 1 dzień';
+        return;
+      }
+    } else {
+      if (requestedDays > employee.vacationDays) {
+        errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu wypoczynkowego';
+        return;
+      }
+    }
+  }
+
+
 
   final fields = [
     DropdownDialogField(
@@ -38,7 +92,10 @@ void showAddManagerLeaveDialog(BuildContext context) {
         DropdownItem(value: 'Urlop wypoczynkowy', label: 'Urlop wypoczynkowy'),
         DropdownItem(value: 'Urlop na żądanie', label: 'Urlop na żądanie'),
       ],
-      onChanged: (value) => leaveType.value = value,
+      onChanged: (value) {
+        leaveType.value = value;
+        validateDates(selectedRange.value);
+      }
     ),
     leaveStatusText,
     DatePickerDialogField(
@@ -46,8 +103,10 @@ void showAddManagerLeaveDialog(BuildContext context) {
       selectedRange: selectedRange,
       onRangeChanged: (range) {
         selectedRange.value = range;
+        validateDates(range);
       },
     ),
+    errorText,
   ];
 
   final actions = [
@@ -58,20 +117,31 @@ void showAddManagerLeaveDialog(BuildContext context) {
           showCustomSnackbar(context, 'Wybierz typ urlopu i zakres dat');
           return;
         }
+
+        if (errorMessage.value.isNotEmpty) {
+          showCustomSnackbar(context, 'Popraw błędy przed zatwierdzeniem');
+          return;
+        }
         /// HANDLE LEAVE REQUEST LOGIC HERE
-        // Get the controller instance
         final leaveController = Get.find<LeaveController>();
         final startDate = selectedRange.value!.startDate;
         final endDate = selectedRange.value!.endDate ?? selectedRange.value!.startDate;
 
-        // is this even legal
-        final marketId = leaveController.userController.employee.value.marketId;
-
-        await leaveController.saveLeave(startDate!, endDate!, leaveType.value!);
-
-        Get.back();
-        showCustomSnackbar(context, 'Urlop został dodany do kalendarza');
-      },
+        try {
+          await leaveController.saveLeave(
+              startDate!,
+              endDate!,
+              leaveType.value!,
+              "mój urlop"
+          );
+          Get.back();
+          await userController.fetchCurrentUserRecord();
+          Get.back();
+          showCustomSnackbar(context, 'Urlop został dodany do kalendarza');
+        } catch (e) {
+          showCustomSnackbar(context, 'Błąd podczas dodawania urlopu: ${e.toString()}');
+        }
+        }
     )
   ];
 
