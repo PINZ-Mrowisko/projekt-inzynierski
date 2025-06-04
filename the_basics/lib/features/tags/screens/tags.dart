@@ -60,7 +60,7 @@ class TagsPage extends StatelessWidget {
                       if (tagsController.errorMessage.value.isNotEmpty) {
                         return Center(child: Text(tagsController.errorMessage.value));
                       }
-                      if (tagsController.allTags.isEmpty) {
+                      if (tagsController.filteredTags.isEmpty) {
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -95,14 +95,21 @@ class TagsPage extends StatelessWidget {
   }
 
   Widget _buildSearchBar() {
-    return const CustomSearchBar(
+    final tagsController = Get.find<TagsController>();
+    return CustomSearchBar(
       hintText: 'Wyszukaj tag',
+      onChanged: (query) {
+        tagsController.searchQuery.value = query;
+  tagsController.filterTags(query);
+
+
+  } ,
     );
   }
 
   Widget _buildTagsList(BuildContext context, TagsController controller) {
     return GenericList<TagsModel>(
-      items: controller.allTags,
+      items: controller.filteredTags,
       onItemTap: (tag) => showEditTagDialog(context, controller, tag),
       itemBuilder: (context, tag) {
         return ListTile(

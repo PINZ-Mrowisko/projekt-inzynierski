@@ -7,21 +7,26 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../employees/controllers/user_controller.dart';
 import '../controllers/leave_controller.dart';
+import '../models/holiday_model.dart';
 
-//to implement actual logic prferably with dynamic dropdown items
 void showAddEmployeeLeaveDialog(BuildContext context) {
   final leaveType = RxnString();
   final selectedRange = Rx<PickerDateRange?>(null);
   final userController = Get.find<UserController>();
   final employee = userController.employee.value;
+  final leaveController = Get.find<LeaveController>();
+
   final errorMessage = RxString('');
+  final holidayMessage = RxString('');
+  final overlapMessage = RxString('');
+  final numOfHolidays = RxInt(0);
 
   final leaveStatusText = Obx(() {
     final type = leaveType.value;
     if (type == null) return const SizedBox.shrink();
     final statusMap = {
-      'Urlop wypoczynkowy': 'Wykorzystanie urlopu wypoczynkowego ${employee.vacationDays}/20',
-      'Urlop na żądanie': 'Wykorzystanie urlopu na żądanie ${employee.onDemandDays}/4',
+      'Urlop wypoczynkowy': 'Pozostało dni urlopu wypoczynkowego: ${employee.vacationDays}/20',
+      'Urlop na żądanie': 'Pozostało dni urlopu na żądanie: ${employee.onDemandDays}/4',
     };
     return Padding(
       padding: const EdgeInsets.only(bottom: 22.0),
@@ -43,8 +48,32 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     );
   });
 
+  final holidayText = Obx(() {
+    if (holidayMessage.value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Text(
+        holidayMessage.value,
+        style: const TextStyle(color: Colors.blue, fontSize: 14),
+      ),
+    );
+  });
+
+  final overlapText = Obx(() {
+    if (overlapMessage.value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Text(
+        overlapMessage.value,
+        style: const TextStyle(color: Colors.pink, fontSize: 14),
+      ),
+    );
+  });
+
   void validateDates(PickerDateRange? range) {
     errorMessage.value = '';
+    holidayMessage.value = '';
+    overlapMessage.value = '';
 
     if (range == null || range.startDate == null || leaveType.value == null) return;
 
@@ -54,20 +83,49 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     final isOnDemand = leaveType.value == 'Urlop na żądanie';
     final requestedDays = endDate.difference(startDate).inDays + 1;
 
+    // Check for holidays
+    final List<Holiday> holidays = leaveController.holidays;
+    final holidaysInRange = holidays.where((holiday) {
+      final date = holiday.date;
+      return !date.isBefore(startDate) && !date.isAfter(endDate);
+    }).toList();
+
+    numOfHolidays.value = holidaysInRange.length;
+
+    if (holidaysInRange.isNotEmpty) {
+      final formatted = holidaysInRange
+          .map((h) => '${h.date.day.toString().padLeft(2, '0')}.${h.date.month.toString().padLeft(2, '0')}.${h.date.year} (${h.name})')
+          .join(', ');
+      holidayMessage.value = 'Uwaga! W wybranym okresie przypadają święta: $formatted. Zostaną one odjete od dlugosci wolnego';
+    }
+
+    // Check for overlapping approved leaves
+    final overlappingLeave = leaveController.getOverlappingLeave(startDate, endDate, employee.id);
+    if (overlappingLeave != null) {
+      final formatDate = (date) => '${date.day}.${date.month}.${date.year}';
+      overlapMessage.value = 'Masz już zaakceptowany urlop w terminie '
+          '${formatDate(overlappingLeave.startDate)}-${formatDate(overlappingLeave.endDate)}';
+      return;
+    }
+
+    // Vacation leave validation
     if (!isOnDemand) {
       if (startDate.isBefore(today)) {
         errorMessage.value = 'Urlop wypoczynkowy nie może być w przeszłości';
         return;
       }
     }
+
+    // On-demand leave validation
     final dateMinusOne = today.subtract(const Duration(days: 1));
     if (isOnDemand) {
       if (startDate.isBefore(dateMinusOne)) {
-        errorMessage.value = "Urlop na żądanie nie może być w przeszłości ( ale dziś może).";
+        errorMessage.value = "Urlop na żądanie nie może być w przeszłości (ale dziś może).";
+        return;
       }
-
     }
 
+    // Days availability validation
     if (isOnDemand) {
       if (requestedDays > employee.onDemandDays) {
         errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu na żądanie';
@@ -86,17 +144,19 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
   }
 
   final fields = [
+    holidayText,
+    overlapText,
     DropdownDialogField(
-      label: 'Typ urlopu',
-      hintText: 'Wybierz typ urlopu',
-      items: [
-        DropdownItem(value: 'Urlop wypoczynkowy', label: 'Urlop wypoczynkowy'),
-        DropdownItem(value: 'Urlop na żądanie', label: 'Urlop na żądanie'),
-      ],
-      onChanged: (value) {
-        leaveType.value = value;
-        validateDates(selectedRange.value);
-      }
+        label: 'Typ urlopu',
+        hintText: 'Wybierz typ urlopu',
+        items: [
+          DropdownItem(value: 'Urlop wypoczynkowy', label: 'Urlop wypoczynkowy'),
+          DropdownItem(value: 'Urlop na żądanie', label: 'Urlop na żądanie'),
+        ],
+        onChanged: (value) {
+          leaveType.value = value;
+          validateDates(selectedRange.value);
+        }
     ),
     leaveStatusText,
     DatePickerDialogField(
@@ -118,28 +178,32 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
           showCustomSnackbar(context, 'Wybierz typ urlopu i zakres dat');
           return;
         }
+
         if (errorMessage.value.isNotEmpty) {
           showCustomSnackbar(context, 'Popraw błędy przed zatwierdzeniem');
           return;
         }
 
-        final leaveController = Get.find<LeaveController>();
+        if (overlapMessage.value.isNotEmpty) {
+          showCustomSnackbar(context, 'Masz już urlop w tym terminie.');
+          return;
+        }
+
         final startDate = selectedRange.value!.startDate!;
         final endDate = selectedRange.value!.endDate ?? startDate;
+        final requestedDays = endDate.difference(startDate).inDays + 1 - numOfHolidays.value;
 
         try {
-          // status "oczekujący" for employee requests (cause it needs approval)
-
           await leaveController.saveEmpLeave(
               startDate,
               endDate,
               leaveType.value!,
-              "oczekujący"
+              "oczekujący",
+              requestedDays
           );
           Get.back();
           await userController.fetchCurrentUserRecord();
           Get.back();
-
           showCustomSnackbar(context, 'Wniosek urlopowy został złożony');
         } catch (e) {
           showCustomSnackbar(context, 'Błąd podczas składania wniosku: ${e.toString()}');

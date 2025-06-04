@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
@@ -21,8 +22,13 @@ class UserController extends GetxController {
 
   final localStorage = GetStorage();
 
+  final RxString searchQuery = ''.obs;
+
   //create an observable list that will hold all the employee data
   RxList<UserModel> allEmployees = <UserModel>[].obs;
+
+  // we will use this to display emps in the emp manage screen
+  final RxList<UserModel> filteredEmployees = <UserModel>[].obs;
 
   final RxBool isAdmin = false.obs;
 
@@ -85,6 +91,7 @@ class UserController extends GetxController {
 
       /// save the employees locally for later use
       allEmployees.assignAll(employees);
+      filteredEmployees.assignAll(employees);
 
     } catch (e) {
       errorMessage(e.toString());
@@ -214,6 +221,45 @@ class UserController extends GetxController {
       return null;
     }
   }
+
+  void filterEmployeesByTags(List<String> selectedTags) {
+    if (selectedTags.isEmpty) {
+      filteredEmployees.assignAll(allEmployees);
+      return;
+    }
+
+    filteredEmployees.assignAll(allEmployees.where((employee) {
+      return selectedTags.every((tag) => employee.tags.contains(tag));
+    }).toList());
+  }
+
+  void filterEmployees(List<String> selectedTags) {
+    // Get current search query (empty string if no search)
+    final currentQuery = searchQuery.value;
+
+    // Apply both tag filter AND search filter
+    var results = allEmployees.toList();
+
+    // 1. First apply tag filter if tags are selected
+    if (selectedTags.isNotEmpty) {
+      results = allEmployees.where((employee) =>
+          selectedTags.every((tag) => employee.tags.contains(tag))
+      ).toList(); // Convert Iterable to List
+    }
+
+          // 2. Then apply search filter if query exists
+    if (currentQuery.isNotEmpty) {
+        final q = currentQuery.toLowerCase();
+        results = results.where((employee) =>
+        employee.firstName.toLowerCase().contains(q) ||
+            employee.lastName.toLowerCase().contains(q) ||
+            employee.email.toLowerCase().contains(q)
+        ).toList();
+      }
+
+      filteredEmployees.assignAll(results);
+    }
+
 
 
 }

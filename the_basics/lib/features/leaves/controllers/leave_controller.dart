@@ -125,7 +125,7 @@ class LeaveController extends GetxController {
 
 
   /// FOR EMPLOYEEEES
-  Future<void> saveEmpLeave(DateTime startDate, DateTime endDate, String leaveType, String status) async {
+  Future<void> saveEmpLeave(DateTime startDate, DateTime endDate, String leaveType, String status, int requestedDays) async {
     try {
       final marketId = userController.employee.value.marketId;
       final requestedDays = endDate.difference(startDate).inDays + 1;

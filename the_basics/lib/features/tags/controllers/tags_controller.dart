@@ -16,6 +16,10 @@ class TagsController extends GetxController {
 
   //create an observable list that will hold all the tag data
   RxList<TagsModel> allTags = <TagsModel>[].obs;
+  RxList<TagsModel> filteredTags = <TagsModel>[].obs;
+
+  RxString searchQuery = ''.obs;
+
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
 
@@ -47,6 +51,7 @@ class TagsController extends GetxController {
       print("Tags loaded: ${tags.length} items");
       /// save the tags locally for later use
       allTags.assignAll(tags);
+      filteredTags.assignAll(tags);
 
     } catch (e) {
       //display error msg
@@ -251,4 +256,25 @@ class TagsController extends GetxController {
       isLoading(false);
     }
   }
+
+  void filterTags(String query) {
+    searchQuery.value = query;
+
+    if (query.isEmpty) {
+      filteredTags.assignAll(allTags);
+      //print("no query");
+    } else {
+      //print("im here");
+      final lowerQuery = query.toLowerCase();
+      final results = allTags.where((tag) =>
+      tag.tagName.toLowerCase().contains(lowerQuery) ||
+          tag.description.toLowerCase().contains(lowerQuery)
+      ).toList();
+
+      //print(results.length);
+
+      filteredTags.assignAll(results);
+    }
+  }
+
 }
