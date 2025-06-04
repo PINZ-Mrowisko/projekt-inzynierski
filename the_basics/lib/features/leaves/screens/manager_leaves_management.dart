@@ -28,7 +28,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
-            child: const SideMenu(),
+            child: SideMenu(),
           ),
           Expanded(
             child: Padding(

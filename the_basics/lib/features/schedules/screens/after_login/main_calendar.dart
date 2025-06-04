@@ -17,7 +17,7 @@ class MainCalendar extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: const SideMenu(),
+            child: SideMenu(),
           ),
           Expanded(
             child: Container(
