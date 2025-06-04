@@ -17,6 +17,7 @@ class UserModel {
   final DateTime updatedAt;
   final int vacationDays;
   final int onDemandDays;
+  final bool hasLoggedIn;
 
   UserModel({
     required this.id,
@@ -34,7 +35,8 @@ class UserModel {
     required this.insertedAt,
     required this.updatedAt,
     this.vacationDays = 20,
-    this.onDemandDays = 4
+    this.onDemandDays = 4,
+    this.hasLoggedIn = false
   });
 
   static UserModel empty() => UserModel(
@@ -48,7 +50,8 @@ class UserModel {
     insertedAt: DateTime.now(),
     updatedAt: DateTime.now(),
     vacationDays: 20,
-    onDemandDays: 4
+    onDemandDays: 4,
+    hasLoggedIn: false
   );
 
   Map<String, dynamic> toMap() {
@@ -68,7 +71,8 @@ class UserModel {
       'insertedAt': Timestamp.fromDate(insertedAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'vacationDays': vacationDays,
-      'onDemandDays': onDemandDays
+      'onDemandDays': onDemandDays,
+      'hasLoggedIn': hasLoggedIn
     };
   }
 
@@ -91,7 +95,8 @@ class UserModel {
         updatedAt: (map['updatedAt']).toDate(),
         marketId: map['marketId'] ?? '',
         onDemandDays: map['onDemandDays'] ?? '',
-        vacationDays: map['vacationDays'] ?? ''
+        vacationDays: map['vacationDays'] ?? '',
+        hasLoggedIn: map['hasLoggedIn'] ?? false
       );
     } else {
       return UserModel.empty();
@@ -118,7 +123,8 @@ class UserModel {
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       marketId: data['marketId']?.toString() ?? '',
         onDemandDays: data['onDemandDays'] ?? '',
-        vacationDays: data['vacationDays'] ?? ''
+        vacationDays: data['vacationDays'] ?? '',
+      hasLoggedIn: data['hasLoggedIn'] ?? false
     );
   }
 
@@ -140,7 +146,8 @@ class UserModel {
     List<String>? tags,
     bool? isDeleted,
     int? vacationDays,
-    int? onDemandDays
+    int? onDemandDays,
+    bool? hasLoggedIn
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -158,7 +165,8 @@ class UserModel {
       insertedAt: insertedAt,
       updatedAt: DateTime.now(),
       vacationDays: vacationDays ?? this.vacationDays,
-      onDemandDays: onDemandDays ?? this.onDemandDays
+      onDemandDays: onDemandDays ?? this.onDemandDays,
+      hasLoggedIn: hasLoggedIn ?? this.hasLoggedIn
     );
   }
 }

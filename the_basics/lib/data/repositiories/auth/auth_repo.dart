@@ -34,8 +34,8 @@ class AuthRepo extends GetxController {
   // handles which screen to show to the user - if hes authenticated, then .....
   screenRedirect() async {
     final user =  _auth.currentUser;
-    print("moved here");
-    print(user?.uid);
+    //print("moved here");
+    //print(user?.uid);
 
     if (user != null) {
       if (user.emailVerified){
@@ -55,15 +55,26 @@ class AuthRepo extends GetxController {
     }
   }
 
+  // handles after login functions for emps and manager
   afterLogin() async {
     final user =  _auth.currentUser;
-    print("moved here");
-    print(user?.uid);
+    //print("moved here");
+    //print(user?.uid);
 
     if (user != null) {
         try {
           // Initialize controllers sequentially
           await _initializeControllers();
+
+          /// perform a check if its the first login, if yes mark the flag
+          final userController = Get.find<UserController>();
+          final employee = userController.employee.value;
+
+          if (employee.hasLoggedIn == false) {
+            await userController.updateEmployee(employee.copyWith(hasLoggedIn: true));
+            print("Updated hasLoggedIn to true for first login.");
+          }
+
           _navigateToMainApp();
         } catch (e) {
           throw(e.toString());

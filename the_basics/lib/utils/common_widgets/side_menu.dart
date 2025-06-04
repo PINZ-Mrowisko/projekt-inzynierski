@@ -239,7 +239,7 @@ class _SideMenuState extends State<SideMenu> {
                 icon: Icons.settings,
                 text: 'Ustawienia',
                 route: '/settings',
-                onTap: () => _navigateTo('/settings'),
+                onTap: () => _navigateTo('/ustawienia'),
               ),
               SizedBox(height: 4 * _scaleFactor),
               _buildMenuItem(
