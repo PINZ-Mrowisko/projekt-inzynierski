@@ -19,7 +19,7 @@ class LeaveRepo extends GetxController {
           .doc(leave.id)
           .set(leave.toMap());
 
-      print("i did ti");
+      //print("i did ti");
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException {

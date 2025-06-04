@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/other/leave_repo.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 
+import '../models/holiday_model.dart';
 import '../models/leave_model.dart';
 
 /// RULES needed to be assured
@@ -22,6 +23,8 @@ class LeaveController extends GetxController {
   final daysCount = TextEditingController();
 
   final RxList<LeaveModel> allLeaveRequests = <LeaveModel>[].obs;
+  final RxList<Holiday> holidays = <Holiday>[].obs;
+
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
 
@@ -30,14 +33,15 @@ class LeaveController extends GetxController {
       allLeaveRequests.where((r) => r.status == 'oczekujący').toList().obs;
 
   // display historic/ upcoming requests
-  RxList<LeaveModel> get reviewedRequests =>
-      allLeaveRequests.where((r) => r.status == 'zaakceptowany' || r.status == 'odrzucony').toList().obs;
+  RxList<LeaveModel> get acceptedRequests =>
+      allLeaveRequests.where((r) => r.status == 'zaakceptowany' || r.status == 'mój urlop').toList().obs;
 
   /// initialize: fetch all leave requests
   Future<void> initialize() async {
     try {
       isLoading(true);
       await fetchLeaves();
+      await loadHolidays();
     } catch (e) {
       errorMessage(e.toString());
     } finally {
@@ -64,10 +68,11 @@ class LeaveController extends GetxController {
   }
 
   /// Save a new leave request - KIEROWNIK
-  Future<void> saveLeave(DateTime startDate, DateTime endDate, String leaveType, String status) async {
+  Future<void> saveLeave(DateTime startDate, DateTime endDate, String leaveType, String status, int requestedDays) async {
     try {
+      // maybe add looking for overlap here as well
+
       final marketId = userController.employee.value.marketId;
-      final requestedDays = endDate.difference(startDate).inDays + 1;
 
       final leaveId = FirebaseFirestore.instance
           .collection('Markets')
@@ -81,7 +86,7 @@ class LeaveController extends GetxController {
         name: '${userController.employee.value.firstName} ${userController.employee.value.lastName}',
         marketId: marketId,
         userId: userController.employee.value.id,
-        totalDays: 0,
+        totalDays: requestedDays,
         startDate: startDate,
         endDate: endDate,
         status: status,
@@ -203,5 +208,27 @@ class LeaveController extends GetxController {
     } finally {
       isLoading(false);
     }
+  }
+
+  // loads all available Holidays into the list, so we can use them during leave planning
+  Future<void> loadHolidays() async {
+    final snapshot = await FirebaseFirestore.instance.collection('Holidays').get();
+    holidays.assignAll( snapshot.docs.map((e) => Holiday.fromFirestore(e)).toList());
+  }
+
+
+  // looks for conflicts while date validating in leave requests
+  LeaveModel? getOverlappingLeave(DateTime startDate, DateTime endDate, String userId) {
+    for (final leave in acceptedRequests) {
+      if (leave.userId == userId) {
+        final leaveStart = leave.startDate;
+        final leaveEnd = leave.endDate;
+
+        if ((startDate.isBefore(leaveEnd) && endDate.isAfter(leaveStart))) {
+          return leave;
+        }
+      }
+    }
+    return null;
   }
 }

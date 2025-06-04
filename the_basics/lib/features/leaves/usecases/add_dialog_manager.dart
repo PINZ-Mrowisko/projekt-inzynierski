@@ -7,15 +7,20 @@ import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../controllers/leave_controller.dart';
+import '../models/holiday_model.dart';
 
 //to implement actual logic prferably with dynamic dropdown items
-void showAddManagerLeaveDialog(BuildContext context) {
+void showAddManagerLeaveDialog(BuildContext context, LeaveController controller) {
   final leaveType = RxnString();
   final selectedRange = Rx<PickerDateRange?>(null);
   final userController = Get.find<UserController>();
   final employee = userController.employee.value;
 
   final errorMessage = RxString('');
+  final holidayMessage = RxString('');
+  final overlapMessage = RxString('');
+
+  final numOfHolidays = RxInt(0);
 
   final leaveStatusText = Obx(() {
     final type = leaveType.value;
@@ -44,8 +49,30 @@ void showAddManagerLeaveDialog(BuildContext context) {
     );
   });
 
+  final holidayText = Obx(() {
+    if (holidayMessage.value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Text(
+        holidayMessage.value,
+        style: const TextStyle(color: Colors.blue, fontSize: 14),
+      ),
+    );
+  });
+
+  final overlapText = Obx(() {
+    if (overlapMessage.value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Text(
+        overlapMessage.value,
+        style: const TextStyle(color: Colors.pink, fontSize: 14),
+      ),
+    );
+  });
+
   // funkcja walidująca wybrane daty - tutaj do zmiany jesli logika biznesowa wyglada inaczej
-  void validateDates(PickerDateRange? range) {
+  void validateDates(PickerDateRange? range, LeaveController controller) {
     errorMessage.value = '';
 
     if (range == null || range.startDate == null || leaveType.value == null) return;
@@ -56,12 +83,49 @@ void showAddManagerLeaveDialog(BuildContext context) {
     final isOnDemand = leaveType.value == 'Urlop na żądanie';
     final requestedDays = endDate.difference(startDate).inDays + 1;
 
+    final List<Holiday> holidays = controller.holidays;
+
+    // finds holidays that happen in time of leace
+    final holidaysInRange = holidays.where((holiday) {
+      final date = holiday.date;
+      return !date.isBefore(startDate) && !date.isAfter(endDate);
+    }).toList();
+
+    // assign number of overlapping holidays so we can substract them later
+    numOfHolidays.value = holidaysInRange.length;
+
+    if (holidaysInRange.isNotEmpty) {
+      final formatted = holidaysInRange
+          .map((h) => '${h.date.day.toString().padLeft(2, '0')}.${h.date.month.toString().padLeft(2, '0')}.${h.date.year} (${h.name})')
+          .join(', ');
+      holidayMessage.value = 'Uwaga! W wybranym okresie przypadają święta: $formatted. Zostaną one odjete od dlugosci wolnego';
+    }
+
+    /// Check for overlap with already accepted leave requests
+    final overlappingLeave = controller.getOverlappingLeave(startDate, endDate, employee.id);
+    if (overlappingLeave != null) {
+      print("IVe got some!~~~~~~~~~~");
+      final formatDate = (date) => '${date.day}.${date.month}.${date.year}';
+      overlapMessage.value = 'Masz już zaakceptowany urlop w terminie '
+          '${formatDate(overlappingLeave.startDate)}-${formatDate(overlappingLeave.endDate)}';
+      return;
+    }
+
+
     // Walidacja urlopu wypoczynkowego
     if (!isOnDemand) {
       if (startDate.isBefore(today)) {
         errorMessage.value = 'Urlop wypoczynkowy nie może być w przeszłości';
         return;
       }
+    }
+    final dateMinusOne = today.subtract(const Duration(days: 1));
+    if (isOnDemand) {
+      if (startDate.isBefore(dateMinusOne)) {
+        errorMessage.value = "Urlop na żądanie nie może być w przeszłości ( ale dziś może).";
+        return;
+      }
+
     }
 
     // Walidacja dostępnych dni
@@ -83,8 +147,9 @@ void showAddManagerLeaveDialog(BuildContext context) {
   }
 
 
-
   final fields = [
+    holidayText,
+    overlapText,
     DropdownDialogField(
       label: 'Typ urlopu',
       hintText: 'Wybierz typ urlopu',
@@ -94,7 +159,7 @@ void showAddManagerLeaveDialog(BuildContext context) {
       ],
       onChanged: (value) {
         leaveType.value = value;
-        validateDates(selectedRange.value);
+        validateDates(selectedRange.value, controller);
       }
     ),
     leaveStatusText,
@@ -103,10 +168,11 @@ void showAddManagerLeaveDialog(BuildContext context) {
       selectedRange: selectedRange,
       onRangeChanged: (range) {
         selectedRange.value = range;
-        validateDates(range);
+        validateDates(range, controller);
       },
     ),
     errorText,
+
   ];
 
   final actions = [
@@ -122,17 +188,25 @@ void showAddManagerLeaveDialog(BuildContext context) {
           showCustomSnackbar(context, 'Popraw błędy przed zatwierdzeniem');
           return;
         }
+
+        if (overlapMessage.value.isNotEmpty) {
+          showCustomSnackbar(context, 'Masz już urlop w tym terminie.');
+          return;
+        }
+
         /// HANDLE LEAVE REQUEST LOGIC HERE
         final leaveController = Get.find<LeaveController>();
         final startDate = selectedRange.value!.startDate;
         final endDate = selectedRange.value!.endDate ?? selectedRange.value!.startDate;
 
+        final requestedDays = endDate!.difference(startDate!).inDays + 1 - numOfHolidays.value;
         try {
           await leaveController.saveLeave(
               startDate!,
               endDate!,
               leaveType.value!,
-              "mój urlop"
+              "mój urlop",
+              requestedDays
           );
           Get.back();
           await userController.fetchCurrentUserRecord();

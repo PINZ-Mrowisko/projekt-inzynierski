@@ -24,6 +24,7 @@ class TagsController extends GetxController {
   Future<void> initialize() async {
     try {
       isLoading(true);
+      print("fetchin tags");
       await fetchTags();
     } catch (e) {
       errorMessage(e.toString());
@@ -43,7 +44,7 @@ class TagsController extends GetxController {
 
       /// fetch tags from tags repo
       final tags = await _tagsRepo.getAllTags(marketId);
-      //print("Tags loaded: ${allTags.length} items");
+      print("Tags loaded: ${tags.length} items");
       /// save the tags locally for later use
       allTags.assignAll(tags);
 

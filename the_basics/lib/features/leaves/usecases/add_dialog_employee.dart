@@ -60,6 +60,13 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
         return;
       }
     }
+    final dateMinusOne = today.subtract(const Duration(days: 1));
+    if (isOnDemand) {
+      if (startDate.isBefore(dateMinusOne)) {
+        errorMessage.value = "Urlop na żądanie nie może być w przeszłości ( ale dziś może).";
+      }
+
+    }
 
     if (isOnDemand) {
       if (requestedDays > employee.onDemandDays) {

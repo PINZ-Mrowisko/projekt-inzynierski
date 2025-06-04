@@ -64,7 +64,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                           child: _buildStatusFilterDropdown(leaveController, selectedStatuses),
                         ),
                         const SizedBox(width: 16),
-                        _buildAddLeaveButton(context, userController),
+                        _buildAddLeaveButton(context, leaveController),
                       ],
                     ),
                   ),
@@ -91,14 +91,14 @@ class ManagerLeavesManagementPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAddLeaveButton(BuildContext context, UserController controller) {
+  Widget _buildAddLeaveButton(BuildContext context, LeaveController controller) {
     return CustomButton(
       text: 'Dodaj urlop',
       icon: Icons.add,
       width: 140,
 
       /// this is for the managers leave - so no need to accept it I suppose, just move straight to accepted list
-      onPressed: () => showAddManagerLeaveDialog(context),
+      onPressed: () => showAddManagerLeaveDialog(context, controller),
     );
   }
 
