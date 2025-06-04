@@ -219,12 +219,22 @@ class LeaveController extends GetxController {
 
   // looks for conflicts while date validating in leave requests
   LeaveModel? getOverlappingLeave(DateTime startDate, DateTime endDate, String userId) {
+    // Normalizujemy daty do postaci bez czasu
+    final normalizeDate = (DateTime date) => DateTime(date.year, date.month, date.day);
+    final newStart = normalizeDate(startDate);
+    final newEnd = normalizeDate(endDate);
+
     for (final leave in acceptedRequests) {
       if (leave.userId == userId) {
-        final leaveStart = leave.startDate;
-        final leaveEnd = leave.endDate;
+        final leaveStart = normalizeDate(leave.startDate);
+        final leaveEnd = normalizeDate(leave.endDate);
 
-        if ((startDate.isBefore(leaveEnd) && endDate.isAfter(leaveStart))) {
+        // Sprawdzamy wszystkie możliwe przypadki nakładania się zakresów jakie sobie dacie rade wymyslic
+        if ((newStart.isAtSameMomentAs(leaveStart)) ||
+            (newEnd.isAtSameMomentAs(leaveEnd)) ||
+            (newStart.isAtSameMomentAs(leaveEnd)) ||
+            (newEnd.isAtSameMomentAs(leaveStart)) ||
+            (newStart.isBefore(leaveEnd) && newEnd.isAfter(leaveStart))) {
           return leave;
         }
       }

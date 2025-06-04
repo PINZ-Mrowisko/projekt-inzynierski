@@ -80,17 +80,25 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     final startDate = range.startDate!;
     final endDate = range.endDate ?? startDate;
     final today = DateTime.now();
+    final normalizeDate = (DateTime date) => DateTime(date.year, date.month, date.day);
+    final startOnly = normalizeDate(startDate);
+    final endOnly = normalizeDate(endDate);
+
     final isOnDemand = leaveType.value == 'Urlop na żądanie';
-    final requestedDays = endDate.difference(startDate).inDays + 1;
+    var requestedDays = endDate.difference(startDate).inDays + 1;
 
     // Check for holidays
     final List<Holiday> holidays = leaveController.holidays;
+
     final holidaysInRange = holidays.where((holiday) {
-      final date = holiday.date;
-      return !date.isBefore(startDate) && !date.isAfter(endDate);
+      final holidayDate = normalizeDate(holiday.date);
+      return (holidayDate.isAtSameMomentAs(startOnly) ||
+          holidayDate.isAtSameMomentAs(endOnly)) ||
+          (holidayDate.isAfter(startOnly) && holidayDate.isBefore(endOnly));
     }).toList();
 
     numOfHolidays.value = holidaysInRange.length;
+    requestedDays = requestedDays - holidaysInRange.length;
 
     if (holidaysInRange.isNotEmpty) {
       final formatted = holidaysInRange

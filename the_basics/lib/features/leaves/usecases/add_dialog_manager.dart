@@ -74,25 +74,36 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
   // funkcja walidująca wybrane daty - tutaj do zmiany jesli logika biznesowa wyglada inaczej
   void validateDates(PickerDateRange? range, LeaveController controller) {
     errorMessage.value = '';
+    holidayMessage.value ='';
+    overlapMessage.value = '';
 
     if (range == null || range.startDate == null || leaveType.value == null) return;
 
     final startDate = range.startDate!;
     final endDate = range.endDate ?? startDate;
     final today = DateTime.now();
+    final normalizeDate = (DateTime date) => DateTime(date.year, date.month, date.day);
+    final startOnly = normalizeDate(startDate);
+    final endOnly = normalizeDate(endDate);
+
+
     final isOnDemand = leaveType.value == 'Urlop na żądanie';
-    final requestedDays = endDate.difference(startDate).inDays + 1;
+    //for now set it like that, we need to substract the holidays
+     var requestedDays = endDate.difference(startDate).inDays + 1;
 
     final List<Holiday> holidays = controller.holidays;
 
-    // finds holidays that happen in time of leace
+    // // finds holidays that happen in time of leave
     final holidaysInRange = holidays.where((holiday) {
-      final date = holiday.date;
-      return !date.isBefore(startDate) && !date.isAfter(endDate);
+      final holidayDate = normalizeDate(holiday.date);
+      return (holidayDate.isAtSameMomentAs(startOnly) ||
+          holidayDate.isAtSameMomentAs(endOnly)) ||
+          (holidayDate.isAfter(startOnly) && holidayDate.isBefore(endOnly));
     }).toList();
 
     // assign number of overlapping holidays so we can substract them later
     numOfHolidays.value = holidaysInRange.length;
+    requestedDays = requestedDays - holidaysInRange.length;
 
     if (holidaysInRange.isNotEmpty) {
       final formatted = holidaysInRange
@@ -100,11 +111,14 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
           .join(', ');
       holidayMessage.value = 'Uwaga! W wybranym okresie przypadają święta: $formatted. Zostaną one odjete od dlugosci wolnego';
     }
+    else {holidayMessage.value = '';}
+
+
 
     /// Check for overlap with already accepted leave requests
     final overlappingLeave = controller.getOverlappingLeave(startDate, endDate, employee.id);
     if (overlappingLeave != null) {
-      print("IVe got some!~~~~~~~~~~");
+      //print("IVe got some!~~~~~~~~~~");
       final formatDate = (date) => '${date.day}.${date.month}.${date.year}';
       overlapMessage.value = 'Masz już zaakceptowany urlop w terminie '
           '${formatDate(overlappingLeave.startDate)}-${formatDate(overlappingLeave.endDate)}';
