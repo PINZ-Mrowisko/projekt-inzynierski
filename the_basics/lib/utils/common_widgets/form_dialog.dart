@@ -336,7 +336,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
             field.onInternalChanged?.call();
           },
           hintText: field.hintText,
-          width: field.width,
+          maxWidth: field.width,
           height: field.height,
         ),
         const SizedBox(height: 22),

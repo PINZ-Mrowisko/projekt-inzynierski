@@ -88,10 +88,6 @@ class ManagerLeavesManagementPage extends StatelessWidget {
   //need to implement actual logic
   Widget _buildEmployeeFilterDropdown(UserController userController, RxList<String> selectedEmployees) {
     return Obx(() {
-      double screenWidth = MediaQuery.of(Get.context!).size.width;
-      double dropdownWidth = screenWidth * 0.2;
-      if (dropdownWidth > 360) dropdownWidth = 360;
-
       return CustomMultiSelectDropdown(
         items: userController.allEmployees.map((user) => '${user.firstName} ${user.lastName}').toList(),
         selectedItems: selectedEmployees,
@@ -99,8 +95,10 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           selectedEmployees.assignAll(selected);
         },
         hintText: 'Filtruj po pracowniku',
-        width: dropdownWidth,
         leadingIcon: Icons.filter_alt_outlined,
+        widthPercentage: 0.2,
+        maxWidth: 360,
+        minWidth: 160,
       );
     });
   }
@@ -108,10 +106,6 @@ class ManagerLeavesManagementPage extends StatelessWidget {
   //need to implement actual logic (!!!! change from tags to dynamic fetch of statuses -> i couldnt hardcode it since dynamic fetch is required for widget to work)
   Widget _buildStatusFilterDropdown(TagsController tagsController, RxList<String> selectedStatuses) {
     return Obx(() {
-      double screenWidth = MediaQuery.of(Get.context!).size.width;
-      double dropdownWidth = screenWidth * 0.2;
-      if (dropdownWidth > 360) dropdownWidth = 360;
-
       return CustomMultiSelectDropdown(
         items: tagsController.allTags.map((tag) => tag.tagName).toList(),
         selectedItems: selectedStatuses,
@@ -119,8 +113,10 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           selectedStatuses.assignAll(selected);
         },
         hintText: 'Filtruj po statusie',
-        width: dropdownWidth,
         leadingIcon: Icons.filter_alt_outlined,
+        widthPercentage: 0.2,
+        maxWidth: 360,
+        minWidth: 160,
       );
     });
   }

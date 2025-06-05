@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/features/schedules/widgets/form_dialog.dart';
 import 'package:the_basics/utils/app_colors.dart';
+import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 import '../../auth/models/user_model.dart';

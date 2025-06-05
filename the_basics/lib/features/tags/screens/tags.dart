@@ -90,13 +90,17 @@ class TagsPage extends StatelessWidget {
     return CustomButton(
       text: 'Dodaj Tag',
       icon: Icons.add,
+      width: 130,
       onPressed: () => showAddTagDialog(context, controller),
     );
   }
 
   Widget _buildSearchBar() {
-    return const CustomSearchBar(
+    return CustomSearchBar(
       hintText: 'Wyszukaj tag',
+      widthPercentage: 0.2,
+      maxWidth: 360,
+      minWidth: 160,
     );
   }
 

@@ -6,9 +6,11 @@ class CustomMultiSelectDropdown extends StatefulWidget {
   final List<String> selectedItems;
   final ValueChanged<List<String>> onSelectionChanged;
   final String hintText;
-  final double width;
   final double height;
   final IconData? leadingIcon;
+  final double minWidth;
+  final double maxWidth;
+  final double? widthPercentage;
 
   const CustomMultiSelectDropdown({
     super.key,
@@ -16,9 +18,11 @@ class CustomMultiSelectDropdown extends StatefulWidget {
     required this.selectedItems,
     required this.onSelectionChanged,
     this.hintText = 'Wybierz tagi',
-    this.width = 360,
     this.height = 56,
     this.leadingIcon,
+    this.minWidth = 200,
+    this.maxWidth = 547,
+    this.widthPercentage,
   });
 
   @override
@@ -52,110 +56,115 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Container(
-                width: 547,
-                height: dialogHeight,
-                decoration: BoxDecoration(
-                  color: AppColors.pageBackground,
-                  borderRadius: BorderRadius.circular(15),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: widget.minWidth,
+                  maxWidth: widget.maxWidth,
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 28, bottom: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            widget.hintText,
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Roboto',
-                              height: 40/32,
+                child: Container(
+                  height: dialogHeight,
+                  decoration: BoxDecoration(
+                    color: AppColors.pageBackground,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 28, bottom: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              widget.hintText,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w400,
+                                fontFamily: 'Roboto',
+                                height: 40/32,
+                              ),
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 24),
-                            onPressed: () => Navigator.pop(context, _selected),
-                            style: IconButton.styleFrom(
-                              fixedSize: const Size(48, 48),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 24),
+                              onPressed: () => Navigator.pop(context, _selected),
+                              style: IconButton.styleFrom(
+                                fixedSize: const Size(48, 48),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: widget.items.map((item) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: tempSelected.contains(item)
-                                      ? AppColors.blue.withOpacity(0.2)
-                                      : AppColors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: CheckboxListTile(
-                                  value: tempSelected.contains(item),
-                                  onChanged: (checked) {
-                                    setState(() {
-                                      if (checked == true) {
-                                        tempSelected.add(item);
-                                      } else {
-                                        tempSelected.remove(item);
-                                      }
-                                    });
-                                  },
-                                  activeColor: const Color(0xFF2C2C2C),
-                                  checkColor: AppColors.pageBackground,
-                                  controlAffinity: ListTileControlAffinity.leading,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                  title: Text(
-                                    item,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.textColor1,
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: widget.items.map((item) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: tempSelected.contains(item)
+                                        ? AppColors.blue.withOpacity(0.2)
+                                        : AppColors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: CheckboxListTile(
+                                    value: tempSelected.contains(item),
+                                    onChanged: (checked) {
+                                      setState(() {
+                                        if (checked == true) {
+                                          tempSelected.add(item);
+                                        } else {
+                                          tempSelected.remove(item);
+                                        }
+                                      });
+                                    },
+                                    activeColor: AppColors.textColor1,
+                                    checkColor: AppColors.pageBackground,
+                                    controlAffinity: ListTileControlAffinity.leading,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                    title: Text(
+                                      item,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColors.textColor1,
+                                      ),
                                     ),
                                   ),
                                 ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20, top: 12),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context, tempSelected),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.blue,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20, top: 12),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context, tempSelected),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.blue,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(100),
                             ),
-                          ),
-                          child: const Text(
-                            'Zapisz',
-                            style: TextStyle(
-                              color: AppColors.textColor2,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                            child: const Text(
+                              'Zapisz',
+                              style: TextStyle(
+                                color: AppColors.textColor2,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
@@ -175,9 +184,19 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
   @override
   Widget build(BuildContext context) {
     final selectedText = _selected.isEmpty ? widget.hintText : _selected.join(', ');
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    double calculatedWidth;
+    if (widget.widthPercentage != null) {
+      calculatedWidth = screenWidth * widget.widthPercentage!;
+    } else {
+      calculatedWidth = widget.maxWidth;
+    }
+
+    final constrainedWidth = calculatedWidth.clamp(widget.minWidth, widget.maxWidth);
 
     return SizedBox(
-      width: widget.width,
+      width: constrainedWidth,
       height: widget.height,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
