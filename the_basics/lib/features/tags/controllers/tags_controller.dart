@@ -28,7 +28,7 @@ class TagsController extends GetxController {
   Future<void> initialize() async {
     try {
       isLoading(true);
-      print("fetchin tags");
+      //print("fetchin tags");
       await fetchTags();
     } catch (e) {
       errorMessage(e.toString());
@@ -48,7 +48,7 @@ class TagsController extends GetxController {
 
       /// fetch tags from tags repo
       final tags = await _tagsRepo.getAllTags(marketId);
-      print("Tags loaded: ${tags.length} items");
+      //print("Tags loaded: ${tags.length} items");
       /// save the tags locally for later use
       allTags.assignAll(tags);
       filteredTags.assignAll(tags);
@@ -258,23 +258,31 @@ class TagsController extends GetxController {
   }
 
   void filterTags(String query) {
-    searchQuery.value = query;
+    searchQuery.value = query.trim();
 
     if (query.isEmpty) {
       filteredTags.assignAll(allTags);
-      //print("no query");
     } else {
-      //print("im here");
-      final lowerQuery = query.toLowerCase();
-      final results = allTags.where((tag) =>
-      tag.tagName.toLowerCase().contains(lowerQuery) ||
-          tag.description.toLowerCase().contains(lowerQuery)
-      ).toList();
 
-      //print(results.length);
+      final queryWords = query.toLowerCase().trim().split(' ')
+        ..removeWhere((word) => word.isEmpty);
+
+      final results = allTags.where((tag) {
+        final tagName = tag.tagName.toLowerCase();
+        final description = tag.description.toLowerCase();
+
+        return queryWords.every((word) =>
+        tagName.contains(word) ||
+            description.contains(word));
+      }).toList();
 
       filteredTags.assignAll(results);
     }
+  }
+
+  void resetFilters() {
+    searchQuery.value = '';
+    filteredTags.assignAll(allTags);
   }
 
 }

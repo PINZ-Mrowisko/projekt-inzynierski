@@ -23,6 +23,10 @@ class EmployeeManagementPage extends StatelessWidget {
     final tagsController = Get.find<TagsController>();
     final selectedTags = <String>[].obs;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      userController.resetFilters();
+    });
+
     // init on page load
     ever(selectedTags, (tags) {
       userController.filterEmployees(tags);
@@ -81,10 +85,6 @@ class EmployeeManagementPage extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text('Brak dostępnych pracowników'),
-                              ElevatedButton(
-                                onPressed: () => showAddEmployeeDialog(context, userController),
-                                child: const Text('Dodaj pierwszego pracownika'),
-                              ),
                             ],
                           ),
                         );

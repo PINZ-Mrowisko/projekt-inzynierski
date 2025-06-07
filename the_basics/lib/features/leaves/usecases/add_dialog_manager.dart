@@ -89,7 +89,7 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
 
     final isOnDemand = leaveType.value == 'Urlop na żądanie';
     //for now set it like that, we need to substract the holidays
-     var requestedDays = endDate.difference(startDate).inDays + 1;
+    var requestedDays = endDate.difference(startDate).inDays + 1;
 
     final List<Holiday> holidays = controller.holidays;
 
@@ -109,7 +109,7 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
       final formatted = holidaysInRange
           .map((h) => '${h.date.day.toString().padLeft(2, '0')}.${h.date.month.toString().padLeft(2, '0')}.${h.date.year} (${h.name})')
           .join(', ');
-      holidayMessage.value = 'Uwaga! W wybranym okresie przypadają święta: $formatted. Zostaną one odjete od dlugosci wolnego';
+      holidayMessage.value = 'Uwaga! W wybranym okresie przypadają święta: $formatted. Zostaną one odjęte od dlugości wolnego';
     }
     else {holidayMessage.value = '';}
 
@@ -136,11 +136,12 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
     final dateMinusOne = today.subtract(const Duration(days: 1));
     if (isOnDemand) {
       if (startDate.isBefore(dateMinusOne)) {
-        errorMessage.value = "Urlop na żądanie nie może być w przeszłości ( ale dziś może).";
+        errorMessage.value = "Urlop na żądanie nie może być w przeszłości (ale dziś może).";
         return;
       }
 
     }
+    print(requestedDays);
 
     // Walidacja dostępnych dni
     if (isOnDemand) {
@@ -219,10 +220,10 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
               startDate!,
               endDate!,
               leaveType.value!,
-              "mój urlop",
+              "Mój urlop",
               requestedDays
           );
-          Get.back();
+          //Get.back();
           await userController.fetchCurrentUserRecord();
           Get.back();
           showCustomSnackbar(context, 'Urlop został dodany do kalendarza');

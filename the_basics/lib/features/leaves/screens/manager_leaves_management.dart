@@ -26,6 +26,11 @@ class ManagerLeavesManagementPage extends StatelessWidget {
     final selectedEmployees = <String>[].obs;
     final selectedStatuses = <String>[].obs;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      leaveController.resetFilters();
+    });
+
+
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -56,12 +61,12 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                         const Spacer(),
                         Padding(
                           padding: const EdgeInsets.only(top: 10.0),
-                          child: _buildEmployeeFilterDropdown(userController, selectedEmployees),
+                          child: _buildEmployeeFilterDropdown(userController, selectedEmployees, leaveController, selectedStatuses),
                         ),
                         const SizedBox(width: 16),
                         Padding(
                           padding: const EdgeInsets.only(top: 10.0),
-                          child: _buildStatusFilterDropdown(leaveController, selectedStatuses),
+                          child: _buildStatusFilterDropdown(leaveController, selectedStatuses, selectedEmployees),
                         ),
                         const SizedBox(width: 16),
                         _buildAddLeaveButton(context, leaveController),
@@ -76,10 +81,10 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                       if (leaveController.errorMessage.value.isNotEmpty) {
                         return Center(child: Text(leaveController.errorMessage.value));
                       }
-                      if (leaveController.allLeaveRequests.isEmpty) {
+                      if (leaveController.filteredLeaves.isEmpty) {
                         return const Center(child: Text('Brak wniosków urlopowych'));
                       }
-                      return _buildLeaveList(leaveController, selectedStatuses, userController);
+                      return _buildLeaveList(leaveController, userController);
                     }),
                   ),
                 ],
@@ -103,7 +108,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
   }
 
   //need to implement actual logic
-  Widget _buildEmployeeFilterDropdown(UserController userController, RxList<String> selectedEmployees) {
+  Widget _buildEmployeeFilterDropdown(UserController userController, RxList<String> selectedEmployees, LeaveController controller, RxList<String> selectedStatuses) {
     return Obx(() {
       double screenWidth = MediaQuery.of(Get.context!).size.width;
       double dropdownWidth = screenWidth * 0.2;
@@ -114,6 +119,8 @@ class ManagerLeavesManagementPage extends StatelessWidget {
         selectedItems: selectedEmployees,
         onSelectionChanged: (selected) {
           selectedEmployees.assignAll(selected);
+          controller.filterLeaves(selectedEmployees, selectedStatuses);
+          //print(selectedEmployees);
         },
         hintText: 'Filtruj po pracowniku',
         width: dropdownWidth,
@@ -124,7 +131,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
 
 
   /// THIS THINGIE ALLOWS: filter leave requests by status
-  Widget _buildStatusFilterDropdown(LeaveController leaveController, RxList<String> selectedStatuses) {
+  Widget _buildStatusFilterDropdown(LeaveController leaveController, RxList<String> selectedStatuses, RxList<String> selectedEmployees) {
     return Obx(() {
       double screenWidth = MediaQuery.of(Get.context!).size.width;
       double dropdownWidth = screenWidth * 0.2;
@@ -141,6 +148,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
         selectedItems: selectedStatuses,
         onSelectionChanged: (selected) {
           selectedStatuses.assignAll(selected);
+          leaveController.filterLeaves(selectedEmployees, selectedStatuses);
         },
         hintText: 'Filtruj po statusie',
         width: dropdownWidth,
@@ -150,14 +158,10 @@ class ManagerLeavesManagementPage extends StatelessWidget {
   }
 
   //need to implement actual logic (dynamic fetch of leave requests)
-  Widget _buildLeaveList(LeaveController controller, RxList<String> selectedStatuses, UserController userController) {
-    final filteredRequests = selectedStatuses.isEmpty
-        ? controller.allLeaveRequests // if no status selected, show all
-        : controller.allLeaveRequests.where((request) =>
-        selectedStatuses.contains(request.status)).toList();
+  Widget _buildLeaveList(LeaveController controller, UserController userController) {
 
     return GenericList<LeaveModel>(
-      items: filteredRequests,
+      items: controller.filteredLeaves,
       itemBuilder: (context, item) {
         final formattedDate = item.startDate == item.endDate
             ? DateFormat('dd.MM.yyyy').format(item.startDate)

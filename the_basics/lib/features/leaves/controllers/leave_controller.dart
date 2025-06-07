@@ -24,17 +24,18 @@ class LeaveController extends GetxController {
 
   final RxList<LeaveModel> allLeaveRequests = <LeaveModel>[].obs;
   final RxList<Holiday> holidays = <Holiday>[].obs;
+  final RxList<LeaveModel> filteredLeaves = <LeaveModel>[].obs;
 
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
 
   // we will use this to display in the upper section for the manager
   RxList<LeaveModel> get pendingRequests =>
-      allLeaveRequests.where((r) => r.status == 'oczekujący').toList().obs;
+      allLeaveRequests.where((r) => r.status == 'Oczekujący').toList().obs;
 
   // display historic/ upcoming requests
   RxList<LeaveModel> get acceptedRequests =>
-      allLeaveRequests.where((r) => r.status == 'zaakceptowany' || r.status == 'mój urlop').toList().obs;
+      allLeaveRequests.where((r) => r.status == 'Zaakceptowany' || r.status == 'Mój urlop').toList().obs;
 
   /// initialize: fetch all leave requests
   Future<void> initialize() async {
@@ -59,6 +60,7 @@ class LeaveController extends GetxController {
 
       final leaves = await _leaveRepo.getAllLeaveRequests(marketId);
       allLeaveRequests.assignAll(leaves);
+      filteredLeaves.assignAll(leaves);
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', 'Nie udało się pobrać wniosków: $e');
@@ -99,7 +101,7 @@ class LeaveController extends GetxController {
       await fetchLeaves();
 
       // jako że kierownik nie potrzebuje zatwierdzania - odejmujemy mu od razu dni od licznika
-      if (status == 'mój urlop') {
+      if (status == 'Mój urlop') {
         if (leaveType == 'Urlop na żądanie') {
             userController.updateEmployee(
               userController.employee.value.copyWith(
@@ -241,4 +243,38 @@ class LeaveController extends GetxController {
     }
     return null;
   }
+
+  void filterLeaves(List<String> selectedEmps, List<String> selectedStatuses) {
+
+    if (selectedEmps.isEmpty && selectedStatuses.isEmpty) {
+      filteredLeaves.assignAll(allLeaveRequests);
+      return;
+    }
+
+    var results = allLeaveRequests.toList();
+
+    if (selectedStatuses.isNotEmpty) {
+      results = allLeaveRequests.where((request) =>
+          selectedStatuses.contains(request.status)).toList();
+    }
+
+    if (selectedEmps.isNotEmpty) {
+      results = results.where((request) {
+        final employee = userController.allEmployees.firstWhereOrNull(
+                (e) => e.id == request.userId
+        );
+        return employee != null && selectedEmps.contains(
+            '${employee.firstName} ${employee.lastName}'
+        );
+      }).toList();
+    }
+
+    filteredLeaves.assignAll(results);
+
+  }
+
+  void resetFilters() {
+    filteredLeaves.assignAll(allLeaveRequests);
+  }
+
 }

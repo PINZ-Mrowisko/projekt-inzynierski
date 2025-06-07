@@ -104,8 +104,9 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
       final formatted = holidaysInRange
           .map((h) => '${h.date.day.toString().padLeft(2, '0')}.${h.date.month.toString().padLeft(2, '0')}.${h.date.year} (${h.name})')
           .join(', ');
-      holidayMessage.value = 'Uwaga! W wybranym okresie przypadają święta: $formatted. Zostaną one odjete od dlugosci wolnego';
+      holidayMessage.value = 'Uwaga! W wybranym okresie przypadają święta: $formatted. Zostaną one odjęte od długości wolnego.';
     }
+    else {holidayMessage.value = '';}
 
     // Check for overlapping approved leaves
     final overlappingLeave = leaveController.getOverlappingLeave(startDate, endDate, employee.id);
@@ -206,10 +207,10 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
               startDate,
               endDate,
               leaveType.value!,
-              "oczekujący",
+              "Oczekujący",
               requestedDays
           );
-          Get.back();
+          //Get.back();
           await userController.fetchCurrentUserRecord();
           Get.back();
           showCustomSnackbar(context, 'Wniosek urlopowy został złożony');

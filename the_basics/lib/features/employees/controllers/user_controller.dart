@@ -120,9 +120,7 @@ class UserController extends GetxController {
     // Optionally send password reset email here
     await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
 
-    print("Created auth account for $email and sent reset email");
-
-    //TODO add some sort of check if user with same email exists already?
+    //print("Created auth account for $email and sent reset email");
 
     return userCred.user!.uid;
   }
@@ -185,7 +183,7 @@ class UserController extends GetxController {
       isLoading(true);
       await userRepo.updateUserDetails(updatedEmployee);
       await fetchAllEmployees(); // Refresh the list
-      Get.snackbar('Sukces', 'Pracownik edytowany pomyślnie!');
+      //Get.snackbar('Sukces', 'Pracownik edytowany pomyślnie!');
     } catch (e) {
       Get.snackbar('Error', 'Nie udało się zaktualizować pracownika: ${e.toString()}');
       rethrow;
@@ -234,31 +232,48 @@ class UserController extends GetxController {
   }
 
   void filterEmployees(List<String> selectedTags) {
-    // Get current search query (empty string if no search)
-    final currentQuery = searchQuery.value;
+    final currentQuery = searchQuery.value.trim();
 
-    // Apply both tag filter AND search filter
+    if (currentQuery.isEmpty && selectedTags.isEmpty) {
+      filteredEmployees.assignAll(allEmployees);
+      return;
+    }
+
+    // we start with all emps
     var results = allEmployees.toList();
 
-    // 1. First apply tag filter if tags are selected
     if (selectedTags.isNotEmpty) {
       results = allEmployees.where((employee) =>
           selectedTags.every((tag) => employee.tags.contains(tag))
-      ).toList(); // Convert Iterable to List
+      ).toList();
     }
 
-          // 2. Then apply search filter if query exists
     if (currentQuery.isNotEmpty) {
-        final q = currentQuery.toLowerCase();
-        results = results.where((employee) =>
-        employee.firstName.toLowerCase().contains(q) ||
-            employee.lastName.toLowerCase().contains(q) ||
-            employee.email.toLowerCase().contains(q)
-        ).toList();
+      // rozbijamy na słowa tak aby zapobiec psuciu przez spacje
+      final queryWords = currentQuery.toLowerCase().split(' ')
+        ..removeWhere((word) => word.isEmpty);
+
+      results = results.where((employee) {
+        final firstName = employee.firstName.toLowerCase();
+        final lastName = employee.lastName.toLowerCase();
+        final email = employee.email.toLowerCase();
+
+        // spawdzamy czy wszystkie słowa zapytania pasują do któregokolwiek pola
+        return queryWords.every((word) =>
+        firstName.contains(word) ||
+            lastName.contains(word) ||
+            email.contains(word));
+      }).toList();
       }
 
       filteredEmployees.assignAll(results);
     }
+
+  void resetFilters() {
+    searchQuery.value = '';
+    filteredEmployees.assignAll(allEmployees);
+  }
+
 
 
 

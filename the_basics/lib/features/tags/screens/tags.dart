@@ -18,6 +18,11 @@ class TagsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final tagsController = Get.find<TagsController>();
 
+    // wykonuje sie po zabojstwie widgetu
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tagsController.resetFilters();
+    });
+
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -65,11 +70,7 @@ class TagsPage extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text('Brak dostępnych tagów'),
-                              ElevatedButton(
-                                onPressed: () => showAddTagDialog(context, tagsController),
-                                child: const Text('Dodaj pierwszy tag'),
-                              ),
+                              const Text('Brak dostępnych tagów')
                             ],
                           ),
                         );
