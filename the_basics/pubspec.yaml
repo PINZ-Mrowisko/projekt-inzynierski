@@ -35,13 +35,14 @@ dependencies:
   flutter_svg: ^2.1.0
   flutter_secure_storage: ^9.2.4
   shared_preferences: ^2.5.3
+  syncfusion_flutter_calendar: ^29.2.7
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^5.0.0
-
 
 # The following section is specific to Flutter packages.
 flutter:
