@@ -60,6 +60,7 @@ class SettingsScreen extends StatelessWidget {
 
 
     try {
+      print(employee.email);
       Get.put(ForgetPswdController());
       await ForgetPswdController.instance.resendPswdResetEmail(employee.email);
       Get.snackbar("Wysłano", "Link do resetowania hasła został wysłany.");

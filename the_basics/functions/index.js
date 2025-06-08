@@ -9,9 +9,12 @@
 
 // const {onCall} = require("firebase-functions/v2/https");
 // const {onDocumentCreated} = require("firebase-functions/v2/firestore");
-const functions = require("firebase-functions");
+const {onCall} = require("firebase-functions/v2/https");
+const functions = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const {setGlobalOptions} = require("firebase-functions/v2");
+// const {initializeApp} = require("firebase-admin/app");
+
 // const {getAuth} = require("firebase-admin/auth");
 
 // The Firebase Admin SDK to access Firestore.
@@ -22,26 +25,40 @@ const {setGlobalOptions} = require("firebase-functions/v2");
 admin.initializeApp();
 setGlobalOptions({region: "europe-central2"});
 
-// exports.createUser = onDocumentCreated(
-//    "/Markets/{marketId}/members/{id}", async (event) => {
-//      // Grab the text parameter.
-//      const original = "oto dowow dodania";
-//      // Push the new message into Firestore using the Firebase Admin SDK.
-//      await getFirestore()
-//          .collection("messages")
-//          .add({original: original});
-//      // Send back a message that we've successfully written the message
-//    });
-
-exports.createAuthUser = functions.https.onCall(async (data, context) => {
+exports.createAuthUser = onCall(async (request) => {
   try {
+    // DEBUGOWANIE - sprawdź co dociera
+    console.log("=== DEBUG START ===");
+    console.log("request:", request.data);
+
+    console.log("=== DEBUG END ===");
+
+  const data = request.data;
+  console.log("data.password:", data.password);
+  console.log("data.email:", data.email);
+  console.log("Extracted data:", data);
+
   const user = await admin.auth().createUser({
       email: data.email,
-      emailVerified: true,
+      emailVerified: false,
       password: data.password,
       displayName: data.email,
       disabled: false,
     });
+
+    console.log(`User created: ${user.uid} for email: ${data.email}`);
+
+    try {
+          await admin.auth().generatePasswordResetLink(data.email);
+          console.log(`Password reset email sent to: ${data.email}`);
+        } catch (emailError) {
+          console.error("Error sending password reset email:", emailError);
+          // Możesz zdecydować czy rzucić błąd czy nie
+          throw new functions.https.HttpsError(
+            "internal",
+            "nie udało się wysłać emaila: " + emailError.message,
+           );
+        }
 
           return {uid: user.uid, email: user.email};
         } catch (error) {

@@ -103,17 +103,15 @@ class UserController extends GetxController {
   }
 
   String generateSecurePassword({int length = 12}) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%^&*()-_=+';
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!';
     final rand = Random.secure();
     return List.generate(length, (_) => chars[rand.nextInt(chars.length)]).join();
   }
 
 
   Future<String> createNewEmployeeAccount(String email) async {
-    // after adding the employee to the user list + market members, we also need to allow them to authenticate
-    // we will do it through email+pswd auth
-
     String password = generateSecurePassword();
+    final cleanEmail = email.trim().toLowerCase();
 
     // new user gets created - hopefully
     //final userCred = await AuthRepo.instance.registerWithEmailAndPassword(email, pswd);
@@ -121,24 +119,44 @@ class UserController extends GetxController {
     print("Sending to cloud function: email=$email, password=$password");
     final functions = FirebaseFunctions.instanceFor(region: 'europe-central2');
 
-    try {
-      dynamic result = await functions.httpsCallable('createAuthUser').call(<String, dynamic>{
-          "email": email, "password": password
-      });
 
-      print(result.data.values.toList()[0]);
+    try {
+      final payload = <String, dynamic>{
+        "email": cleanEmail,
+        "password": password
+      };
+
+      print("Payload to send: $payload");
+      print("Payload type: ${payload.runtimeType}");
+      print("=====================");
+
+      dynamic result = await functions.httpsCallable('createAuthUser').call(payload);
+
+      final uid = result.data['uid'];
+      print("Admin nadal zalogowany: ${FirebaseAuth.instance.currentUser?.email}");
+
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      print("Link resetu hasła został wysłany");
+
+      return uid;
     } on FirebaseFunctionsException catch (error){
     print('Functions error code: ${error.code}, details: ${error.details}, message: ${error.message}');
     rethrow;
 
     }
 
+    print(FirebaseAuth.instance.currentUser?.uid);
     // Optionally send password reset email here
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      print("Link resetu hasła został wysłany");
+    } catch (e) {
+      print("Błąd przy wysyłaniu maila resetującego: $e");
+    }
+
 
     //print("Created auth account for $email and sent reset email");
 
-    return "eh";
   }
 
   /// adds a new employee to the FB
