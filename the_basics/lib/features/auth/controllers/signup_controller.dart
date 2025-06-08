@@ -84,7 +84,8 @@ class SignUpController extends GetxController {
           tags: ['Kierownik'],
           role: 'admin',
           insertedAt: DateTime.now(),
-          updatedAt: DateTime.now()
+          updatedAt: DateTime.now(),
+          hasLoggedIn: true
       );
 
       final newUserTemp = UserModel(

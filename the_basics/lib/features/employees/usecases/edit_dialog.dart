@@ -107,7 +107,7 @@ void showEditEmployeeDialog(BuildContext context, UserController userController,
                 );
                 Get.back();
                 await userController.updateEmployee(updatedEmployee);
-                Get.back();
+                //Get.back();
                 showCustomSnackbar(context, 'Zmiany zostały zapisane.');
               } catch (e) {
                 showCustomSnackbar(
