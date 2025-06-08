@@ -28,15 +28,15 @@ setGlobalOptions({region: "europe-central2"});
 exports.createAuthUser = onCall(async (request) => {
   try {
     // DEBUGOWANIE - sprawdź co dociera
-    console.log("=== DEBUG START ===");
-    console.log("request:", request.data);
-
-    console.log("=== DEBUG END ===");
+//    console.log("=== DEBUG START ===");
+//    console.log("request:", request.data);
+//
+//    console.log("=== DEBUG END ===");
 
   const data = request.data;
-  console.log("data.password:", data.password);
-  console.log("data.email:", data.email);
-  console.log("Extracted data:", data);
+//  console.log("data.password:", data.password);
+//  console.log("data.email:", data.email);
+//  console.log("Extracted data:", data);
 
   const user = await admin.auth().createUser({
       email: data.email,
@@ -46,12 +46,13 @@ exports.createAuthUser = onCall(async (request) => {
       disabled: false,
     });
 
-    console.log(`User created: ${user.uid} for email: ${data.email}`);
+    // console.log(`User created: ${user.uid} for email: ${data.email}`);
 
     try {
           await admin.auth().generatePasswordResetLink(data.email);
-          console.log(`Password reset email sent to: ${data.email}`);
+          // console.log(`Password reset email sent to: ${data.email}`);
         } catch (emailError) {
+          console.error("Error sending password reset email:", emailError);
           console.error("Error sending password reset email:", emailError);
           // Możesz zdecydować czy rzucić błąd czy nie
           throw new functions.https.HttpsError(

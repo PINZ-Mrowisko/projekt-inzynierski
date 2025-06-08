@@ -124,7 +124,7 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
             Get.back();
             await userController.addNewEmployee(newEmployee);
             //Get.back();
-            showCustomSnackbar(context, 'Pracownik został pomyślnie dodany.');
+            //showCustomSnackbar(context, 'Pracownik został pomyślnie dodany.');
           } catch (e) {
             Get.back();
             showCustomSnackbar(context, 'Nie udało się dodać pracownika: ${e.toString()}');

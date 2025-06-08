@@ -9,6 +9,7 @@ import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 
 import '../../../data/repositiories/auth/auth_repo.dart';
+import '../../../utils/common_widgets/notification_snackbar.dart';
 
 class UserController extends GetxController {
   static UserController get instance => Get.find();
@@ -112,13 +113,7 @@ class UserController extends GetxController {
   Future<String> createNewEmployeeAccount(String email) async {
     String password = generateSecurePassword();
     final cleanEmail = email.trim().toLowerCase();
-
-    // new user gets created - hopefully
-    //final userCred = await AuthRepo.instance.registerWithEmailAndPassword(email, pswd);
-
-    print("Sending to cloud function: email=$email, password=$password");
     final functions = FirebaseFunctions.instanceFor(region: 'europe-central2');
-
 
     try {
       final payload = <String, dynamic>{
@@ -126,37 +121,37 @@ class UserController extends GetxController {
         "password": password
       };
 
-      print("Payload to send: $payload");
-      print("Payload type: ${payload.runtimeType}");
-      print("=====================");
+      dynamic result = await functions.httpsCallable('createAuthUser').call(
+          payload);
 
-      dynamic result = await functions.httpsCallable('createAuthUser').call(payload);
+      try {
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: cleanEmail);
+      } catch (e) {
+        print('Fallback password reset failed: $e');
+        // Non-critical error - still return the UID
+      }
 
       final uid = result.data['uid'];
-      print("Admin nadal zalogowany: ${FirebaseAuth.instance.currentUser?.email}");
-
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      print("Link resetu hasła został wysłany");
-
       return uid;
-    } on FirebaseFunctionsException catch (error){
-    print('Functions error code: ${error.code}, details: ${error.details}, message: ${error.message}');
-    rethrow;
+    } on FirebaseFunctionsException catch (e) {
+      print('Cloud Function error: ${e.code} - ${e.message}');
 
-    }
-
-    print(FirebaseAuth.instance.currentUser?.uid);
-    // Optionally send password reset email here
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      print("Link resetu hasła został wysłany");
+      String userMessage;
+      switch (e.code) {
+        case 'already-exists':
+          userMessage = 'Konto z tym emailem już istnieje';
+          break;
+        case 'invalid-argument':
+          userMessage = 'Nieprawidłowy format email';
+          break;
+        default:
+          userMessage = 'Błąd tworzenia konta (${e.code})';
+      }
+      throw userMessage;
     } catch (e) {
-      print("Błąd przy wysyłaniu maila resetującego: $e");
+      print('Unexpected error: $e');
+      throw 'Wystąpił nieoczekiwany błąd';
     }
-
-
-    //print("Created auth account for $email and sent reset email");
-
   }
 
   /// adds a new employee to the FB
@@ -197,10 +192,14 @@ class UserController extends GetxController {
       // Refresh the list
       await fetchAllEmployees();
 
-      //Get.snackbar('Sukces', 'Pracownik dodany pomyślnie!');
+      Get.context != null
+          ? showCustomSnackbar(Get.context!, 'Pracownik dodany pomyślnie!')
+          : null;
+
     } catch (e) {
-      errorMessage(e.toString());
-      Get.snackbar('Error', 'Nie udało się dodać pracownika: ${e.toString()}');
+      Get.context != null
+          ? showCustomSnackbar(Get.context!, 'Błąd: ${e.toString()}')
+          : null;
     } finally {
       isLoading(false);
     }

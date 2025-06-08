@@ -76,9 +76,27 @@ class EmployeeManagementPage extends StatelessWidget {
                       if (userController.isLoading.value) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      if (userController.errorMessage.value.isNotEmpty) {
-                        return Center(child: Text(userController.errorMessage.value));
-                      }
+                      // if (userController.errorMessage.value.isNotEmpty) {
+                      //   return Center(
+                      //     child: Column(
+                      //       mainAxisAlignment: MainAxisAlignment.center,
+                      //       children: [
+                      //         Text(
+                      //           userController.errorMessage.value,
+                      //           style: TextStyle(color: Colors.red),
+                      //           textAlign: TextAlign.center,
+                      //         ),
+                      //         const SizedBox(height: 16),
+                      //         ElevatedButton(
+                      //           onPressed: () {
+                      //             userController.errorMessage(''); // Clear error
+                      //           },
+                      //           child: const Text('Spróbuj ponownie'),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   );
+                      // }
                       if (userController.filteredEmployees.isEmpty) {
                         return Center(
                           child: Column(
