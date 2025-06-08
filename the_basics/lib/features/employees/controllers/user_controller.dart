@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
@@ -112,17 +113,32 @@ class UserController extends GetxController {
     // after adding the employee to the user list + market members, we also need to allow them to authenticate
     // we will do it through email+pswd auth
 
-    String pswd = generateSecurePassword();
+    String password = generateSecurePassword();
 
     // new user gets created - hopefully
-    final userCred = await AuthRepo.instance.registerWithEmailAndPassword(email, pswd);
+    //final userCred = await AuthRepo.instance.registerWithEmailAndPassword(email, pswd);
+
+    print("Sending to cloud function: email=$email, password=$password");
+    final functions = FirebaseFunctions.instanceFor(region: 'europe-central2');
+
+    try {
+      dynamic result = await functions.httpsCallable('createAuthUser').call(<String, dynamic>{
+          "email": email, "password": password
+      });
+
+      print(result.data.values.toList()[0]);
+    } on FirebaseFunctionsException catch (error){
+    print('Functions error code: ${error.code}, details: ${error.details}, message: ${error.message}');
+    rethrow;
+
+    }
 
     // Optionally send password reset email here
     await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
 
     //print("Created auth account for $email and sent reset email");
 
-    return userCred.user!.uid;
+    return "eh";
   }
 
   /// adds a new employee to the FB
@@ -140,6 +156,7 @@ class UserController extends GetxController {
         throw "Rola pracownika jest wymagana";
       }
 
+      // this is responisble for creating a new auth account for the emp
       String authUid = await createNewEmployeeAccount(employee.email);
 
       final newUserTemp = UserModel(
