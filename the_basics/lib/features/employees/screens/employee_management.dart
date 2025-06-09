@@ -146,7 +146,7 @@ class EmployeeManagementPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(RxList<String> selectedTags) {
     final userController = Get.find<UserController>();
   
     return CustomSearchBar(

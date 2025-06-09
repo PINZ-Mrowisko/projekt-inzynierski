@@ -127,13 +127,13 @@ class SideMenu extends StatelessWidget {
       _buildMenuItem(
         icon: Icons.schedule,
         text: 'Grafik ogólny',
-        route: '/main-calendar',
+        route: '/grafik-ogolny',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.calendar_today,
         text: 'Grafik indywidualny',
-        route: '/personal-schedule',
+        route: '/grafik-indywidualny',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
@@ -145,37 +145,37 @@ class SideMenu extends StatelessWidget {
       _buildMenuItem(
         icon: Icons.people,
         text: 'Pracownicy',
-        route: '/zarzadzaj-pracownikami',
+        route: '/pracownicy',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.tag,
         text: 'Tagi',
-        route: '/tags',
+        route: '/tagi',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.view_module,
         text: 'Szablony',
-        route: '/templates',
+        route: '/szablony',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.bar_chart,
         text: 'Raporty',
-        route: '/reports',
+        route: '/raporty',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.change_circle_outlined,
         text: 'Giełda',
-        route: '/market',
+        route: '/gielda',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.person,
         text: 'Twój profil',
-        route: '/profile',
+        route: '/twoj-profil',
       ),
     ];
   }
@@ -185,13 +185,13 @@ class SideMenu extends StatelessWidget {
       _buildMenuItem(
         icon: Icons.schedule,
         text: 'Grafik ogólny',
-        route: '/main-calendar',
+        route: '/grafik-ogolny',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.calendar_today,
         text: 'Grafik indywidualny',
-        route: '/personal-schedule',
+        route: '/grafik-indywidualny',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
@@ -203,13 +203,13 @@ class SideMenu extends StatelessWidget {
       _buildMenuItem(
         icon: Icons.change_circle_outlined,
         text: 'Giełda',
-        route: '/market',
+        route: '/gielda',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
         icon: Icons.person,
         text: 'Twój profil',
-        route: '/profile',
+        route: '/twoj-profil',
       ),
     ];
   }
@@ -233,8 +233,7 @@ class SideMenu extends StatelessWidget {
               _buildMenuItem(
                 icon: Icons.settings,
                 text: 'Ustawienia',
-                route: '/settings',
-                onTap: () => _navigateTo('/ustawienia'),
+                route: '/ustawienia',
               ),
               SizedBox(height: 4 * _scaleFactor),
               _buildMenuItem(
