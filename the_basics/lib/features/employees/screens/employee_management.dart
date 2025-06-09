@@ -23,6 +23,15 @@ class EmployeeManagementPage extends StatelessWidget {
     final tagsController = Get.find<TagsController>();
     final selectedTags = <String>[].obs;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      userController.resetFilters();
+    });
+
+    // init on page load
+    ever(selectedTags, (tags) {
+      userController.filterEmployees(tags);
+    });
+
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -56,7 +65,7 @@ class EmployeeManagementPage extends StatelessWidget {
                           child: _buildTagFilterDropdown(tagsController, selectedTags),
                         ),
                         const SizedBox(width: 16),
-                        _buildSearchBar(),
+                        _buildSearchBar(selectedTags),
                         const SizedBox(width: 16),
                         _buildAddEmployeeButton(context, userController),
                       ],
@@ -67,19 +76,33 @@ class EmployeeManagementPage extends StatelessWidget {
                       if (userController.isLoading.value) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      if (userController.errorMessage.value.isNotEmpty) {
-                        return Center(child: Text(userController.errorMessage.value));
-                      }
-                      if (userController.allEmployees.isEmpty) {
+                      // if (userController.errorMessage.value.isNotEmpty) {
+                      //   return Center(
+                      //     child: Column(
+                      //       mainAxisAlignment: MainAxisAlignment.center,
+                      //       children: [
+                      //         Text(
+                      //           userController.errorMessage.value,
+                      //           style: TextStyle(color: Colors.red),
+                      //           textAlign: TextAlign.center,
+                      //         ),
+                      //         const SizedBox(height: 16),
+                      //         ElevatedButton(
+                      //           onPressed: () {
+                      //             userController.errorMessage(''); // Clear error
+                      //           },
+                      //           child: const Text('Spróbuj ponownie'),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   );
+                      // }
+                      if (userController.filteredEmployees.isEmpty) {
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text('Brak dostępnych pracowników'),
-                              ElevatedButton(
-                                onPressed: () => showAddEmployeeDialog(context, userController),
-                                child: const Text('Dodaj pierwszego pracownika'),
-                              ),
                             ],
                           ),
                         );
@@ -127,20 +150,26 @@ class EmployeeManagementPage extends StatelessWidget {
   }
 
   //need to implement logic
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(RxList<String> selectedTags) {
     double screenWidth = MediaQuery.of(Get.context!).size.width;
     double searchBarWidth = screenWidth * 0.2;
     if (searchBarWidth > 360) searchBarWidth = 360;
 
+    final userController = Get.find<UserController>();
+
     return CustomSearchBar(
       hintText: 'Wyszukaj pracownika',
       width: searchBarWidth,
+      onChanged: (query) {
+        userController.searchQuery.value = query;
+        userController.filterEmployees(selectedTags);
+      },
     );
   }
 
   Widget _buildEmployeesList(BuildContext context, UserController controller) {
     return GenericList<UserModel>(
-      items: controller.allEmployees,
+      items: controller.filteredEmployees,
       onItemTap: (employee) => showEditEmployeeDialog(context, controller, employee),
       itemBuilder: (context, employee) {
         return ListTile(

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/features/auth/models/user_model.dart';
 
 import '../../../features/auth/models/market_model.dart';
 import '../exceptions.dart';
@@ -10,10 +11,22 @@ class MarketRepo extends GetxController {
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Future<void> saveMarket(MarketModel market) async {
+  Future<void> saveMarket(MarketModel market, UserModel user, String id) async {
     try {
-      // we save our user model in the Users collection in json format
-      await _db.collection("Markets").doc(market.id).set(market.toMap());
+      /// we save our market to the Markets collection
+      await _db
+          .collection("Markets")
+          .doc(market.id)
+          .set(market.toMap());
+
+      /// and then save the first user inside the market's `members/` subcollection
+      await FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(market.id)
+          .collection('members')
+          .doc(id)
+          .set(user.toMap());
+
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {

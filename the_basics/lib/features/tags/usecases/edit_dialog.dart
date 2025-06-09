@@ -30,7 +30,7 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
         actions: [
           DialogActionButton(
             label: 'Usuń',
-            onPressed: () => confirmDeleteTag(controller, tag.id, tag.tagName),
+            onPressed: () => confirmDeleteTag(controller, tag.id, tag.tagName, tag.marketId),
             backgroundColor: AppColors.warning,
             textColor: AppColors.white,
           ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:the_basics/features/leaves/models/leave_model.dart';
 
 import '../../../utils/app_colors.dart';
 import '../../../utils/common_widgets/custom_button.dart';
@@ -7,6 +9,7 @@ import '../../../utils/common_widgets/generic_list.dart';
 import '../../../utils/common_widgets/side_menu.dart';
 import '../../employees/controllers/user_controller.dart';
 
+import '../controllers/leave_controller.dart';
 import '../usecases/add_dialog_employee.dart';
 
 class EmployeeLeavesManagementPage extends StatelessWidget {
@@ -14,8 +17,8 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //not in use for now
     final userController = Get.find<UserController>();
+    final leaveController = Get.find<LeaveController>();
 
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
@@ -50,7 +53,15 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    child: _buildLeaveList(),
+                    child: Obx(() {
+                      if (leaveController.isLoading.value) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (leaveController.errorMessage.value.isNotEmpty) {
+                        return Center(child: Text(leaveController.errorMessage.value));
+                      }
+                      return _buildLeaveList(leaveController, userController);
+                    }),
                   ),
                 ],
               ),
@@ -71,23 +82,32 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
   }
 
   //to implement actual logic (dynamic list of leave requests)
-  Widget _buildLeaveList() {
-    final leaveRequests = [
-      {'type': 'Urlop na żądanie', 'date': '1 kwietnia', 'status': 'Oczekujący'},
-      {'type': 'Urlop wypoczynkowy', 'date': '3 - 7 lutego', 'status': 'Zaakceptowany'},
-      {'type': 'Urlop wypoczynkowy', 'date': '2 - 3 stycznia', 'status': 'Odrzucony'},
-    ];
+  Widget _buildLeaveList(LeaveController controller, UserController userController) {
+    // we filter requests to show only the current employee's requests - sort newest top
+    final employeeRequests = controller.allLeaveRequests
+        .where((request) => request.userId == userController.employee.value.id)
+        .toList()
+        ..sort((a, b) => b.startDate.compareTo(a.startDate));
 
-    return GenericList<Map<String, String>>(
-      items: leaveRequests,
+    if (employeeRequests.isEmpty) {
+      return const Center(child: Text('Brak złożonych wniosków urlopowych'));
+    }
+
+    return GenericList<LeaveModel>(
+      items: employeeRequests,
       itemBuilder: (context, item) {
+        final formattedDate = item.startDate == item.endDate
+            ? DateFormat('dd.MM.yyyy').format(item.startDate)
+            : '${DateFormat('dd.MM.yyyy').format(item.startDate)} - ${DateFormat('dd.MM.yyyy').format(item.endDate)}';
+
+
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 12,
           ),
           title: Text(
-            item['type']!,
+            item.leaveType,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -95,13 +115,13 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
             ),
           ),
           subtitle: Text(
-            item['date']!,
+            formattedDate,
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.textColor2,
             ),
           ),
-          trailing: _buildStatusChip(item['status']!),
+          trailing: _buildStatusChip(item.status),
         );
       },
     );

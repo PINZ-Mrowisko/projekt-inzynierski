@@ -33,6 +33,18 @@ class SignUpController extends GetxController {
   // allows us to access data from the form
   GlobalKey<FormState> signUpFormKey = GlobalKey<FormState>();
 
+  // Future<void> assignRole(String uid) async {
+  //   try {
+  //     HttpsCallable callable = FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('setCustomClaims');
+  //     final result = await callable.call({'uid': uid});
+  //     print('Custom claim set result: ${result.data}');
+  //   } catch (e) {
+  //     print('Error setting custom claims: $e');
+  //     rethrow; // bubble up if needed
+  //   }
+  // }
+
+
 
   /// deals with our Sign Up method
   Future<void> signUp() async {
@@ -50,12 +62,47 @@ class SignUpController extends GetxController {
       /// register user in FB
       final userCredential = await AuthRepo.instance.registerWithEmailAndPassword(email.text.trim(), pswd1.text.trim());
 
+      await Future.delayed(const Duration(milliseconds: 200));
+
       /// MARKET
       /// 1 : create a market model locally
       /// 2 : save the market in firebase using the method from market_repo
 
       final uid = userCredential.user!.uid;
       final marketId = FirebaseFirestore.instance.collection('Markets').doc().id;
+
+      /// USER
+      /// 1 : create a user model locally
+      /// 2 : save the user in firebase using the method from user_repo
+
+      final newUser = UserModel(
+          id: userCredential.user!.uid,
+          firstName: firstName.text.trim(),
+          lastName: lastName.text.trim(),
+          email: email.text.trim(),
+          marketId: marketId,
+          tags: ['Kierownik'],
+          role: 'admin',
+          insertedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          hasLoggedIn: true
+      );
+
+      final newUserTemp = UserModel(
+          id: userCredential.user!.uid,
+          firstName: '',
+          lastName: '',
+          email: '',
+          marketId: marketId,
+          tags: [],
+          role: 'admin',
+          insertedAt: DateTime.now(),
+          updatedAt: DateTime.now()
+      );
+
+      /// this saves the User in the User collection, for now lets leave it
+      final userRepo = Get.put(UserRepo());
+      userRepo.saveUser(newUserTemp);
 
       final newMarket = MarketModel(
         id: marketId,
@@ -67,12 +114,17 @@ class SignUpController extends GetxController {
 
       // Save MarketModel
       final marketRepo = Get.put(MarketRepo());
-      await marketRepo.saveMarket(newMarket);
+      await marketRepo.saveMarket(newMarket, newUser, uid);
 
       /// TAG
-      /// 1 : add the kierownik tag to the FB
+      /// 1 : add the kierownik tag to the FB - but now in a specific Market
 
-      final tagsId = FirebaseFirestore.instance.collection('Tags').doc().id;
+      final tagsId = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(marketId)
+          .collection('Tags')
+          .doc()
+          .id;
 
       final newTag = TagsModel(
         id: tagsId,
@@ -86,25 +138,6 @@ class SignUpController extends GetxController {
       final tagRepo = Get.put(TagsRepo());
       await tagRepo.saveTag(newTag);
 
-
-      /// USER
-      /// 1 : create a user model locally
-      /// 2 : save the user in firebase using the method from user_repo
-
-      final newUser = UserModel(
-          id: userCredential.user!.uid,
-          firstName: firstName.text.trim(),
-          lastName: lastName.text.trim(),
-          email: email.text.trim(),
-          marketId: marketId,
-          tags: ['Kierownik'],
-          insertedAt: DateTime.now(),
-          updatedAt: DateTime.now()
-      );
-
-
-      final userRepo = Get.put(UserRepo());
-      userRepo.saveUser(newUser);
 
       Get.to(() => VerifyEmailScreen(email: email.text.trim()));
 

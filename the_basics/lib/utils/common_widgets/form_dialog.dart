@@ -396,6 +396,7 @@ Widget _buildDatePickerField(DatePickerDialogField field) {
                 field.onRangeChanged(args.value);
               }
             },
+
             monthViewSettings: const DateRangePickerMonthViewSettings(
               viewHeaderStyle: DateRangePickerViewHeaderStyle(
                 textStyle: TextStyle(fontWeight: FontWeight.bold),
@@ -515,6 +516,7 @@ class DatePickerDialogField extends DialogInputField {
   final String hintText;
   final Rx<PickerDateRange?> selectedRange;
   final ValueChanged<PickerDateRange?> onRangeChanged;
+
 
   DatePickerDialogField({
     required String label,

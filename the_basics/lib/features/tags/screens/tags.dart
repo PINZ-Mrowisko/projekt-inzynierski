@@ -18,6 +18,11 @@ class TagsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final tagsController = Get.find<TagsController>();
 
+    // wykonuje sie po zabojstwie widgetu
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tagsController.resetFilters();
+    });
+
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -60,16 +65,12 @@ class TagsPage extends StatelessWidget {
                       if (tagsController.errorMessage.value.isNotEmpty) {
                         return Center(child: Text(tagsController.errorMessage.value));
                       }
-                      if (tagsController.allTags.isEmpty) {
+                      if (tagsController.filteredTags.isEmpty) {
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text('Brak dostępnych tagów'),
-                              ElevatedButton(
-                                onPressed: () => showAddTagDialog(context, tagsController),
-                                child: const Text('Dodaj pierwszy tag'),
-                              ),
+                              const Text('Brak dostępnych tagów')
                             ],
                           ),
                         );
@@ -95,14 +96,21 @@ class TagsPage extends StatelessWidget {
   }
 
   Widget _buildSearchBar() {
-    return const CustomSearchBar(
+    final tagsController = Get.find<TagsController>();
+    return CustomSearchBar(
       hintText: 'Wyszukaj tag',
+      onChanged: (query) {
+        tagsController.searchQuery.value = query;
+  tagsController.filterTags(query);
+
+
+  } ,
     );
   }
 
   Widget _buildTagsList(BuildContext context, TagsController controller) {
     return GenericList<TagsModel>(
-      items: controller.allTags,
+      items: controller.filteredTags,
       onItemTap: (tag) => showEditTagDialog(context, controller, tag),
       itemBuilder: (context, tag) {
         return ListTile(
