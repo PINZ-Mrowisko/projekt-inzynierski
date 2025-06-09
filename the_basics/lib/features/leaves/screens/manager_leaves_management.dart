@@ -37,7 +37,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
-            child: const SideMenu(),
+            child: SideMenu(),
           ),
           Expanded(
             child: Padding(
@@ -107,13 +107,8 @@ class ManagerLeavesManagementPage extends StatelessWidget {
     );
   }
 
-  //need to implement actual logic
   Widget _buildEmployeeFilterDropdown(UserController userController, RxList<String> selectedEmployees, LeaveController controller, RxList<String> selectedStatuses) {
     return Obx(() {
-      double screenWidth = MediaQuery.of(Get.context!).size.width;
-      double dropdownWidth = screenWidth * 0.2;
-      if (dropdownWidth > 360) dropdownWidth = 360;
-
       return CustomMultiSelectDropdown(
         items: userController.allEmployees.map((user) => '${user.firstName} ${user.lastName}').toList(),
         selectedItems: selectedEmployees,
@@ -123,8 +118,10 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           //print(selectedEmployees);
         },
         hintText: 'Filtruj po pracowniku',
-        width: dropdownWidth,
         leadingIcon: Icons.filter_alt_outlined,
+        widthPercentage: 0.2,
+        maxWidth: 360,
+        minWidth: 160,
       );
     });
   }
@@ -133,9 +130,6 @@ class ManagerLeavesManagementPage extends StatelessWidget {
   /// THIS THINGIE ALLOWS: filter leave requests by status
   Widget _buildStatusFilterDropdown(LeaveController leaveController, RxList<String> selectedStatuses, RxList<String> selectedEmployees) {
     return Obx(() {
-      double screenWidth = MediaQuery.of(Get.context!).size.width;
-      double dropdownWidth = screenWidth * 0.2;
-      if (dropdownWidth > 360) dropdownWidth = 360;
 
       // Get unique statuses by converting to a Set and back to List
       final uniqueStatuses = leaveController.allLeaveRequests
@@ -151,13 +145,14 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           leaveController.filterLeaves(selectedEmployees, selectedStatuses);
         },
         hintText: 'Filtruj po statusie',
-        width: dropdownWidth,
         leadingIcon: Icons.filter_alt_outlined,
+        widthPercentage: 0.2,
+        maxWidth: 360,
+        minWidth: 160,
       );
     });
   }
 
-  //need to implement actual logic (dynamic fetch of leave requests)
   Widget _buildLeaveList(LeaveController controller, UserController userController) {
 
     return GenericList<LeaveModel>(

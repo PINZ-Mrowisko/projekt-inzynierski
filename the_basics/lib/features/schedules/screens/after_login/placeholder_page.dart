@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import '../../../../utils/common_widgets/side_menu.dart';
 import '../../../employees/controllers/user_controller.dart';
 
-class MainCalendar extends StatelessWidget {
-  const MainCalendar({super.key});
+class PlaceholderPage extends StatelessWidget {
+  const PlaceholderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class MainCalendar extends StatelessWidget {
               color: const Color(0xFFF5F5F5),
               child: Center(
                 child: Obx(() => Text(
-                  controller.employee.value.firstName,
+                  controller.employee.value.firstName + '\nPlaceholder Page', 
                   style: const TextStyle(fontSize: 24),
                 )),
               ),

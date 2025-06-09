@@ -29,7 +29,7 @@ class TagsPage extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
-            child: const SideMenu(),
+            child: SideMenu(),
           ),
           Expanded(
             child: Padding(
@@ -91,6 +91,7 @@ class TagsPage extends StatelessWidget {
     return CustomButton(
       text: 'Dodaj Tag',
       icon: Icons.add,
+      width: 130,
       onPressed: () => showAddTagDialog(context, controller),
     );
   }
@@ -99,12 +100,13 @@ class TagsPage extends StatelessWidget {
     final tagsController = Get.find<TagsController>();
     return CustomSearchBar(
       hintText: 'Wyszukaj tag',
+      widthPercentage: 0.2,
+      maxWidth: 360,
+      minWidth: 160,
       onChanged: (query) {
         tagsController.searchQuery.value = query;
-  tagsController.filterTags(query);
-
-
-  } ,
+        tagsController.filterTags(query);
+      } ,
     );
   }
 

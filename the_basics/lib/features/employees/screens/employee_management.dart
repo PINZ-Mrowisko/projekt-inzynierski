@@ -38,7 +38,7 @@ class EmployeeManagementPage extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
-            child: const SideMenu(),
+            child: SideMenu(),
           ),
           Expanded(
             child: Padding(
@@ -119,13 +119,8 @@ class EmployeeManagementPage extends StatelessWidget {
     );
   }
 
-  //need to implement actual logic
   Widget _buildTagFilterDropdown(TagsController tagsController, RxList<String> selectedTags) {
     return Obx(() {
-      double screenWidth = MediaQuery.of(Get.context!).size.width;
-      double dropdownWidth = screenWidth * 0.2;
-      if (dropdownWidth > 360) dropdownWidth = 360;
-
       return CustomMultiSelectDropdown(
         items: tagsController.allTags.map((tag) => tag.tagName).toList(),
         selectedItems: selectedTags,
@@ -133,8 +128,10 @@ class EmployeeManagementPage extends StatelessWidget {
           selectedTags.assignAll(selected);
         },
         hintText: 'Filtruj po tagach',
-        width: dropdownWidth,
         leadingIcon: Icons.filter_alt_outlined,
+        widthPercentage: 0.2,
+        maxWidth: 360,
+        minWidth: 160,
       );
     });
   }
@@ -144,22 +141,19 @@ class EmployeeManagementPage extends StatelessWidget {
     return CustomButton(
       text: 'Dodaj Pracownika',
       icon: Icons.add,
-      width: 184,
+      width: 180,
       onPressed: () => showAddEmployeeDialog(context, controller),
     );
   }
 
-  //need to implement logic
   Widget _buildSearchBar(RxList<String> selectedTags) {
-    double screenWidth = MediaQuery.of(Get.context!).size.width;
-    double searchBarWidth = screenWidth * 0.2;
-    if (searchBarWidth > 360) searchBarWidth = 360;
-
     final userController = Get.find<UserController>();
-
+  
     return CustomSearchBar(
       hintText: 'Wyszukaj pracownika',
-      width: searchBarWidth,
+      widthPercentage: 0.2,
+      maxWidth: 360,
+      minWidth: 160,
       onChanged: (query) {
         userController.searchQuery.value = query;
         userController.filterEmployees(selectedTags);
