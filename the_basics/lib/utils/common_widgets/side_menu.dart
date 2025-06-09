@@ -234,6 +234,7 @@ class SideMenu extends StatelessWidget {
                 icon: Icons.settings,
                 text: 'Ustawienia',
                 route: '/settings',
+                onTap: () => _navigateTo('/ustawienia'),
               ),
               SizedBox(height: 4 * _scaleFactor),
               _buildMenuItem(

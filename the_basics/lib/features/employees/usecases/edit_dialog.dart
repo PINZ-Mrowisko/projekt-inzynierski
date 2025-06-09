@@ -80,7 +80,7 @@ void showEditEmployeeDialog(BuildContext context, UserController userController,
         label: 'Usuń',
         backgroundColor: AppColors.warning,
         textColor: AppColors.white,
-        onPressed: () => confirmDeleteEmployee(userController, employee.id, employee.firstName),
+        onPressed: () => confirmDeleteEmployee(userController, employee.id, employee.firstName, employee.marketId),
       ),
       DialogActionButton(
         label: 'Zapisz',
@@ -107,7 +107,7 @@ void showEditEmployeeDialog(BuildContext context, UserController userController,
                 );
                 Get.back();
                 await userController.updateEmployee(updatedEmployee);
-                Get.back();
+                //Get.back();
                 showCustomSnackbar(context, 'Zmiany zostały zapisane.');
               } catch (e) {
                 showCustomSnackbar(

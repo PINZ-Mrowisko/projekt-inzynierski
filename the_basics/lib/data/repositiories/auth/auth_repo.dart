@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 
 import '../../../features/auth/screens/verify_email.dart';
 import '../../../features/tags/controllers/tags_controller.dart';
@@ -33,7 +34,8 @@ class AuthRepo extends GetxController {
   // handles which screen to show to the user - if hes authenticated, then .....
   screenRedirect() async {
     final user =  _auth.currentUser;
-
+    //print("moved here");
+    //print(user?.uid);
 
     if (user != null) {
       if (user.emailVerified){
@@ -53,6 +55,38 @@ class AuthRepo extends GetxController {
     }
   }
 
+  // handles after login functions for emps and manager
+  afterLogin() async {
+    final user =  _auth.currentUser;
+    //print("moved here");
+    //print(user?.uid);
+
+    if (user != null) {
+        try {
+          // Initialize controllers sequentially
+          await _initializeControllers();
+
+          /// perform a check if its the first login, if yes mark the flag
+          final userController = Get.find<UserController>();
+          final employee = userController.employee.value;
+
+          if (employee.hasLoggedIn == false) {
+            await userController.updateEmployee(employee.copyWith(hasLoggedIn: true));
+            print("Updated hasLoggedIn to true for first login.");
+          }
+
+          _navigateToMainApp();
+        } catch (e) {
+          throw(e.toString());
+        }
+
+
+    } else {
+      print("I failed");
+    }
+  }
+
+
 
   Future<void> _initializeControllers() async {
     try {
@@ -70,6 +104,10 @@ class AuthRepo extends GetxController {
 
       final tagsController = Get.find<TagsController>();
       await tagsController.initialize();
+
+
+      final leaveController = Get.find<LeaveController>();
+      await leaveController.initialize();
 
     } catch (e) {
       throw(e.toString());
@@ -164,6 +202,8 @@ class AuthRepo extends GetxController {
       //removes the saved user so it doesnt log us back after logout
       await FirebaseAuth.instance.setPersistence(Persistence.NONE);
       await FirebaseAuth.instance.signOut();
+
+      Get.deleteAll(force: true);
 
       await Future.delayed(Duration(milliseconds: 1000));
 

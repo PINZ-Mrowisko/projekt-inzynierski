@@ -11,7 +11,14 @@ class TagsRepo extends GetxController {
 
   Future<void> saveTag(TagsModel tag) async {
     try {
-      await _db.collection("Tags").doc(tag.id).set(tag.toMap());
+      //await _db.collection("Tags").doc(tag.id).set(tag.toMap());
+      await _db
+          .collection("Markets")
+          .doc(tag.marketId)
+          .collection("Tags")
+          .doc(tag.id)
+          .set(tag.toMap());
+
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -26,8 +33,15 @@ class TagsRepo extends GetxController {
   /// get all available tags specific to the market
   Future<List<TagsModel>> getAllTags(String marketId) async {
     try{
-      final snapshot = await _db.collection('Tags')
-          .where('marketId', isEqualTo: marketId)
+      // final snapshot = await _db.collection('Tags')
+      //     .where('marketId', isEqualTo: marketId)
+      //     .where('isDeleted', isEqualTo: false)
+      //     .get();
+
+      final snapshot = await _db
+          .collection('Markets')
+          .doc(marketId)
+          .collection('Tags')
           .where('isDeleted', isEqualTo: false)
           .get();
 
@@ -50,7 +64,7 @@ class TagsRepo extends GetxController {
     }
   }
 
-  /// pobiera konkretny tag po ID i zwraca juz go w ladnie sformatowanej formie
+  /// pobiera konkretny tag po ID i zwraca juz go w ladnie sformatowanej formie - NOT USED
   Future<TagsModel?> getTagById(String tagId) async {
     try {
       final doc = await _db.collection('Tags').doc(tagId).get();
@@ -63,7 +77,7 @@ class TagsRepo extends GetxController {
     }
   }
 
-  /// Aktualizuje tag o konkretnym id
+  /// Aktualizuje tag o konkretnym id - NOT USED
   Future<void> updateTag(TagsModel tag) async {
     try {
       await _db.collection('Tags').doc(tag.id).update(tag.toMap());

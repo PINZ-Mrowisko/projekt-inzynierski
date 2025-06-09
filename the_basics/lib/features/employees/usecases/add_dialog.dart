@@ -81,6 +81,28 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
             return;
           }
 
+          final emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
+          final email = emailController.text.trim();
+
+          if (!emailRegex.hasMatch(email)) {
+            showCustomSnackbar(context, 'Podaj poprawny adres email.');
+            return;
+          }
+
+          final existing = await FirebaseFirestore.instance
+              .collection('Markets')
+              .doc(userController.employee.value.marketId)
+              .collection('members')
+              .where('email', isEqualTo: email)
+              .limit(1)
+              .get();
+
+          if (existing.docs.isNotEmpty) {
+            showCustomSnackbar(context, 'Pracownik z tym adresem email już istnieje.');
+            return;
+          }
+
+
           final userId = FirebaseFirestore.instance.collection('Users').doc().id;
           final newEmployee = UserModel(
             id: userId,
@@ -101,8 +123,8 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
           try {
             Get.back();
             await userController.addNewEmployee(newEmployee);
-            Get.back();
-            showCustomSnackbar(context, 'Pracownik został pomyślnie dodany.');
+            //Get.back();
+            //showCustomSnackbar(context, 'Pracownik został pomyślnie dodany.');
           } catch (e) {
             Get.back();
             showCustomSnackbar(context, 'Nie udało się dodać pracownika: ${e.toString()}');
