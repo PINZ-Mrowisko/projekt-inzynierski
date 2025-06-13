@@ -1,4 +1,5 @@
 from backend.models.Worker import Worker
+from backend.models.Tags import Tags
 
 
 def map_worker(worker_data):
@@ -32,5 +33,20 @@ def map_worker(worker_data):
         worker.tags = tags
 
         return worker
+
+def map_tag(tag_data):
+    if tag_data.get("isDeleted", "false") == "true":
+        print("Tag is deleted, skipping mapping.")
+        return None
+    else:
+        name = tag_data.get("tagName", "")
+        description = tag_data.get("description", "")
+
+        tag = Tags(
+            name=name,
+            description=description
+        )
+
+        return tag
 
 

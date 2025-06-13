@@ -1,21 +1,19 @@
 from backend.connection.connection import db
 from backend.models import Worker
-from backend.connection.mapping import map_worker
+from backend.connection.mapping import *
+from google.cloud.firestore_v1 import FieldFilter
 
 def get_workers(user_id: str):
     try:
-        # Get the Market document created by the user
         doc_ref = db.collection("Markets")
-        docs = doc_ref.where("createdBy", "==", user_id).limit(1).get()
-
+        docs = db.collection("Markets").where(filter=FieldFilter("createdBy", "==", user_id)).limit(1).get()
         if not docs:
             print("No Market found for this user.")
             return []
 
         market_doc = docs[0]
-        market_id = market_doc.id  # Get the document ID of the Market
+        market_id = market_doc.id
 
-        # Query the 'members' subcollection under this Market
         members_ref = db.collection("Markets").document(market_id).collection("members")
         member_docs = members_ref.get()
 
@@ -34,7 +32,39 @@ def get_workers(user_id: str):
         print(f"An error occurred while fetching workers: {e}")
         return []
 
+
+def get_tags(user_id: str):
+    try:
+        doc_ref = db.collection("Markets")
+        docs = db.collection("Markets").where(filter=FieldFilter("createdBy", "==", user_id)).limit(1).get()
+
+        if not docs:
+            print("No Market found for this user.")
+            return []
+
+        market_doc = docs[0]
+        market_id = market_doc.id
+
+        tag_docs = db.collection("Markets").document(market_id).collection("Tags").get()
+
+        tags = []
+        for tag_doc in tag_docs:
+            tag_data = tag_doc.to_dict()
+            try:
+                tag = map_tag(tag_data)
+                tags.append(tag)
+            except Exception as e:
+                print(f"Error creating Tag from tag data {tag_data}: {e}")
+
+        return tags
+
+    except Exception as e:
+        print(f"An error occurred while fetching tags: {e}")
+        return []
+
 # Test call
 user_id = "HvVnzo4Z4pafStpPbzMsmoPSa7t1"
 workers_list = get_workers(user_id)
 print(f"Retrieved {len(workers_list)} workers.")
+tags_list = get_tags(user_id)
+print(f"Retrieved {len(tags_list)} tags.")
