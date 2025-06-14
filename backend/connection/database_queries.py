@@ -1,11 +1,10 @@
-from backend.connection.connection import db
-from backend.models import Worker
 from backend.connection.mapping import *
 from google.cloud.firestore_v1 import FieldFilter
+import firebase_admin
+from firebase_admin import firestore, credentials
 
 def get_workers(user_id: str):
     try:
-        doc_ref = db.collection("Markets")
         docs = db.collection("Markets").where(filter=FieldFilter("createdBy", "==", user_id)).limit(1).get()
         if not docs:
             print("No Market found for this user.")
@@ -35,7 +34,6 @@ def get_workers(user_id: str):
 
 def get_tags(user_id: str):
     try:
-        doc_ref = db.collection("Markets")
         docs = db.collection("Markets").where(filter=FieldFilter("createdBy", "==", user_id)).limit(1).get()
 
         if not docs:
@@ -62,9 +60,13 @@ def get_tags(user_id: str):
         print(f"An error occurred while fetching tags: {e}")
         return []
 
-# Test call
-user_id = "HvVnzo4Z4pafStpPbzMsmoPSa7t1"
-workers_list = get_workers(user_id)
-print(f"Retrieved {len(workers_list)} workers.")
-tags_list = get_tags(user_id)
-print(f"Retrieved {len(tags_list)} tags.")
+if __name__ == "__main__":
+    cred = credentials.Certificate("../ServiceAccountKey.json")
+    app = firebase_admin.initialize_app(cred)
+
+    db = firestore.client(app)
+    user_id = "HvVnzo4Z4pafStpPbzMsmoPSa7t1"
+    workers_list = get_workers(user_id)
+    print(f"Retrieved {len(workers_list)} workers.")
+    tags_list = get_tags(user_id)
+    print(f"Retrieved {len(tags_list)} tags.")
