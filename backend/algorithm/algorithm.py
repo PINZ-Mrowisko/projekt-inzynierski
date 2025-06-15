@@ -1,5 +1,6 @@
 from ortools.sat.python import cp_model
 from backend.algorithm.solver import ShiftPrinter
+from backend.connection.database_queries import *
 
 def generate_all_shifts(days, shifts, all_workers):
     all_shifts = {}
@@ -14,6 +15,7 @@ def generate_all_shifts(days, shifts, all_workers):
 
 def create_tag_group(all_workers, tag):
     return [worker for worker in all_workers if tag in worker.tags]
+
 
 def divide_workers_by_tags(all_workers, all_tags):
     tag_groups = {}
@@ -31,7 +33,7 @@ def RULE_working_tags_number(all_shifts, tag_groups, day, shift, tag, minimum, m
     return
 
 
-def main():
+def main(workers, constraints, tags):
 
     tag_groups = divide_workers_by_tags(workers, tags)
 
@@ -59,7 +61,7 @@ def main():
             female_assigned = []
 
             for worker in workers:
-                group_b = [role for role in worker.tags if role.name != "kierownik"]
+                group_b = [role for role in worker.tags if role.name != "Kierownik"]
 
                 if not group_b:
                     continue
@@ -122,7 +124,18 @@ def main():
         print("No solution found.")
 
 if __name__ == "__main__":
+    cred = credentials.Certificate("../ServiceAccountKey.json")
+    app = firebase_admin.initialize_app(cred)
+
+    db = firestore.client(app)
+    user_id = "HvVnzo4Z4pafStpPbzMsmoPSa7t1"
+    tags = get_tags(user_id, db)
+    print(f"Retrieved {len(tags)} tags.")
+    workers = get_workers(user_id, tags, db)
+    print(f"Retrieved {len(workers)} workers.")
+
     from use_scenario import setup_scenario
-    constraints, workers, tags = setup_scenario()
+    constraints, workersDEPRECATED, tagsDEPRECATED = setup_scenario()
     model = cp_model.CpModel()
-    main()
+    #main(workers, constraints, tags)
+    main(workers, constraints, tags)
