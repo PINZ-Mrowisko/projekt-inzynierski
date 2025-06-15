@@ -1,7 +1,6 @@
 from backend.connection.mapping import *
 from google.cloud.firestore_v1 import FieldFilter
-import firebase_admin
-from firebase_admin import firestore, credentials
+
 
 def get_workers(user_id: str, tags_list, db):
     try:
