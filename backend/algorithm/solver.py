@@ -50,3 +50,43 @@ class ShiftPrinter(cp_model.CpSolverSolutionCallback):
                     if d == day and s == shift:
                         print(f"    {worker.firstname} {worker.lastname} as {role.name}")
             print()
+
+    def results_json(self):
+        if not self._best_solution:
+            return {"error": "No solution found"}
+
+        results = []
+
+        # Grupujemy dane: (day, shift) => list of workers
+        shift_map = {}
+        for day, shift, worker, role in self._best_solution:
+            key = (day, shift)
+            if key not in shift_map:
+                shift_map[key] = []
+            shift_map[key].append({
+                "firstname": worker.firstname,
+                "lastname": worker.lastname,
+                "role": role.name
+            })
+
+        # Budujemy finalny wynik
+        for day in range(self._days):
+            day_entry = {
+                "day": day + 1,
+                "shifts": []
+            }
+
+            for shift in range(self._shifts):
+                assigned_workers = shift_map.get((day, shift), [])
+
+                day_entry["shifts"].append({
+                    "shift": shift + 1,
+                    "workers": assigned_workers
+                })
+
+            results.append(day_entry)
+
+        return results
+
+
+

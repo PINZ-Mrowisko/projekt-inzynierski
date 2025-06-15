@@ -2,7 +2,7 @@ from ortools.sat.python import cp_model
 from backend.algorithm.solver import ShiftPrinter
 from backend.connection.database_queries import *
 
-def generate_all_shifts(days, shifts, all_workers):
+def generate_all_shifts(model, days, shifts, all_workers):
     all_shifts = {}
 
     for worker in all_workers:
@@ -23,7 +23,7 @@ def divide_workers_by_tags(all_workers, all_tags):
         tag_groups[tag] = create_tag_group(all_workers, tag)
     return tag_groups
 
-def RULE_working_tags_number(all_shifts, tag_groups, day, shift, tag, minimum, maximum):
+def RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tag, minimum, maximum):
     role_assignments = [
         all_shifts[(worker, day, shift, tag)]
         for worker in tag_groups[tag]
@@ -34,13 +34,13 @@ def RULE_working_tags_number(all_shifts, tag_groups, day, shift, tag, minimum, m
 
 
 def main(workers, constraints, tags):
-
+    model = cp_model.CpModel()
     tag_groups = divide_workers_by_tags(workers, tags)
 
     all_workers = len(workers)
     print("Number of workers: ", all_workers)
 
-    all_shifts = generate_all_shifts(constraints.days, constraints.shifts, workers)
+    all_shifts = generate_all_shifts(model, constraints.days, constraints.shifts, workers)
 
     for worker in workers:
         for day in range(constraints.days):
@@ -51,10 +51,10 @@ def main(workers, constraints, tags):
     for day in range(constraints.days):
         for shift in range(constraints.shifts):
 
-            RULE_working_tags_number(all_shifts, tag_groups, day, shift, tags[0], 3, 3)
-            RULE_working_tags_number(all_shifts, tag_groups, day, shift, tags[1], 1, constraints.max_num_workers)
-            RULE_working_tags_number(all_shifts, tag_groups, day, shift, tags[2], 1, 1)
-            RULE_working_tags_number(all_shifts, tag_groups, day, shift, tags[3], 1, 1)
+            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tags[0], 3, 3)
+            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tags[1], 1, constraints.max_num_workers)
+            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tags[2], 1, 1)
+            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tags[3], 1, 1)
 
             worker_assigned = []
             male_assigned = []
@@ -120,8 +120,10 @@ def main(workers, constraints, tags):
         printer.on_solution_callback()
         print("\nFinal Solution:")
         printer.print_best_solution()
+        return printer.results_json()
     else:
         print("No solution found.")
+        return {"status": "No solution found."}
 
 if __name__ == "__main__":
     cred = credentials.Certificate("../ServiceAccountKey.json")
