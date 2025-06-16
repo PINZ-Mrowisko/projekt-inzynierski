@@ -38,7 +38,8 @@ class ScheduleController extends GetxController {
         errorMessage.value = 'Błąd: ${response.statusCode}';
       }
     } catch (e) {
-      errorMessage.value = 'Wystąpił błąd: $e';
+      errorMessage.value = 'Przepraszamy! Aktualnie ta usługa jest dostępna tylko dla mrówek w Lipnie';
+      //errorMessage.value = 'Wystąpił błąd: $e';
     } finally {
       isLoading.value = false;
     }
