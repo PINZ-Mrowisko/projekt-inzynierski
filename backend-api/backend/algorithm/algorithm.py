@@ -37,8 +37,13 @@ def main(workers, constraints, tags):
     model = cp_model.CpModel()
     tag_groups = divide_workers_by_tags(workers, tags)
 
+    if len(tag_groups) != 5:
+        raise ValueError("Not matching scenario: Tags")
+
     all_workers = len(workers)
-    print("Number of workers: ", all_workers)
+
+    if all_workers < 19:
+        raise ValueError("Not enough workers for the scenario: at least 19 workers are required.")
 
     all_shifts = generate_all_shifts(model, constraints.days, constraints.shifts, workers)
 

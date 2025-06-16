@@ -1,23 +1,40 @@
 import firebase_admin
-from fastapi import FastAPI
-from firebase_admin import firestore, credentials
+from fastapi import FastAPI, Header, HTTPException
+from firebase_admin import firestore, credentials, auth
 
 from backend.connection.database_queries import get_tags, get_workers
 from backend.algorithm.algorithm import main
 from backend.algorithm.use_scenario import setup_scenario
 
+# === Inicjalizacja Firebase Admin SDK dla Cloud Run ===
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(
+        credentials.ApplicationDefault(),
+        {'projectId': 'p-inz-719da'}
+    )
+
+# Firestore client
+db = firestore.client()
+
+# FastAPI init
 app = FastAPI()
 
 @app.get("/run-algorithm")
-def run_algorithm():
-    cred = credentials.Certificate("backend/ServiceAccountKey.json")
-    app = firebase_admin.initialize_app(cred)
+def run_algorithm(authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=403, detail="Brak tokenu")
 
-    db = firestore.client(app)
-    user_id = "HvVnzo4Z4pafStpPbzMsmoPSa7t1"
+    id_token = authorization.split(" ")[1]
+
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        user_id = decoded_token["uid"]
+    except Exception as e:
+        print("Błąd weryfikacji tokenu:", e)
+        raise HTTPException(status_code=403, detail="Nieprawidłowy token")
+
     tags = get_tags(user_id, db)
     workers = get_workers(user_id, tags, db)
-
     constraints, _, _ = setup_scenario()
     result = main(workers, constraints, tags)
     return result
