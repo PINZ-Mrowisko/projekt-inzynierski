@@ -129,20 +129,3 @@ def main(workers, constraints, tags):
     else:
         print("No solution found.")
         return {"status": "No solution found."}
-
-if __name__ == "__main__":
-    cred = credentials.Certificate("../ServiceAccountKey.json")
-    app = firebase_admin.initialize_app(cred)
-
-    db = firestore.client(app)
-    user_id = "HvVnzo4Z4pafStpPbzMsmoPSa7t1"
-    tags = get_tags(user_id, db)
-    print(f"Retrieved {len(tags)} tags.")
-    workers = get_workers(user_id, tags, db)
-    print(f"Retrieved {len(workers)} workers.")
-
-    from use_scenario import setup_scenario
-    constraints, workersDEPRECATED, tagsDEPRECATED = setup_scenario()
-    model = cp_model.CpModel()
-    #main(workers, constraints, tags)
-    main(workers, constraints, tags)
