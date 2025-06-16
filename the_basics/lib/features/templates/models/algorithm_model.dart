@@ -3,7 +3,11 @@ class Worker {
   final String lastname;
   final String role;
 
-  Worker({required this.firstname, required this.lastname, required this.role});
+  Worker({
+    required this.firstname,
+    required this.lastname,
+    required String role,
+  }) : role = (role == 'default') ? 'Brak roli' : role;
 
   factory Worker.fromJson(Map<String, dynamic> json) => Worker(
     firstname: json['firstname'],
@@ -11,6 +15,7 @@ class Worker {
     role: json['role'],
   );
 }
+
 
 class Shift {
   final int shift;
@@ -34,4 +39,19 @@ class DaySchedule {
     day: json['day'],
     shifts: List<Shift>.from(json['shifts'].map((s) => Shift.fromJson(s))),
   );
+
+  String get dayName {
+    const names = [
+      '',
+      'Poniedziałek',
+      'Wtorek',
+      'Środa',
+      'Czwartek',
+      'Piątek',
+      'Sobota',
+      'Niedziela',
+    ];
+    return (day >= 1 && day <= 7) ? names[day] : 'Nieznany dzień';
+  }
 }
+

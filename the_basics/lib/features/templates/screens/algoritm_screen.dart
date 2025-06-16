@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../../utils/common_widgets/side_menu.dart';
 import '../controllers/algorithm_controller.dart';
-import '../models/algorithm_model.dart';
 
 class SchedulePage extends StatelessWidget {
   const SchedulePage({super.key});
@@ -63,7 +62,7 @@ class SchedulePage extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 8),
           elevation: 2,
           child: ExpansionTile(
-            title: Text('Dzień ${day.day}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            title: Text(day.dayName, style: const TextStyle(fontWeight: FontWeight.bold)),
             children: day.shifts.map((shift) {
               return Padding(
                 padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8),
