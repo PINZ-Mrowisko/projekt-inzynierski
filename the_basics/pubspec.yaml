@@ -38,6 +38,7 @@ dependencies:
   syncfusion_flutter_datepicker: ^29.2.7
   intl: ^0.20.2
   cloud_functions: ^5.5.1
+  http: ^1.4.0
 
 dev_dependencies:
   flutter_test:

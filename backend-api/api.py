@@ -1,5 +1,6 @@
 import firebase_admin
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
 from backend.connection.database_queries import get_tags, get_workers
@@ -18,6 +19,20 @@ db = firestore.client()
 
 # FastAPI init
 app = FastAPI()
+
+# === CORS CONFIGURATION ===
+origins = [
+    "http://localhost:55240",  # local
+    # "https://fajnadomena.pl",  # future production domain
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/run-algorithm")
 def run_algorithm(authorization: str = Header(...)):
