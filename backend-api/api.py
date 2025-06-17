@@ -21,14 +21,9 @@ db = firestore.client()
 app = FastAPI()
 
 # === CORS CONFIGURATION ===
-origins = [
-    "http://localhost:55240",  # local
-    # "https://fajnadomena.pl",  # future production domain
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origin_regex=r"http://localhost:\d+",  #tylko na development!!!
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
