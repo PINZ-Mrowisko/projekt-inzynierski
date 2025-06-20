@@ -9,7 +9,6 @@ import '../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
-import '../../../auth/models/user_model.dart';
 
 class MainCalendar extends StatefulWidget {
   const MainCalendar({super.key});
@@ -18,94 +17,126 @@ class MainCalendar extends StatefulWidget {
   State<MainCalendar> createState() => _MainCalendarState();
 }
 
-class _MainCalendarState extends State<MainCalendar> {
-List<Appointment> getSampleAppointments(List<UserModel> users) {
+List<Employee> getSampleEmployees() {
+  return [
+    Employee(id: '1', name: 'Agata Zaparucha'),
+    Employee(id: '2', name: 'Julia Osińska'),
+    Employee(id: '3', name: 'Robert Piłat'),
+    Employee(id: '4', name: 'Zofia Lorenc'),
+    Employee(id: '5', name: 'Zofia Nowak'),
+    Employee(id: '6', name: 'Agata Zaparucha'),
+    Employee(id: '7', name: 'Julia Osińska'),
+    Employee(id: '8', name: 'Robert Piłat'),
+    Employee(id: '9', name: 'Zofia Lorenc'),
+    Employee(id: '10', name: 'Zofia Nowak'),
+    Employee(id: '11', name: 'Anna Nowak'),
+  ];
+}
+
+List<Appointment> getSampleAppointments() {
   final DateTime now = DateTime.now();
-  final DateTime monday = DateTime(now.year, now.month, now.day)
-      .subtract(Duration(days: now.weekday - 1));
+  final DateTime monday = DateTime(
+    now.year,
+    now.month,
+    now.day,
+  ).subtract(Duration(days: now.weekday - 1));
 
-  final sampleUsers = users.take(4).toList();
+  List<Appointment> baseAppointments = [
+    // Agata
+    Appointment(
+      startTime: DateTime(monday.year, monday.month, monday.day, 8, 0),
+      endTime: DateTime(monday.year, monday.month, monday.day, 16, 0),
+      subject: 'Zaplanowana zmiana',
+      color: AppColors.logo,
+      resourceIds: <Object>['1'],
+    ),
 
-  final List<Appointment> appointments = [];
+    // Julia
+    Appointment(
+      startTime: DateTime(monday.year, monday.month, monday.day + 1, 8, 0),
+      endTime: DateTime(monday.year, monday.month, monday.day + 1, 16, 0),
+      subject: 'Zaplanowana zmiana',
+      color: AppColors.logo,
+      resourceIds: <Object>['2'],
+    ),
+    Appointment(
+      startTime: DateTime(monday.year, monday.month, monday.day + 3, 8, 0),
+      endTime: DateTime(monday.year, monday.month, monday.day + 3, 16, 0),
+      subject: 'Zaplanowana zmiana',
+      color: AppColors.logo,
+      resourceIds: <Object>['2'],
+    ),
 
-  // Definicja bazowych zmian w 1 tygodniu
-  final List<Map<String, dynamic>> baseShifts = [
-    {
-      "offsetDay": 0,
-      "startHour": 8,
-      "endHour": 16,
-      "userIndex": 0,
-    },
-    {
-      "offsetDay": 1,
-      "startHour": 8,
-      "endHour": 16,
-      "userIndex": 1,
-    },
-    {
-      "offsetDay": 3,
-      "startHour": 8,
-      "endHour": 16,
-      "userIndex": 1,
-    },
-    {
-      "offsetDay": 2,
-      "startHour": 12,
-      "endHour": 20,
-      "userIndex": 2,
-    },
-    {
-      "offsetDay": 5,
-      "startHour": 12,
-      "endHour": 20,
-      "userIndex": 2,
-    },
-    {
-      "offsetDay": 2,
-      "startHour": 8,
-      "endHour": 16,
-      "userIndex": 3,
-    },
-    {
-      "offsetDay": 4,
-      "startHour": 8,
-      "endHour": 16,
-      "userIndex": 3,
-    },
+    // Robert
+    Appointment(
+      startTime: DateTime(monday.year, monday.month, monday.day + 2, 12, 0),
+      endTime: DateTime(monday.year, monday.month, monday.day + 2, 20, 0),
+      subject: 'Zaplanowana zmiana',
+      color: AppColors.logo,
+      resourceIds: <Object>['3'],
+    ),
+    Appointment(
+      startTime: DateTime(monday.year, monday.month, monday.day + 5, 12, 0),
+      endTime: DateTime(monday.year, monday.month, monday.day + 5, 20, 0),
+      subject: 'Zaplanowana zmiana',
+      color: AppColors.logo,
+      resourceIds: <Object>['3'],
+    ),
+
+    // Zofia
+    Appointment(
+      startTime: DateTime(monday.year, monday.month, monday.day + 2, 8, 0),
+      endTime: DateTime(monday.year, monday.month, monday.day + 2, 16, 0),
+      subject: 'Zaplanowana zmiana',
+      color: AppColors.logo,
+      resourceIds: <Object>['4'],
+    ),
+    Appointment(
+      startTime: DateTime(monday.year, monday.month, monday.day + 4, 8, 0),
+      endTime: DateTime(monday.year, monday.month, monday.day + 4, 16, 0),
+      subject: 'Zaplanowana zmiana',
+      color: AppColors.logo,
+      resourceIds: <Object>['4'],
+    ),
+
+    Appointment(
+      startTime: DateTime(monday.year, monday.month, monday.day + 2, 12, 0),
+      endTime: DateTime(monday.year, monday.month, monday.day + 2, 20, 0),
+      subject: 'Zaplanowana zmiana',
+      color: AppColors.logo,
+      resourceIds: <Object>['11'],
+    ),
   ];
 
-  // Powtórz przez 4 tygodnie
-  for (int weekOffset = 0; weekOffset < 4; weekOffset++) {
-    for (var shift in baseShifts) {
-      final userIndex = shift['userIndex'] as int;
-      if (sampleUsers.length > userIndex) {
-        final day = monday
-            .add(Duration(days: (weekOffset * 7) + shift['offsetDay'] as int));
-        appointments.add(
-          Appointment(
-            startTime:
-                DateTime(day.year, day.month, day.day, shift['startHour'], 0),
-            endTime:
-                DateTime(day.year, day.month, day.day, shift['endHour'], 0),
-            subject: 'Zaplanowana zmiana',
-            color: AppColors.logo,
-            resourceIds: [sampleUsers[userIndex].id],
-          ),
-        );
-      }
+  // Powielanie bazowych zmian przez kolejne 4 tygodnie
+  List<Appointment> repeatedAppointments = [];
+
+  for (int week = 0; week < 4; week++) {
+    Duration weekOffset = Duration(days: 7 * week);
+    for (var appointment in baseAppointments) {
+      repeatedAppointments.add(
+        Appointment(
+          startTime: appointment.startTime.add(weekOffset),
+          endTime: appointment.endTime.add(weekOffset),
+          subject: appointment.subject,
+          color: appointment.color,
+          resourceIds: appointment.resourceIds,
+        ),
+      );
     }
   }
 
-  return appointments;
+  return repeatedAppointments;
 }
 
+class _MainCalendarState extends State<MainCalendar> {
   @override
-  void initState() {
-    super.initState();
-    Get.find<UserController>().initialize();
-  }
-
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final totalHours = 13; // Od 8:00 do 21:00 (czyli 13 godzin)
+    final visibleDays = 8.5; // 7 dni tygodnia + trochę zapasu
+    final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
+
     final controller = Get.find<UserController>();
     final tagsController = Get.find<TagsController>();
     final selectedTags = <String>[].obs;
@@ -116,16 +147,13 @@ List<Appointment> getSampleAppointments(List<UserModel> users) {
     final Rx<DateTime> currentWeekStart =
         DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).obs;
 
-    final List<UserModel> users = controller.allEmployees;
-    final appointments = getSampleAppointments(users);
+    final employees = getSampleEmployees();
+    final appointments = getSampleAppointments();
 
     final DateTime now = DateTime.now();
-    final DateTime monday = DateTime.now().subtract(
-      Duration(days: DateTime.now().weekday - 1),
-    );
+    final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
 
-//do poprawienia podział kalendarza na kolory
-    final List<TimeRegion> specialRegions = List.generate(730, (index) {
+    final List<TimeRegion> specialRegions = List.generate(365, (index) {
       final day = monday
           .subtract(const Duration(days: 180))
           .add(Duration(days: index));
@@ -135,11 +163,12 @@ List<Appointment> getSampleAppointments(List<UserModel> users) {
         enablePointerInteraction: false,
         color:
             day.weekday.isEven
-                ? const Color.fromARGB(107, 232, 102, 9).withOpacity(0.07)
+                ? const Color.fromARGB(255,239, 232, 244)
                 : Colors.transparent,
         text: '',
       );
     });
+
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -297,134 +326,149 @@ List<Appointment> getSampleAppointments(List<UserModel> users) {
                   ),
 
                   Expanded(
-                    child: Obx(() {
-                      final users = controller.allEmployees;
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        //double calendarWidth = constraints.maxWidth;
 
-                      return Stack(
-                        children: [
-                          SfCalendar(
-                            controller: calendarController,
-                            view: CalendarView.timelineWeek,
-                            showDatePickerButton: true,
-                            headerStyle: CalendarHeaderStyle(
-                              backgroundColor: AppColors.pageBackground,
-                              textAlign: TextAlign.left,
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            firstDayOfWeek: 1,
-                            onTap: (CalendarTapDetails details) {
-                              if (details.targetElement ==
-                                  CalendarElement.header) {
-                                isDatePickerOpen.value = true;
-                              } else {
-                                isDatePickerOpen.value = false;
-                              }
-                            },
-                            dataSource: ScheduleDataSource(appointments, users),
-                            specialRegions: specialRegions,
-                            timeSlotViewSettings: TimeSlotViewSettings(
-                              startHour: 8,
-                              endHour: 21,
-                              timeIntervalHeight: 40,
-                              timeIntervalWidth: 14.8,
-                              timeInterval: const Duration(hours: 1),
-                              timeFormat: 'HH:mm',
-                              timeTextStyle: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            todayHighlightColor: AppColors.logo,
-                            resourceViewSettings: ResourceViewSettings(
-                              visibleResourceCount: 7,
-                              size: 100,
-                              showAvatar: false,
-                              displayNameTextStyle: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            appointmentBuilder: (
-                              context,
-                              calendarAppointmentDetails,
-                            ) {
-                              final appointment =
-                                  calendarAppointmentDetails.appointments.first;
-                              return Container(
-                                decoration: BoxDecoration(
-                                  color: appointment.color,
-                                  borderRadius: BorderRadius.circular(3),
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 0.5,
+                        return Stack(
+                          children: [
+                            SizedBox(
+                              //width: calendarWidth,
+                              child: SfCalendar(
+                                controller: calendarController,
+                                view: CalendarView.timelineWeek,
+                                showDatePickerButton: true,
+                                headerStyle: CalendarHeaderStyle(
+                                  backgroundColor: AppColors.pageBackground,
+                                  textAlign: TextAlign.left,
+                                  textStyle: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                margin: const EdgeInsets.all(1),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                  vertical: 2,
+                                firstDayOfWeek: 1,
+                                onTap: (CalendarTapDetails details) {
+                                  if (details.targetElement ==
+                                      CalendarElement.header) {
+                                    isDatePickerOpen.value = true;
+                                  } else {
+                                    isDatePickerOpen.value = false;
+                                  }
+                                },
+                                dataSource: ScheduleDataSource(
+                                  appointments,
+                                  employees,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
-                                      '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
-                                      style: const TextStyle(
+                                specialRegions: specialRegions,
+                                timeSlotViewSettings: TimeSlotViewSettings(
+                                  startHour: 8,
+                                  endHour: 21,
+                                  timeIntervalHeight: 40,
+                                  timeIntervalWidth: dynamicIntervalWidth,
+                                  timeInterval: Duration(hours: 1),
+                                  timeFormat: 'HH:mm',
+                                  timeTextStyle: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                todayHighlightColor: AppColors.logo,
+                                resourceViewSettings: ResourceViewSettings(
+                                  visibleResourceCount: 10,
+                                  size: 145,
+                                  showAvatar: false,
+                                  displayNameTextStyle: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                appointmentBuilder: (
+                                  context,
+                                  calendarAppointmentDetails,
+                                ) {
+                                  final appointment =
+                                      calendarAppointmentDetails
+                                          .appointments
+                                          .first;
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: appointment.color,
+                                      borderRadius: BorderRadius.circular(3),
+                                      border: Border.all(
                                         color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
+                                        width: 0.5,
                                       ),
                                     ),
-                                    if (appointment.subject.isNotEmpty)
-                                      Text(
-                                        appointment.subject.replaceAll(
-                                          ' - ',
-                                          ' ',
-                                        ),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                          Obx(
-                            () =>
-                                isDatePickerOpen.value
-                                    ? const SizedBox.shrink()
-                                    : Positioned(
-                                      top: 35,
-                                      child: Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.arrow_left),
-                                            onPressed: () {
-                                              calendarController.backward!();
-                                            },
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.arrow_right),
-                                            onPressed: () {
-                                              calendarController.forward!();
-                                            },
-                                          ),
-                                        ],
-                                      ),
+                                    margin: EdgeInsets.all(1),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 2,
                                     ),
-                          ),
-                        ],
-                      );
-                    }),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - ${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        if (appointment.subject.isNotEmpty)
+                                          Text(
+                                            appointment.subject.replaceAll(
+                                              ' - ',
+                                              ' ',
+                                            ),
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            Obx(
+                              () =>
+                                  isDatePickerOpen.value
+                                      ? const SizedBox.shrink()
+                                      : Positioned(
+                                        top: 35,
+                                        child: Row(
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.arrow_left,
+                                              ),
+                                              onPressed: () {
+                                                calendarController.backward!();
+                                              },
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.arrow_right,
+                                              ),
+                                              onPressed: () {
+                                                calendarController.forward!();
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -436,18 +480,30 @@ List<Appointment> getSampleAppointments(List<UserModel> users) {
   }
 }
 
+// Klasa Employee (bez zmian)
+class Employee {
+  final String id;
+  final String name;
+
+  Employee({required this.id, required this.name});
+}
+
 class ScheduleDataSource extends CalendarDataSource {
-  ScheduleDataSource(List<Appointment> appointments, List<UserModel> users) {
+  ScheduleDataSource(List<Appointment> appointments, List<Employee> employees) {
     this.appointments = appointments;
     this.resources =
-        users
+        employees
             .map(
-              (user) => CalendarResource(
-                displayName: '${user.firstName} ${user.lastName}',
-                id: user.id,
+              (employee) => CalendarResource(
+                displayName: employee.name,
+                id: employee.id,
                 color: AppColors.blue,
               ),
             )
             .toList();
+
+    // Dodajemy specjalne regiony na tło dni
+    final DateTime now = DateTime.now();
+    final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
   }
 }
