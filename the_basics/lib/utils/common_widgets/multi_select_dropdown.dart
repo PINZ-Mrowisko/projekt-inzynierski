@@ -40,8 +40,6 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
 
   void _showMultiSelectDialog() async {
     List<String> tempSelected = List<String>.from(_selected);
-    final RenderBox box = context.findRenderObject() as RenderBox;
-    final double dropdownWidth = box.size.width;
 
     final selected = await showDialog<List<String>>(
       context: context,
@@ -53,16 +51,18 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
             final contentHeight = 150.0 + (itemCount * 56.0);
             final dialogHeight = contentHeight.clamp(300.0, maxDialogHeight);
 
+            final screenWidth = MediaQuery.of(context).size.width;
+            final dialogWidth = (screenWidth * 0.5).clamp(300.0, 600.0);
+
             return Dialog(
               insetPadding: const EdgeInsets.all(20),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
               child: SizedBox(
-                width: dropdownWidth,
+                width: dialogWidth,
                 height: dialogHeight,
                 child: Container(
-                  height: dialogHeight,
                   decoration: BoxDecoration(
                     color: AppColors.pageBackground,
                     borderRadius: BorderRadius.circular(15),
@@ -82,7 +82,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                                 fontSize: 32,
                                 fontWeight: FontWeight.w400,
                                 fontFamily: 'Roboto',
-                                height: 40/32,
+                                height: 40 / 32,
                               ),
                             ),
                             IconButton(
