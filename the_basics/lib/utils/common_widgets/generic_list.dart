@@ -45,12 +45,12 @@ class GenericList<T> extends StatelessWidget {
               decoration: BoxDecoration(
                 color: itemBackgroundColor ?? 
                     AppColors.lightBlue.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(itemBorderRadius!),
+                borderRadius: BorderRadius.circular(itemBorderRadius ?? 15),
               ),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(itemBorderRadius!),
+                  borderRadius: BorderRadius.circular(itemBorderRadius ?? 15),
                   hoverColor: hoverColor ?? AppColors.lightBlue,
                   splashColor: splashColor ?? AppColors.lightBlue,
                   onTap: onItemTap != null ? () => onItemTap!(item) : null,
