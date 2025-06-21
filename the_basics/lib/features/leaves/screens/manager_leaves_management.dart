@@ -119,7 +119,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
         },
         hintText: 'Filtruj po pracowniku',
         leadingIcon: Icons.filter_alt_outlined,
-        widthPercentage: 0.3,
+        widthPercentage: 0.2,
         maxWidth: 450,
         minWidth: 160,
       );
