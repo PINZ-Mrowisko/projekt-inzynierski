@@ -40,6 +40,8 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
 
   void _showMultiSelectDialog() async {
     List<String> tempSelected = List<String>.from(_selected);
+    final RenderBox box = context.findRenderObject() as RenderBox;
+    final double dropdownWidth = box.size.width;
 
     final selected = await showDialog<List<String>>(
       context: context,
@@ -56,11 +58,9 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: widget.minWidth,
-                  maxWidth: widget.maxWidth,
-                ),
+              child: SizedBox(
+                width: dropdownWidth,
+                height: dialogHeight,
                 child: Container(
                   height: dialogHeight,
                   decoration: BoxDecoration(

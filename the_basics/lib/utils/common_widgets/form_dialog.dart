@@ -401,6 +401,7 @@ Widget _buildDatePickerField(DatePickerDialogField field) {
               viewHeaderStyle: DateRangePickerViewHeaderStyle(
                 textStyle: TextStyle(fontWeight: FontWeight.bold),
               ),
+              firstDayOfWeek: 1,
             ),
             headerStyle: const DateRangePickerHeaderStyle(
               backgroundColor: AppColors.lightBlue,
