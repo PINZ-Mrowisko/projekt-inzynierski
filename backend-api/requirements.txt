@@ -1,0 +1,5 @@
+firebase-admin~=6.9.0
+fastapi~=0.115.12
+ortools~=9.12.4544
+protobuf>=5.29.3,<5.30
+uvicorn
