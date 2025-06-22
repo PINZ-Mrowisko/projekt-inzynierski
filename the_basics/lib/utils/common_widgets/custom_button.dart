@@ -36,18 +36,23 @@ class CustomButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
               Icon(icon, size: 18, color: textColor),
               const SizedBox(width: 8),
             ],
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 14,
-                color: textColor,
+            Flexible(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: textColor,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
+
             ),
           ],
         ),

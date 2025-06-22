@@ -34,130 +34,135 @@ class LoginPage extends StatelessWidget {
                 BoxShadow(color: Colors.black12, blurRadius: 12, spreadRadius: 2),
               ],
             ),
-  
-          child: Column(
-              mainAxisSize: MainAxisSize.min,
-  
-            children: [
-                  Form(
-                  key: controller.loginFormKey,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Column(
-                      children: [
-                      SvgPicture.asset(
-                        'assets/mrowisko_logo_blue.svg',
-                        height: 48,
-                      ),
 
-                      const SizedBox(height: 40),
 
-                      /// email
-                      TextFormField(
-                        controller: controller.email,
-                        validator: (value) => MyValidator.validateEmail(value),
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          border: const OutlineInputBorder(),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+
+              children: [
+                    Form(
+                    key: controller.loginFormKey,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Column(
+                        children: [
+                        SvgPicture.asset(
+                          'assets/mrowisko_logo_blue.svg',
+                          height: 48,
                         ),
-                      ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 40),
 
-                      /// hasło
-                      Obx(
-                        () => TextFormField(
-                          expands: false,
+                        /// email
+                        TextFormField(
+                          controller: controller.email,
+                          key: const Key("email_field"),
+                          validator: (value) => MyValidator.validateEmail(value),
                           decoration: InputDecoration(
-                            labelText: "Hasło",
-                            suffixIcon: IconButton(
-                              onPressed:
-                                  () =>
-                                      controller.hidePswd.value =
-                                          !controller.hidePswd.value,
-                              icon: Icon(
-                                controller.hidePswd.value
-                                    ? Iconsax.eye_slash
-                                    : Iconsax.eye,
-                              ),
-                            ),
+                            labelText: 'Email',
+                            border: const OutlineInputBorder(),
                           ),
-                          maxLines: 1,
-                          controller: controller.pswd,
-                          validator:
-                              (value) => MyValidator.validateEmptyText(value),
-                          obscureText: controller.hidePswd.value,
                         ),
-                      ),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        /// funkcja remember me
-                        Row(
-                            children: [
-                            Obx(
-                              () => Checkbox(
-                                value: controller.rememberMe.value,
-                                onChanged:
-                                    (value) =>
-                                        controller.rememberMe.value =
-                                            !controller.rememberMe.value,
+                        /// hasło
+                        Obx(
+                          () => TextFormField(
+                            expands: false,
+                            key: const Key("password_field"),
+                            decoration: InputDecoration(
+                              labelText: "Hasło",
+                              suffixIcon: IconButton(
+                                onPressed:
+                                    () =>
+                                        controller.hidePswd.value =
+                                            !controller.hidePswd.value,
+                                icon: Icon(
+                                  controller.hidePswd.value
+                                      ? Iconsax.eye_slash
+                                      : Iconsax.eye,
+                                ),
                               ),
                             ),
-                            Text("Pamiętaj mnie"),
-                          ],
+                            maxLines: 1,
+                            controller: controller.pswd,
+                            validator:
+                                (value) => MyValidator.validateEmptyText(value),
+                            obscureText: controller.hidePswd.value,
+                          ),
                         ),
-                      ],
+
+                          const SizedBox(height: 20),
+
+                          /// funkcja remember me
+                          Row(
+                              children: [
+                              Obx(
+                                () => Checkbox(
+                                  value: controller.rememberMe.value,
+                                  onChanged:
+                                      (value) =>
+                                          controller.rememberMe.value =
+                                              !controller.rememberMe.value,
+                                ),
+                              ),
+                              Text("Pamiętaj mnie"),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                TextButton(
-                  onPressed: () => Get.to(() => ForgetPswd()),
-                    child: Text('Zapomniałeś hasła?',
-                      style: TextStyle(
-                        color: Colors.blue,
+                  TextButton(
+                    onPressed: () => Get.to(() => ForgetPswd()),
+                      child: Text('Zapomniałeś hasła?',
+                        style: TextStyle(
+                          color: Colors.blue,
+                              ),
+                        overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
-                      
 
-                const SizedBox(height: 10),
-                
-                CustomButton(
-                  onPressed: () {
-                    controller.emailAndPasswordSignIn();
-                  },
-                  text: 'Zaloguj się',
-                ),
 
-                const SizedBox(height: 10),
-  
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Nie masz konta? "),
-                  TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => SignUpPage()),
-                        );
-                      },
-                      child: Text("Zarejestruj się",
-                        style: TextStyle(
-                          color: Colors.blue)
-                      )
-                  ),
                   const SizedBox(height: 10),
-                ],
-                ),
-                ],
-            ),
+
+                  CustomButton(
+                    onPressed: () {
+                      controller.emailAndPasswordSignIn();
+                    },
+                    text: 'Zaloguj się',
+                  ),
+
+                  const SizedBox(height: 10),
+
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Nie masz konta? ", overflow: TextOverflow.ellipsis,),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => SignUpPage()),
+                          );
+                        },
+                        child: Text("Zarejestruj się",
+                          style: TextStyle(
+                            color: Colors.blue),
+                          overflow: TextOverflow.ellipsis,
+                        )
+                    ),
+                    //const SizedBox(height: 10),
+                  ],
+                  ),
+                  ],
+              ),
+          ),
           ),
         ),
-      ),
     );
   }
 }
