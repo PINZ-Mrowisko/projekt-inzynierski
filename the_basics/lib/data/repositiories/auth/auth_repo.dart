@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/features/auth/screens/login_page.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
@@ -8,7 +9,6 @@ import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import '../../../features/auth/screens/verify_email.dart';
 import '../../../features/tags/controllers/tags_controller.dart';
 import '../../../features/employees/controllers/user_controller.dart';
-import '../../../features/schedules/screens/before_login/home_page.dart';
 import '../../../features/schedules/screens/after_login/main_calendar.dart';
 import '../exceptions.dart';
 
@@ -16,6 +16,9 @@ class AuthRepo extends GetxController {
   static AuthRepo get instance => Get.find();
 
   final _auth = FirebaseAuth.instance; //get the instance initialized from main
+
+  final GetStorage _box = GetStorage();
+  static const String _lastRouteKey = 'last_route';
 
   /// get a sharedPreferences instane - we use it to store user tokens after login
   final SharedPreferences _prefs;
@@ -28,22 +31,28 @@ class AuthRepo extends GetxController {
 
 
   @override
-  void onReady() {
-    screenRedirect();
+  Future<void> onReady() async {
+    final user =  _auth.currentUser;
+    if (user == null) {
+      print("in not authenitaced");
+    } else {
+      print("detected a user");
+    }
+    await _initializeControllers();
+
+    //screenRedirect();
   }
 
   // handles which screen to show to the user - if hes authenticated, then .....
   screenRedirect() async {
     final user =  _auth.currentUser;
-    //print("moved here");
-    //print(user?.uid);
 
     if (user != null) {
       if (user.emailVerified){
         try {
           // Initialize controllers sequentially
           await _initializeControllers();
-          _navigateToMainApp();
+          //_navigateToMainApp();
         } catch (e) {
           throw(e.toString());
         }
@@ -59,8 +68,6 @@ class AuthRepo extends GetxController {
   // handles after login functions for emps and manager
   afterLogin() async {
     final user =  _auth.currentUser;
-    //print("moved here");
-    //print(user?.uid);
 
     if (user != null) {
         try {
@@ -73,10 +80,9 @@ class AuthRepo extends GetxController {
 
           if (employee.hasLoggedIn == false) {
             await userController.updateEmployee(employee.copyWith(hasLoggedIn: true));
-            //print("Updated hasLoggedIn to true for first login.");
           }
 
-          _navigateToMainApp();
+          //_navigateToMainApp();
         } catch (e) {
           throw(e.toString());
         }
@@ -87,6 +93,17 @@ class AuthRepo extends GetxController {
     }
   }
 
+
+  void saveLastRoute(String route) {
+    _box.write(_lastRouteKey, route);
+    //print('Saved last route: $route');
+  }
+
+  String? getLastRoute() {
+    final route = _box.read<String>(_lastRouteKey);
+    //print('Retrieved last route: $route');
+    return route;
+  }
 
 
   Future<void> _initializeControllers() async {

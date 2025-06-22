@@ -13,6 +13,7 @@ import 'package:the_basics/features/schedules/screens/after_login/placeholder_pa
 import 'package:the_basics/features/settings/screens/settings.dart';
 import 'package:the_basics/features/templates/screens/algoritm_screen.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
+import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
 import 'features/schedules/screens/after_login/main_calendar.dart';
 import 'features/tags/screens/tags.dart';
@@ -81,13 +82,33 @@ class MyApp extends StatelessWidget {
       title: 'Mrowisko',
       themeMode: ThemeMode.light,
       theme: MyAppTheme.lightTheme,
-
+      transitionDuration: const Duration(milliseconds: 0), // so the pages don't slide around all crazy
       debugShowCheckedModeBanner: false,
       //home: isLoggedIn? MainCalendar() :MainCalendar(),
       home: AuthWrapper(),
+      navigatorObservers: [GetxRouteObserver()],
     );
   }
 }
+
+// class AuthWrapper extends StatelessWidget {
+//   const AuthWrapper({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final FirebaseAuth auth = FirebaseAuth.instance;
+//
+//     return StreamBuilder<User?>(
+//       stream: auth.userChanges(),
+//       builder: (context, snapshot) {
+//         if (snapshot.hasData && (!snapshot.data!.isAnonymous)) {
+//           return MainCalendar();
+//         }
+//         return LoginPage();
+//       },
+//     );
+//   }
+// }
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -95,13 +116,29 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final FirebaseAuth auth = FirebaseAuth.instance;
+    final AuthRepo authRepo = Get.find<AuthRepo>();
 
     return StreamBuilder<User?>(
       stream: auth.userChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData && (!snapshot.data!.isAnonymous)) {
-          return MainCalendar();
+          // user is logged in
+          final String? lastRoute = authRepo.getLastRoute();
+          if (lastRoute != null && Get.currentRoute != lastRoute) {
+
+            // we vavigate to the last saved route if it's not the current route
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (Get.currentRoute != lastRoute) {
+                Get.offAllNamed(lastRoute);
+              }
+            });
+            // lets return a loading indicator  while navigating
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          } else {
+            return MainCalendar();
+          }
         }
+        // user is not logged in, show login page
         return LoginPage();
       },
     );
