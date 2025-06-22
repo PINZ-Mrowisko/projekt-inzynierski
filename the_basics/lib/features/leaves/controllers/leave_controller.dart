@@ -59,6 +59,15 @@ class LeaveController extends GetxController {
       if (marketId.isEmpty) throw 'Brakuje marketId';
 
       final leaves = await _leaveRepo.getAllLeaveRequests(marketId);
+
+      final nonDeletedEmpIds = userController.allEmployees
+          .where((emp) => !emp.isDeleted)
+          .map((emp) => emp.id)
+          .toSet();
+
+      // get only the leaves of emps that arent deleted
+      final validLeaves = leaves.where((leave) => nonDeletedEmpIds.contains(leave.userId)).toList();
+
       allLeaveRequests.assignAll(leaves);
       filteredLeaves.assignAll(leaves);
     } catch (e) {

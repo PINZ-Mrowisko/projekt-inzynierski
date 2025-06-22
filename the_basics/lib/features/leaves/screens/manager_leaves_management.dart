@@ -190,6 +190,8 @@ class ManagerLeavesManagementPage extends StatelessWidget {
     );
   }
 
+  String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
+
   Widget _buildStatusChip(String status) {
     IconData icon;
 
@@ -209,6 +211,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
       default:
         icon = Icons.help_outline;
     }
+    final fixStatus = capitalize(status);
 
     return RawChip(
       label: Row(
@@ -221,7 +224,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            status,
+            fixStatus,
             style: const TextStyle(
               fontFamily: 'Roboto',
               fontWeight: FontWeight.w600,

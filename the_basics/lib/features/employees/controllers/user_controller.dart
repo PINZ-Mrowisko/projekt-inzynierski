@@ -3,12 +3,9 @@ import 'dart:math';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
-
-import '../../../data/repositiories/auth/auth_repo.dart';
 import '../../../utils/common_widgets/notification_snackbar.dart';
 
 class UserController extends GetxController {

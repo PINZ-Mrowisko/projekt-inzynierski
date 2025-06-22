@@ -75,7 +75,8 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/szablony', page: () => SchedulePage()),
         GetPage(name: '/raporty', page: () => PlaceholderPage()),
 
-        GetPage(name: '/ustawienia', page: () => SettingsScreen())
+        GetPage(name: '/ustawienia', page: () => SettingsScreen()),
+        GetPage(name: '/login', page: () => LoginPage())
       ],
       title: 'Mrowisko',
       themeMode: ThemeMode.light,

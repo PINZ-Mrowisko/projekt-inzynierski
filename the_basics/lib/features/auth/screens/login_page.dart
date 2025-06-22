@@ -132,7 +132,25 @@ class LoginPage extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 10),
-  
+
+              Obx(() {
+                if (controller.errorMessage.isNotEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      controller.errorMessage.value,
+                      style: TextStyle(color: Colors.red, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
+                return const SizedBox.shrink(); // Hide if no error
+              }),
+
+              const SizedBox(height: 10),
+
+
+
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
