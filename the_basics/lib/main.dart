@@ -23,13 +23,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'features/templates/controllers/algorithm_controller.dart';
 import 'firebase_options.dart';
 import 'package:get_storage/get_storage.dart';
-
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await GetStorage.init();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final prefs = await SharedPreferences.getInstance();
 
@@ -48,6 +48,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      locale: const Locale('pl'),
+      supportedLocales: const [Locale('pl'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
       //initialRoute: '/',
       initialBinding: AppBindings(),
       getPages: [
@@ -72,7 +80,7 @@ class MyApp extends StatelessWidget {
       title: 'Mrowisko',
       themeMode: ThemeMode.light,
       theme: MyAppTheme.lightTheme,
-      
+
       debugShowCheckedModeBanner: false,
       //home: isLoggedIn? MainCalendar() :MainCalendar(),
       home: AuthWrapper(),
@@ -98,4 +106,3 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 }
-
