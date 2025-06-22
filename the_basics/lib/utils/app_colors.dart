@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   static const Color pageBackground = Color(0xFFF5F5F5);
   static const Color logo = Color(0xFF00529F);
+  static const Color logolighter = Color.fromARGB(255, 41, 114, 182);
   static const Color lightBlue = Color(0xFFD2DEEB);
   static const Color blue = Color(0xFFA8B9CE);
   static const Color textColor1 = Color(0xFF1D1B20);
