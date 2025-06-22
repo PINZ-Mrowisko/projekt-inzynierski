@@ -170,7 +170,7 @@ class _MainCalendarState extends State<MainCalendar> {
                           SfCalendar(
                             controller: _calendarController,
                             view: CalendarView.timelineWeek,
-                            showDatePickerButton: true,
+                            showDatePickerButton: false,
                             showNavigationArrow: true,
                             headerStyle: const CalendarHeaderStyle(
                               backgroundColor: AppColors.pageBackground,
