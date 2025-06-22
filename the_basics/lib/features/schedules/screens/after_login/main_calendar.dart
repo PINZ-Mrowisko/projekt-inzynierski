@@ -42,7 +42,6 @@ List<Appointment> getSampleAppointments() {
   ).subtract(Duration(days: now.weekday - 1));
 
   List<Appointment> baseAppointments = [
-    // Agata
     Appointment(
       startTime: DateTime(monday.year, monday.month, monday.day, 8, 0),
       endTime: DateTime(monday.year, monday.month, monday.day, 16, 0),
@@ -51,7 +50,6 @@ List<Appointment> getSampleAppointments() {
       resourceIds: <Object>['1'],
     ),
 
-    // Julia
     Appointment(
       startTime: DateTime(monday.year, monday.month, monday.day + 1, 8, 0),
       endTime: DateTime(monday.year, monday.month, monday.day + 1, 16, 0),
@@ -67,7 +65,6 @@ List<Appointment> getSampleAppointments() {
       resourceIds: <Object>['2'],
     ),
 
-    // Robert
     Appointment(
       startTime: DateTime(monday.year, monday.month, monday.day + 2, 12, 0),
       endTime: DateTime(monday.year, monday.month, monday.day + 2, 20, 0),
@@ -83,7 +80,6 @@ List<Appointment> getSampleAppointments() {
       resourceIds: <Object>['3'],
     ),
 
-    // Zofia
     Appointment(
       startTime: DateTime(monday.year, monday.month, monday.day + 2, 8, 0),
       endTime: DateTime(monday.year, monday.month, monday.day + 2, 16, 0),
@@ -108,7 +104,6 @@ List<Appointment> getSampleAppointments() {
     ),
   ];
 
-  // Powielanie bazowych zmian przez kolejne 4 tygodnie
   List<Appointment> repeatedAppointments = [];
 
   for (int week = 0; week < 4; week++) {
@@ -133,7 +128,7 @@ class _MainCalendarState extends State<MainCalendar> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final totalHours = 13; // Od 8:00 do 21:00 (czyli 13 godzin)
+    final totalHours = 13; 
     final visibleDays = 8.5; // 7 dni tygodnia + trochę zapasu
     final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
 
@@ -328,12 +323,10 @@ class _MainCalendarState extends State<MainCalendar> {
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        //double calendarWidth = constraints.maxWidth;
 
                         return Stack(
                           children: [
                             SizedBox(
-                              //width: calendarWidth,
                               child: SfCalendar(
                                 controller: calendarController,
                                 view: CalendarView.timelineWeek,
@@ -480,7 +473,6 @@ class _MainCalendarState extends State<MainCalendar> {
   }
 }
 
-// Klasa Employee (bez zmian)
 class Employee {
   final String id;
   final String name;
@@ -502,7 +494,7 @@ class ScheduleDataSource extends CalendarDataSource {
             )
             .toList();
 
-    // Dodajemy specjalne regiony na tło dni
+    // specjalne regiony na tło dni
     final DateTime now = DateTime.now();
     final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
   }
