@@ -6,7 +6,7 @@ import '../../../utils/common_widgets/confirmation_dialog.dart';
 import '../../../utils/common_widgets/notification_snackbar.dart';
 import '../controllers/tags_controller.dart';
 
-void confirmDeleteTag(TagsController controller, String tagId, String tagName) {
+void confirmDeleteTag(TagsController controller, String tagId, String tagName, String marketId) {
   final userCount = controller.countUsersWithTag(tagName);
   String warningText;
   if (userCount == 1) {
@@ -26,7 +26,7 @@ void confirmDeleteTag(TagsController controller, String tagId, String tagName) {
       confirmTextColor: Colors.white,
       onConfirm: () async {
         // should delete tag from employees too
-        await controller.deleteTag(tagId, tagName);
+        await controller.deleteTag(tagId, tagName, marketId);
 
         // there is a back method in the controller method
 

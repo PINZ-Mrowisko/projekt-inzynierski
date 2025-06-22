@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/features/schedules/widgets/form_dialog.dart';
 import 'package:the_basics/features/tags/usecases/show_confirmations.dart';
+import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 import '../../../utils/app_colors.dart';
@@ -30,7 +30,7 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
         actions: [
           DialogActionButton(
             label: 'Usuń',
-            onPressed: () => confirmDeleteTag(controller, tag.id, tag.tagName),
+            onPressed: () => confirmDeleteTag(controller, tag.id, tag.tagName, tag.marketId),
             backgroundColor: AppColors.warning,
             textColor: AppColors.white,
           ),

@@ -1,139 +1,137 @@
-/// THIS IS THE OLD METHOD
-/// TO DO: move current implementation from employee_managemnt to here
-library;
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/utils/app_colors.dart';
+import 'package:the_basics/utils/common_widgets/form_dialog.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 import '../../auth/models/user_model.dart';
 import '../../tags/controllers/tags_controller.dart';
 import '../controllers/user_controller.dart';
 
-class EditEmployeeDialog extends StatelessWidget {
-  final UserModel employee;
+import '../usecases/delete_dialog.dart';
+import '../usecases/show_confirmations.dart';
 
-  EditEmployeeDialog({super.key, required this.employee});
-
-  final tagsController = Get.find<TagsController>();
-  final userController = Get.find<UserController>();
-
-  @override
-  Widget build(BuildContext context) {
+void showEditEmployeeDialog(BuildContext context, UserController userController, UserModel employee) {
     final firstNameController = TextEditingController(text: employee.firstName);
     final lastNameController = TextEditingController(text: employee.lastName);
     final emailController = TextEditingController(text: employee.email);
     final phoneController = TextEditingController(text: employee.phoneNumber);
     final hoursController = TextEditingController(text: employee.maxWeeklyHours.toString());
 
+    final selectedTags = <String>[].obs..addAll(employee.tags);
+    final tagsController = Get.find<TagsController>();
+
     final contractType = RxnString(employee.contractType);
     final shiftPreference = RxnString(employee.shiftPreference);
-    final selectedTags = <String>[].obs..addAll(employee.tags);
 
-    return AlertDialog(
-      title: const Text('Edytuj pracownika'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildTextField(firstNameController, 'Imię'),
-            const SizedBox(height: 16),
-            _buildTextField(lastNameController, 'Nazwisko'),
-            const SizedBox(height: 16),
-            _buildTextField(emailController, 'Email', type: TextInputType.emailAddress),
-            const SizedBox(height: 16),
-            _buildTextField(phoneController, 'Numer telefonu', type: TextInputType.phone),
-            const SizedBox(height: 16),
-            _buildDropdown(contractType, 'Typ umowy o pracę', [
-              'Umowa o pracę',
-              'Umowa zlecenie',
-            ]),
-            const SizedBox(height: 16),
-            _buildTextField(hoursController, 'Maksymalne godziny tygodniowo', type: TextInputType.number),
-            const SizedBox(height: 16),
-            _buildDropdown(shiftPreference, 'Preferencje zmian', [
-              'Poranne',
-              'Popołudniowe',
-              'Brak preferencji',
-            ]),
-            const SizedBox(height: 16),
-            const Text('Wybierz tagi:'),
-            Obx(() => Wrap(
-              spacing: 8,
-              children: tagsController.allTags.map((tag) {
-                return FilterChip(
-                  label: Text(tag.tagName),
-                  selected: selectedTags.contains(tag.tagName),
-                  onSelected: (selected) {
-                    selected ? selectedTags.add(tag.tagName) : selectedTags.remove(tag.tagName);
-                  },
-                );
-              }).toList(),
-            )),
+    final fields = [
+      RowDialogField(children: [
+        DialogInputField(label: 'Imię', controller: firstNameController),
+        DialogInputField(label: 'Nazwisko', controller: lastNameController),
+      ]),
+
+      RowDialogField(children: [
+        DialogInputField(label: 'Email', controller: emailController),
+        DialogInputField(label: 'Numer telefonu', controller: phoneController),
+      ]),
+
+      RowDialogField(children: [
+        DropdownDialogField(
+          label: 'Typ umowy o pracę',
+          selectedValue: contractType.value,
+          hintText: 'Wybierz typ umowy...',
+          items: [
+            DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
+            DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
           ],
+          onChanged: (value) => contractType.value = value,
         ),
+        DialogInputField(
+          label: 'Maksymalna ilość godzin tygodniowo',
+          controller: hoursController,
+        ),
+      ]),
+
+      DropdownDialogField(
+        label: 'Preferencje zmian',
+        selectedValue: shiftPreference.value,
+        hintText: 'Wybierz preferencje...',
+        items: [
+          DropdownItem(value: 'Poranne', label: 'Poranne'),
+          DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
+          DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
+        ],
+        onChanged: (value) => shiftPreference.value = value,
       ),
-      actions: [
-        TextButton(onPressed: Get.back, child: const Text('Anuluj')),
-        ElevatedButton(
-          onPressed: () async {
+
+      MultiSelectDialogField(
+        label: 'Tagi',
+        items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+        selectedItems: selectedTags,
+        onSelectionChanged: (selected) {
+          selectedTags.assignAll(selected);
+        },
+        width: double.infinity,
+      )
+    ];
+
+    final actions = [
+      DialogActionButton(
+        label: 'Usuń',
+        backgroundColor: AppColors.warning,
+        textColor: AppColors.white,
+        onPressed: () => confirmDeleteEmployee(userController, employee.id, employee.firstName, employee.marketId),
+      ),
+      DialogActionButton(
+        label: 'Zapisz',
+        onPressed: () {
+          try {
             if (firstNameController.text.isEmpty ||
                 lastNameController.text.isEmpty ||
                 emailController.text.isEmpty) {
-              Get.snackbar('Błąd', 'Wypełnij wszystkie wymagane pola');
+              showCustomSnackbar(context, 'Wypełnij wszystkie wymagane pola');
               return;
             }
 
-            final updatedEmployee = employee.copyWith(
-              firstName: firstNameController.text,
-              lastName: lastNameController.text,
-              email: emailController.text,
-              phoneNumber: phoneController.text,
-              contractType: contractType.value,
-              maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
-              shiftPreference: shiftPreference.value,
-              tags: selectedTags.toList(),
-            );
+            showSaveConfirmationDialog(() async {
+              try {
+                final updatedEmployee = employee.copyWith(
+                  firstName: firstNameController.text,
+                  lastName: lastNameController.text,
+                  email: emailController.text,
+                  phoneNumber: phoneController.text,
+                  contractType: contractType.value,
+                  maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
+                  shiftPreference: shiftPreference.value,
+                  tags: selectedTags.toList(),
+                );
+                Get.back();
+                await userController.updateEmployee(updatedEmployee);
+                //Get.back();
+                showCustomSnackbar(context, 'Zmiany zostały zapisane.');
+              } catch (e) {
+                showCustomSnackbar(
+                    context,
+                    'Nie udało się zapisać zmian: ${e.toString()}'
+                );
+              }
+            });
+          } catch (e) {
+            showCustomSnackbar(context, 'Wystąpił nieoczekiwany błąd',);
+          }
+        },
+      ),
+    ];
 
-            try {
-              // Show loading indicator
-              Get.dialog(
-                const Center(child: CircularProgressIndicator()),
-                barrierDismissible: false,
-              );
-              await userController.updateEmployee(updatedEmployee);
-
-              // close both dialogs (loading and add employee)
-              Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // loading
-              Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // confirmation
-
-            } catch (e){
-              Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // close loading dialog if error occurs
-              Get.snackbar('Błąd', 'Nie udało się zaktualizować pracownika: ${e.toString()}');
-            }
-
-
-            Get.back();
-          },
-          child: const Text('Zapisz zmiany'),
+    Get.dialog(
+        CustomFormDialog(
+          title: 'Edytuj Pracownika',
+          fields: fields,
+          actions: actions,
+          onClose: Get.back,
+          width: 700,
+          height: 750,
         ),
-      ],
+        barrierDismissible: false
     );
   }
-
-  Widget _buildTextField(TextEditingController controller, String label, {TextInputType? type}) {
-    return TextField(
-      controller: controller,
-      keyboardType: type,
-      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-    );
-  }
-
-  Widget _buildDropdown(RxnString variable, String label, List<String> options) {
-    return Obx(() => DropdownButtonFormField<String>(
-      value: variable.value,
-      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-      items: options.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
-      onChanged: (value) => variable.value = value,
-    ));
-  }
-}

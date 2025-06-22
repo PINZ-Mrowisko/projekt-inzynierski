@@ -1,156 +1,147 @@
-/// THIS IS THE OLD METHOD
-/// TO DO: move current implementation from employee_managemnt to here
-library;
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/utils/common_widgets/form_dialog.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import '../../auth/models/user_model.dart';
 import '../../tags/controllers/tags_controller.dart';
 import '../controllers/user_controller.dart';
 
-class AddEmployeeDialog extends StatelessWidget {
-  final firstNameController = TextEditingController();
-  final lastNameController = TextEditingController();
-  final emailController = TextEditingController();
-  final phoneController = TextEditingController();
-  final hoursController = TextEditingController(text: '40');
+void showAddEmployeeDialog(BuildContext context, UserController userController) {
+    final firstNameController = TextEditingController();
+    final lastNameController = TextEditingController();
+    final emailController = TextEditingController();
+    final phoneController = TextEditingController();
+    final hoursController = TextEditingController(text: '40');
 
-  final selectedTags = <String>[].obs;
-  final tagsController = Get.find<TagsController>();
-  final userController = Get.find<UserController>();
+    final selectedTags = <String>[].obs;
+    final tagsController = Get.find<TagsController>();
 
-  final contractType = RxnString();
-  final shiftPreference = RxnString();
+    final contractType = RxnString();
+    final shiftPreference = RxnString();
 
-  AddEmployeeDialog({super.key});
+    final fields = [
+      RowDialogField(children: [
+        DialogInputField(label: 'Imię', controller: firstNameController),
+        DialogInputField(label: 'Nazwisko', controller: lastNameController),
+      ]),
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Dodaj nowego pracownika'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildTextField(firstNameController, 'Imię'),
-            const SizedBox(height: 16),
-            _buildTextField(lastNameController, 'Nazwisko'),
-            const SizedBox(height: 16),
-            _buildTextField(emailController, 'Email', type: TextInputType.emailAddress),
-            const SizedBox(height: 16),
-            _buildTextField(phoneController, 'Numer telefonu', type: TextInputType.phone),
-            const SizedBox(height: 16),
-            _buildDropdown(contractType, 'Typ umowy o pracę', [
-              'Umowa o pracę',
-              'Umowa zlecenie',
-            ]),
-            const SizedBox(height: 16),
-            _buildTextField(hoursController, 'Maksymalne godziny tygodniowo', type: TextInputType.number),
-            const SizedBox(height: 16),
-            _buildDropdown(shiftPreference, 'Preferencje zmian', [
-              'Poranne',
-              'Popołudniowe',
-              'Brak preferencji',
-            ]),
-            const SizedBox(height: 16),
-            const Text('Wybierz tagi:'),
-            // Obx(() => Wrap(
-            //   spacing: 8,
-            //   children: tagsController.allTags.map((tag) {
-            //     return FilterChip(
-            //       label: Text(tag.tagName),
-            //       selected: selectedTags.contains(tag.tagName),
-            //       onSelected: (selected) {
-            //         selected ? selectedTags.add(tag.tagName) : selectedTags.remove(tag.tagName);
-            //       },
-            //     );
-            //   }).toList(),
-            // )),
-            Wrap(
-              spacing: 8,
-              children: tagsController.allTags.map((tag) => Obx(() => FilterChip(
-                label: Text(tag.tagName),
-                selected: selectedTags.contains(tag.tagName),
-                onSelected: (selected) {
-                  selected ? selectedTags.add(tag.tagName) : selectedTags.remove(tag.tagName);
-                },
-              ))).toList(),
-            )
+      RowDialogField(children: [
+        DialogInputField(label: 'Email', controller: emailController),
+        DialogInputField(label: 'Numer telefonu', controller: phoneController),
+      ]),
+
+      RowDialogField(children: [
+        DropdownDialogField(
+          label: 'Typ umowy o pracę',
+          hintText: 'Wybierz typ umowy...',
+          items: [
+            DropdownItem(value: 'Umowa o pracę', label: 'Umowa o pracę'),
+            DropdownItem(value: 'Umowa zlecenie', label: 'Umowa zlecenie'),
           ],
+          onChanged: (value) => contractType.value = value,
         ),
+        DialogInputField(
+          label: 'Maksymalna ilość godzin tygodniowo',
+          controller: hoursController,
+        ),
+      ]),
+
+      DropdownDialogField(
+        label: 'Preferencje zmian',
+        hintText: 'Wybierz preferencje...',
+        items: [
+          DropdownItem(value: 'Poranne', label: 'Poranne'),
+          DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
+          DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
+        ],
+        onChanged: (value) => shiftPreference.value = value,
       ),
-      actions: [
-        TextButton(onPressed: Get.back, child: const Text('Anuluj')),
-        ElevatedButton(
-          onPressed: () async {
-            if (firstNameController.text.isEmpty ||
-                lastNameController.text.isEmpty ||
-                emailController.text.isEmpty ||
-                contractType.value == null) {
-              Get.snackbar('Błąd', 'Wypełnij wszystkie wymagane pola');
-              return;
-            }
 
-            final userId = FirebaseFirestore.instance.collection('Users').doc().id;
-            //("oto user id $userId");
-            //print('Selected tags: ${selectedTags.toList()}');
-            final newEmployee = UserModel(
-              id: userId,
-              firstName: firstNameController.text,
-              lastName: lastNameController.text,
-              email: emailController.text,
-              marketId: userController.employee.value.marketId,
-              phoneNumber: phoneController.text,
-              contractType: contractType.value!,
-              maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
-              shiftPreference: shiftPreference.value ?? 'Brak preferencji',
-              tags: selectedTags.toList(),
-              isDeleted: false,
-              insertedAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            );
+      MultiSelectDialogField(
+        label: 'Tagi',
+        items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+        selectedItems: selectedTags,
+        onSelectionChanged: (selected) {
+          selectedTags.assignAll(selected);
+        },
+        width: double.infinity,
+      )
+    ];
 
-            /// handle adding employee correctly
-    try {
-      // Show loading indicator
-      Get.dialog(
-        const Center(child: CircularProgressIndicator()),
-        barrierDismissible: false,
-      );
-      await userController.addNewEmployee(newEmployee);
+    final actions = [
+      DialogActionButton(
+        label: 'Dodaj',
+        onPressed: () async {
+          if (firstNameController.text.isEmpty ||
+              lastNameController.text.isEmpty ||
+              emailController.text.isEmpty ||
+              contractType.value == null) {
+            showCustomSnackbar(context, 'Wypełnij wszystkie wymagane pola');
+            return;
+          }
 
-      // close both dialogs (loading and add employee)
-      Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // loading
-      Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // confirmation
+          final emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
+          final email = emailController.text.trim();
 
-    } catch (e){
-      Navigator.of(Get.overlayContext!, rootNavigator: true).pop(); // close loading dialog if error occurs
-      Get.snackbar('Błąd', 'Nie udało się dodać pracownika: ${e.toString()}');
-    }
+          if (!emailRegex.hasMatch(email)) {
+            showCustomSnackbar(context, 'Podaj poprawny adres email.');
+            return;
+          }
 
-          },
-          child: const Text('Dodaj pracownika'),
+          final existing = await FirebaseFirestore.instance
+              .collection('Markets')
+              .doc(userController.employee.value.marketId)
+              .collection('members')
+              .where('email', isEqualTo: email)
+              .limit(1)
+              .get();
+
+          if (existing.docs.isNotEmpty) {
+            showCustomSnackbar(context, 'Pracownik z tym adresem email już istnieje.');
+            return;
+          }
+
+
+          final userId = FirebaseFirestore.instance.collection('Users').doc().id;
+          final newEmployee = UserModel(
+            id: userId,
+            firstName: firstNameController.text,
+            lastName: lastNameController.text,
+            email: emailController.text,
+            marketId: userController.employee.value.marketId,
+            phoneNumber: phoneController.text,
+            contractType: contractType.value!,
+            maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
+            shiftPreference: shiftPreference.value ?? 'Brak preferencji',
+            tags: selectedTags.toList(),
+            isDeleted: false,
+            insertedAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+
+          try {
+            Get.back();
+            await userController.addNewEmployee(newEmployee);
+            //Get.back();
+            //showCustomSnackbar(context, 'Pracownik został pomyślnie dodany.');
+          } catch (e) {
+            Get.back();
+            showCustomSnackbar(context, 'Nie udało się dodać pracownika: ${e.toString()}');
+          }
+        },
+      ),
+    ];
+
+    Get.dialog(
+        CustomFormDialog(
+          title: 'Dodaj nowego Pracownika',
+          fields: fields,
+          actions: actions,
+          onClose: Get.back,
+          width: 700,
+          height: 750,
         ),
-      ],
+        barrierDismissible: false
     );
   }
-
-  Widget _buildTextField(TextEditingController controller, String label, {TextInputType? type}) {
-    return TextField(
-      controller: controller,
-      keyboardType: type,
-      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-    );
-  }
-
-  Widget _buildDropdown(RxnString variable, String label, List<String> options) {
-    return Obx(() => DropdownButtonFormField<String>(
-      value: variable.value,
-      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-      items: options.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
-      onChanged: (value) => variable.value = value,
-    ));
-  }
-}

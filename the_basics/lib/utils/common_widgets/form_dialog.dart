@@ -5,10 +5,11 @@ import 'package:the_basics/utils/app_colors.dart';
 
 import 'confirmation_dialog.dart';
 import 'multi_select_dropdown.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class CustomFormDialog extends StatefulWidget {
   final String title;
-  final List<DialogInputField> fields;
+  final List<dynamic> fields;
   final List<DialogActionButton> actions;
   final VoidCallback? onClose;
   final double? width;
@@ -50,7 +51,9 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
     }
 
     for (var field in widget.fields) {
-      processField(field);
+      if (field is DialogInputField) {
+        processField(field);
+      }
     }
   }
 
@@ -115,7 +118,11 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
                                 ),
                               ),
                               const SizedBox(height: 40),
-                              ...widget.fields.map((field) => _buildInputField(field)),
+                              ...widget.fields.map((field) {
+                                if (field is DialogInputField) return _buildInputField(field);
+                                if (field is Widget) return field;
+                                return const SizedBox.shrink();
+                              }),
                               const Spacer(),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -174,6 +181,8 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
         return _buildMultiSelectField(field as MultiSelectDialogField);
       case DialogInputType.row:
         return _buildRowField(field as RowDialogField);
+      case DialogInputType.datePicker:
+        return _buildDatePickerField(field as DatePickerDialogField);
       default:
         return _buildTextField(field);
     }
@@ -327,7 +336,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
             field.onInternalChanged?.call();
           },
           hintText: field.hintText,
-          width: field.width,
+          maxWidth: field.width,
           height: field.height,
         ),
         const SizedBox(height: 22),
@@ -353,7 +362,67 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
   }
 }
 
-enum DialogInputType { text, dropdown, multiSelect, row }
+Widget _buildDatePickerField(DatePickerDialogField field) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        field.label, 
+        style: const TextStyle(fontSize: 16, color: AppColors.textColor1)
+      ),
+      const SizedBox(height: 8),
+      Container(
+        height: 300,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            )
+          ],
+        ),
+        child: Obx(() {
+          final selectedRange = field.selectedRange.value;
+          return SfDateRangePicker(
+            backgroundColor: AppColors.white,
+            selectionMode: DateRangePickerSelectionMode.range,
+            initialSelectedRange: selectedRange,
+            onSelectionChanged: (DateRangePickerSelectionChangedArgs args) {
+              if (args.value is PickerDateRange) {
+                field.selectedRange.value = args.value;
+                field.onRangeChanged(args.value);
+              }
+            },
+
+            monthViewSettings: const DateRangePickerMonthViewSettings(
+              viewHeaderStyle: DateRangePickerViewHeaderStyle(
+                textStyle: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              firstDayOfWeek: 1,
+            ),
+            headerStyle: const DateRangePickerHeaderStyle(
+              backgroundColor: AppColors.lightBlue,
+              textAlign: TextAlign.center,
+              textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            todayHighlightColor: AppColors.logo,
+            selectionColor: AppColors.logo.withValues(alpha: 0.5),
+            startRangeSelectionColor: AppColors.logo,
+            endRangeSelectionColor: AppColors.logo,
+            rangeSelectionColor: AppColors.logo.withValues(alpha: 0.5),
+            showActionButtons: false,
+          );
+        }),
+      ),
+      const SizedBox(height: 22),
+    ],
+  );
+}
+
+enum DialogInputType { text, dropdown, multiSelect, row, datePicker }
 
 class DialogInputField {
   final String label;
@@ -442,4 +511,21 @@ class RowDialogField extends DialogInputField {
     label: '',
     type: DialogInputType.row,
   );
+}
+
+class DatePickerDialogField extends DialogInputField {
+  final String hintText;
+  final Rx<PickerDateRange?> selectedRange;
+  final ValueChanged<PickerDateRange?> onRangeChanged;
+
+
+  DatePickerDialogField({
+    required String label,
+    required this.selectedRange,
+    required this.onRangeChanged,
+    this.hintText = "Wybierz datę",
+  }) : super(
+          label: label,
+          type: DialogInputType.datePicker,
+        );
 }

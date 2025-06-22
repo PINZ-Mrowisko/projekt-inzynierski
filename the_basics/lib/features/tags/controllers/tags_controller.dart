@@ -16,6 +16,10 @@ class TagsController extends GetxController {
 
   //create an observable list that will hold all the tag data
   RxList<TagsModel> allTags = <TagsModel>[].obs;
+  RxList<TagsModel> filteredTags = <TagsModel>[].obs;
+
+  RxString searchQuery = ''.obs;
+
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
 
@@ -24,6 +28,7 @@ class TagsController extends GetxController {
   Future<void> initialize() async {
     try {
       isLoading(true);
+      //print("fetchin tags");
       await fetchTags();
     } catch (e) {
       errorMessage(e.toString());
@@ -43,9 +48,10 @@ class TagsController extends GetxController {
 
       /// fetch tags from tags repo
       final tags = await _tagsRepo.getAllTags(marketId);
-      //print("Tags loaded: ${allTags.length} items");
+      //print("Tags loaded: ${tags.length} items");
       /// save the tags locally for later use
       allTags.assignAll(tags);
+      filteredTags.assignAll(tags);
 
     } catch (e) {
       //display error msg
@@ -60,7 +66,14 @@ class TagsController extends GetxController {
   Future <void> saveTag(String marketId) async{
     try {
       // generate a custom tag id from firebase
-      final tagId = FirebaseFirestore.instance.collection('Tags').doc().id;
+      //final tagId = FirebaseFirestore.instance.collection('Tags').doc().id;
+
+      final tagId = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(marketId)
+          .collection('Tags')
+          .doc()
+          .id;
 
       final newTag = TagsModel(
         id: tagId,
@@ -144,12 +157,27 @@ class TagsController extends GetxController {
           final updatedUser = user.copyWithUpdatedTags(oldTag.tagName, newTag.tagName);
 
           final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
+
+          final userRef2 = FirebaseFirestore.instance
+              .collection('Markets')
+              .doc(user.marketId)
+              .collection('members')
+              .doc(user.id);
+
           batch.update(userRef, {'tags': updatedUser.tags});
+
+          batch.update(userRef2, {'tags': updatedUser.tags});
         }
       }
 
       // 3. Aktualizujemy tag w kolekcji Tags
-      final tagRef = FirebaseFirestore.instance.collection('Tags').doc(oldTag.id);
+      //final tagRef = FirebaseFirestore.instance.collection('Tags').doc(oldTag.id);
+      final tagRef = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(oldTag.marketId)
+          .collection('Tags')
+          .doc(oldTag.id);
+
       batch.update(tagRef, newTag.toMap());
 
       // 4. Wykonujemy wszystkie operacje naraz (atomowo)
@@ -174,7 +202,7 @@ class TagsController extends GetxController {
   }
 
   /// deletes a tag with a specific id - also in users collection !
-  Future<void> deleteTag(String tagId, String tagName) async {
+  Future<void> deleteTag(String tagId, String tagName, String marketId) async {
     try {
       isLoading(true);
 
@@ -182,14 +210,31 @@ class TagsController extends GetxController {
       final batch = FirebaseFirestore.instance.batch();
       for (final user in userController.allEmployees.where((u) => u.tags.contains(tagName))) {
         final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
+
+        final userRef2 = FirebaseFirestore.instance
+            .collection('Markets')
+            .doc(marketId)
+            .collection('members')
+            .doc(user.id);
+
         batch.update(userRef, {
           'tags': FieldValue.arrayRemove([tagName]),
           'updatedAt': Timestamp.now()
         });
+
+        batch.update(userRef2, {
+          'tags': FieldValue.arrayRemove([tagName]),
+          'updatedAt': Timestamp.now(),
+        });
       }
 
       // 2. Usuwamy tag z kolekcji Tags
-      final tagRef = FirebaseFirestore.instance.collection('Tags').doc(tagId);
+      final tagRef = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(marketId)
+          .collection('Tags')
+          .doc(tagId);
+
       batch.delete(tagRef);
 
       await batch.commit();
@@ -211,4 +256,33 @@ class TagsController extends GetxController {
       isLoading(false);
     }
   }
+
+  void filterTags(String query) {
+    searchQuery.value = query.trim();
+
+    if (query.isEmpty) {
+      filteredTags.assignAll(allTags);
+    } else {
+
+      final queryWords = query.toLowerCase().trim().split(' ')
+        ..removeWhere((word) => word.isEmpty);
+
+      final results = allTags.where((tag) {
+        final tagName = tag.tagName.toLowerCase();
+        final description = tag.description.toLowerCase();
+
+        return queryWords.every((word) =>
+        tagName.contains(word) ||
+            description.contains(word));
+      }).toList();
+
+      filteredTags.assignAll(results);
+    }
+  }
+
+  void resetFilters() {
+    searchQuery.value = '';
+    filteredTags.assignAll(allTags);
+  }
+
 }
