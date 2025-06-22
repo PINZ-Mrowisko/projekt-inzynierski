@@ -22,6 +22,7 @@ class MainCalendar extends StatefulWidget {
 class _MainCalendarState extends State<MainCalendar> {
   final CalendarController _calendarController = CalendarController();
   final RxList<String> _selectedTags = <String>[].obs;
+  final _calendarKey = UniqueKey();
 
   @override
   void initState() {
@@ -37,11 +38,14 @@ class _MainCalendarState extends State<MainCalendar> {
   }
 
   List<Appointment> _getAppointments(List<UserModel> filteredEmployees) {
+    if (filteredEmployees.isEmpty) return [];
+
     final DateTime now = DateTime.now();
     final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
 
     List<Appointment> appointments = [];
     for (final employee in filteredEmployees) {
+      if (employee.id == null) continue;
       for (int day = 0; day < 5; day++) {
         final isMorningShift = day % 2 == 0;
         final startHour = isMorningShift ? 8 : 12;
@@ -53,7 +57,7 @@ class _MainCalendarState extends State<MainCalendar> {
             endTime: DateTime(monday.year, monday.month, monday.day + day, endHour, 0),
             subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
             color: isMorningShift ? AppColors.logo : AppColors.logolighter,
-            resourceIds: <Object>[employee.id],
+            resourceIds: <Object>[employee.id!],
           ),
         );
       }
@@ -165,53 +169,55 @@ class _MainCalendarState extends State<MainCalendar> {
                         return const Center(child: Text('Brak dopasowań'));
                       }
 
-                      return Stack(
-                        children: [
-                          SfCalendar(
-                            controller: _calendarController,
-                            view: CalendarView.timelineWeek,
-                            showDatePickerButton: true,
-                            showNavigationArrow: true,
-                            headerStyle: const CalendarHeaderStyle(
-                              backgroundColor: AppColors.pageBackground,
-                              textAlign: TextAlign.left,
-                              textStyle: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
+                      final employees = List<UserModel>.from(userController.filteredEmployees);
+                      final appointments = _getAppointments(employees);
+
+                      return AbsorbPointer(
+                        absorbing: true,
+                        child: SfCalendar(
+                          key: _calendarKey,
+                          controller: _calendarController,
+                          view: CalendarView.timelineWeek,
+                          showDatePickerButton: false,
+                          showNavigationArrow: true,
+                          allowAppointmentResize: false,
+                          allowDragAndDrop: false,
+                          allowViewNavigation: false,
+                          headerStyle: const CalendarHeaderStyle(
+                            backgroundColor: AppColors.pageBackground,
+                            textAlign: TextAlign.left,
+                            textStyle: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
                             ),
-                            firstDayOfWeek: 1,
-                            dataSource: _CalendarDataSource(
-                              _getAppointments(userController.filteredEmployees),
-                              userController.filteredEmployees,
-                            ),
-                            specialRegions: _getSpecialRegions(),
-                            timeSlotViewSettings: TimeSlotViewSettings(
-                              startHour: 8,
-                              endHour: 21,
-                              timeIntervalHeight: 40,
-                              timeIntervalWidth: dynamicIntervalWidth,
-                              timeInterval: const Duration(hours: 1),
-                              timeFormat: 'HH:mm',
-                              timeTextStyle: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            todayHighlightColor: AppColors.logo,
-                            resourceViewSettings: const ResourceViewSettings(
-                              visibleResourceCount: 10,
-                              size: 170,
-                              showAvatar: false,
-                              displayNameTextStyle: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            
-                            appointmentBuilder: _buildAppointmentWidget,
                           ),
-                        ],
+                          firstDayOfWeek: 1,
+                          dataSource: _CalendarDataSource(appointments, employees),
+                          specialRegions: _getSpecialRegions(),
+                          timeSlotViewSettings: TimeSlotViewSettings(
+                            startHour: 8,
+                            endHour: 21,
+                            timeIntervalHeight: 40,
+                            timeIntervalWidth: dynamicIntervalWidth,
+                            timeInterval: const Duration(hours: 1),
+                            timeFormat: 'HH:mm',
+                            timeTextStyle: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          todayHighlightColor: AppColors.logo,
+                          resourceViewSettings: const ResourceViewSettings(
+                            visibleResourceCount: 10,
+                            size: 170,
+                            showAvatar: false,
+                            displayNameTextStyle: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          appointmentBuilder: _buildAppointmentWidget,
+                        ),
                       );
                     }),
                   ),
