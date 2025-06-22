@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
+import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
+import 'package:the_basics/utils/common_widgets/search_bar.dart';
 import '../../../../utils/common_widgets/side_menu.dart';
 import '../../../employees/controllers/user_controller.dart';
 import '../../../../utils/app_colors.dart';
@@ -132,7 +134,7 @@ class _MainCalendarState extends State<MainCalendar> {
     final visibleDays = 8.5; // 7 dni tygodnia + trochę zapasu
     final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
 
-    final controller = Get.find<UserController>();
+    final userController = Get.find<UserController>();
     final tagsController = Get.find<TagsController>();
     final selectedTags = <String>[].obs;
 
@@ -162,6 +164,15 @@ class _MainCalendarState extends State<MainCalendar> {
                 : Colors.transparent,
         text: '',
       );
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      userController.resetFilters();
+    });
+
+    // init on page load
+    ever(selectedTags, (tags) {
+      userController.filterEmployees(tags);
     });
 
     return Scaffold(
@@ -194,13 +205,13 @@ class _MainCalendarState extends State<MainCalendar> {
                         const Spacer(),
                         Padding(
                           padding: const EdgeInsets.only(top: 10.0),
-                          child: buildTagFilterDropdown(
+                          child: _buildTagFilterDropdown(
                             tagsController,
                             selectedTags,
                           ),
                         ),
                         const SizedBox(width: 16),
-                        buildSearchBar(),
+                        _buildSearchBar(selectedTags),
                         const SizedBox(width: 16),
                         CustomButton(
                           onPressed: () {},
@@ -472,6 +483,38 @@ class _MainCalendarState extends State<MainCalendar> {
     );
   }
 }
+
+  Widget _buildTagFilterDropdown(TagsController tagsController, RxList<String> selectedTags) {
+      return Obx(() {
+        return CustomMultiSelectDropdown(
+          items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+          selectedItems: selectedTags,
+          onSelectionChanged: (selected) {
+            selectedTags.assignAll(selected);
+          },
+          hintText: 'Filtruj po tagach',
+          leadingIcon: Icons.filter_alt_outlined,
+          widthPercentage: 0.2,
+          maxWidth: 360,
+          minWidth: 160,
+        );
+      });
+    }
+    
+  Widget _buildSearchBar(RxList<String> selectedTags) {
+    final userController = Get.find<UserController>();
+  
+    return CustomSearchBar(
+      hintText: 'Wyszukaj pracownika',
+      widthPercentage: 0.2,
+      maxWidth: 360,
+      minWidth: 160,
+      onChanged: (query) {
+        userController.searchQuery.value = query;
+        userController.filterEmployees(selectedTags);
+      },
+    );
+  }
 
 class Employee {
   final String id;

@@ -62,7 +62,7 @@ class EmployeeManagementPage extends StatelessWidget {
                         const Spacer(),
                         Padding(
                           padding: const EdgeInsets.only(top: 10.0),
-                          child: buildTagFilterDropdown(
+                          child: _buildTagFilterDropdown(
                             tagsController,
                             selectedTags,
                           ),
