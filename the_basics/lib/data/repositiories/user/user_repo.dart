@@ -105,7 +105,7 @@ class UserRepo extends GetxController {
           .get();
 
       if (snapshot.docs.isEmpty) {
-        print('No emps found for marketId: $marketId');
+        //print('No emps found for marketId: $marketId');
         return [];
       }
 
@@ -119,7 +119,7 @@ class UserRepo extends GetxController {
     } on PlatformException catch (e) {
       throw MyPlatformException(e.code).message;
     }catch (e) {
-      print("Error fetching employees: $e");
+      //print("Error fetching employees: $e");
       throw 'Coś poszło nie tak przy pobieraniu pracowników :(';
     }
   }
@@ -143,7 +143,7 @@ class UserRepo extends GetxController {
     } on PlatformException catch (e) {
       throw MyPlatformException(e.code).message;
     } catch (e) {
-      print("Error of update: $e");
+      //print("Error of update: $e");
       throw 'Coś poszło nie tak przy aktualizowaniu pracownika :(';
     }
   }

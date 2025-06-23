@@ -141,7 +141,7 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
       }
 
     }
-    print(requestedDays);
+    //print(requestedDays);
 
     // Walidacja dostępnych dni
     if (isOnDemand) {
@@ -217,8 +217,8 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
         final requestedDays = endDate!.difference(startDate!).inDays + 1 - numOfHolidays.value;
         try {
           await leaveController.saveLeave(
-              startDate!,
-              endDate!,
+              startDate,
+              endDate,
               leaveType.value!,
               "Mój urlop",
               requestedDays

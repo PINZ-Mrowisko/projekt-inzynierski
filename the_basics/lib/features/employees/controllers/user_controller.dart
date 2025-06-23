@@ -3,12 +3,9 @@ import 'dart:math';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
-
-import '../../../data/repositiories/auth/auth_repo.dart';
 import '../../../utils/common_widgets/notification_snackbar.dart';
 
 class UserController extends GetxController {
@@ -59,7 +56,7 @@ class UserController extends GetxController {
       return user;
 
     } catch (e) {
-      print("Error occurred: $e");
+      //print("Error occurred: $e");
       errorMessage(e.toString());
       employee.value = UserModel.empty();
 
@@ -89,7 +86,7 @@ class UserController extends GetxController {
 
       /// fetch all employees from tags repo
       final employees = await userRepo.getAllEmployees(marketId);
-      print("succesfully got employees");
+      //print("succesfully got employees");
 
       /// save the employees locally for later use
       allEmployees.assignAll(employees);
@@ -97,7 +94,7 @@ class UserController extends GetxController {
 
     } catch (e) {
       errorMessage(e.toString());
-      print("Error occurred: $e");
+      //print("Error occurred: $e");
     } finally {
       isLoading(false);
     }
@@ -127,14 +124,14 @@ class UserController extends GetxController {
       try {
         await FirebaseAuth.instance.sendPasswordResetEmail(email: cleanEmail);
       } catch (e) {
-        print('Fallback password reset failed: $e');
+        //print('Fallback password reset failed: $e');
         // Non-critical error - still return the UID
       }
 
       final uid = result.data['uid'];
       return uid;
     } on FirebaseFunctionsException catch (e) {
-      print('Cloud Function error: ${e.code} - ${e.message}');
+      //print('Cloud Function error: ${e.code} - ${e.message}');
 
       String userMessage;
       switch (e.code) {
@@ -149,7 +146,7 @@ class UserController extends GetxController {
       }
       throw userMessage;
     } catch (e) {
-      print('Unexpected error: $e');
+      //print('Unexpected error: $e');
       throw 'Wystąpił nieoczekiwany błąd';
     }
   }

@@ -15,7 +15,7 @@ void confirmDeleteEmployee(UserController controller, String employeeId, String 
         confirmTextColor: AppColors.white,
         onConfirm: () async {
           try {
-            Get.back();
+            //Get.back();
             await controller.deleteEmployee(employeeId, marketId);
             Get.back();
             showCustomSnackbar(Get.context!, 'Pracownik został pomyślnie usunięty.');

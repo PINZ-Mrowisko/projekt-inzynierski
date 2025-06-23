@@ -239,7 +239,7 @@ class SideMenu extends StatelessWidget {
               _buildMenuItem(
                 icon: Icons.logout,
                 text: 'Logout',
-                route: '/logout',
+                route: '/login',
               ),
             ],
           ),
