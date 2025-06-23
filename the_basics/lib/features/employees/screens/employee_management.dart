@@ -62,7 +62,10 @@ class EmployeeManagementPage extends StatelessWidget {
                         const Spacer(),
                         Padding(
                           padding: const EdgeInsets.only(top: 10.0),
-                          child: _buildTagFilterDropdown(tagsController, selectedTags),
+                          child: _buildTagFilterDropdown(
+                            tagsController,
+                            selectedTags,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         _buildSearchBar(selectedTags),
@@ -71,6 +74,7 @@ class EmployeeManagementPage extends StatelessWidget {
                       ],
                     ),
                   ),
+
                   Expanded(
                     child: Obx(() {
                       if (userController.isLoading.value) {
@@ -136,8 +140,10 @@ class EmployeeManagementPage extends StatelessWidget {
     });
   }
 
-
-  Widget _buildAddEmployeeButton(BuildContext context, UserController controller) {
+  Widget _buildAddEmployeeButton(
+    BuildContext context,
+    UserController controller,
+  ) {
     return CustomButton(
       text: 'Dodaj Pracownika',
       icon: Icons.add,
@@ -189,40 +195,42 @@ class EmployeeManagementPage extends StatelessWidget {
     if (tags.isEmpty) {
       return const Text(
         'Brak tagów',
-        style: TextStyle(
-          fontSize: 14,
-          color: AppColors.textColor2,
-        ),
+        style: TextStyle(fontSize: 14, color: AppColors.textColor2),
       );
     }
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: tags.map((tag) => RawChip(
-        label: Text(
-          tag,
-          style: const TextStyle(
-            fontFamily: 'Roboto',
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-            height: 1.33,
-            letterSpacing: 0.5,
-            color: AppColors.textColor2,
-          ),
-        ),
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: const BorderSide(
-            color: Color(0xFFCAC4D0),
-            width: 1,
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-      )).toList(),
+      children:
+          tags
+              .map(
+                (tag) => RawChip(
+                  label: Text(
+                    tag,
+                    style: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      height: 1.33,
+                      letterSpacing: 0.5,
+                      color: AppColors.textColor2,
+                    ),
+                  ),
+                  backgroundColor: AppColors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    side: const BorderSide(color: Color(0xFFCAC4D0), width: 1),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+              )
+              .toList(),
     );
   }
 }
