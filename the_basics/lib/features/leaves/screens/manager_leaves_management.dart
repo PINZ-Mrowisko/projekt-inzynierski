@@ -141,7 +141,15 @@ class ManagerLeavesManagementPage extends StatelessWidget {
         items: uniqueStatuses,
         selectedItems: selectedStatuses,
         onSelectionChanged: (selected) {
-          selectedStatuses.assignAll(selected);
+          selectedStatuses.assignAll(
+            selected.map((s) {
+              if (s == "Mój urlop") {
+                return s;
+              } else {
+                return lowercase(s);
+              }
+            }).toList(),
+          );
           leaveController.filterLeaves(selectedEmployees, selectedStatuses);
         },
         hintText: 'Filtruj po statusie',
@@ -191,6 +199,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
   }
 
   String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
+  String lowercase(String s) => s[0].toLowerCase() + s.substring(1);
 
   Widget _buildStatusChip(String status) {
     IconData icon;

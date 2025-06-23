@@ -21,6 +21,7 @@ class MainCalendar extends StatefulWidget {
 
 class _MainCalendarState extends State<MainCalendar> {
   final CalendarController _calendarController = CalendarController();
+  DateTime? _lastBackPressTime;
   final RxList<String> _selectedTags = <String>[].obs;
 
   @override
@@ -35,6 +36,24 @@ class _MainCalendarState extends State<MainCalendar> {
       userController.filterEmployees(tags);
     });
   }
+
+  Future<bool> _onWillPop() async {
+    final now = DateTime.now();
+    final bool mustWait = _lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2);
+
+    if (mustWait) {
+      _lastBackPressTime = now;
+      Get.snackbar(
+        'Naciśnij ponownie, aby wyjść',
+        'Naciśnij przycisk "Wstecz" jeszcze raz, aby zamknąć aplikację',
+        duration: const Duration(seconds: 2),
+      );
+      return false;
+    }
+    return true;
+  }
+
 
   List<Appointment> _getAppointments(List<UserModel> filteredEmployees) {
     final DateTime now = DateTime.now();
@@ -104,122 +123,125 @@ class _MainCalendarState extends State<MainCalendar> {
     final userController = Get.find<UserController>();
     final tagsController = Get.find<TagsController>();
     
-    return Scaffold(
-      backgroundColor: AppColors.pageBackground,
-      body: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SideMenu(),
-          ),
-          Expanded(
-            child: Padding( 
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 80,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Grafik ogólny',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.logo,
-                          ),
-                        ),
-                        const Spacer(),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: _buildTagFilterDropdown(tagsController),
-                        ),
-                        const SizedBox(width: 16),
-                        _buildSearchBar(),
-                        const SizedBox(width: 16),
-                        CustomButton(
-                          onPressed: () {},
-                          text: "Generuj grafik",
-                          width: 155,
-                          icon: Icons.edit,
-                        ),
-                        const SizedBox(width: 10),
-                        CustomButton(
-                          onPressed: () => _showExportDialog(context),
-                          text: "Eksportuj",
-                          width: 125,
-                          icon: Icons.download,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Obx(() {
-                      if (userController.isLoading.value) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      if (userController.filteredEmployees.isEmpty) {
-                        return const Center(child: Text('Brak dopasowań'));
-                      }
-
-                      return Stack(
+    return PopScope(
+    canPop: false,
+      child: Scaffold(
+        backgroundColor: AppColors.pageBackground,
+        body: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SideMenu(),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 80,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SfCalendar(
-                            controller: _calendarController,
-                            view: CalendarView.timelineWeek,
-                            showDatePickerButton: false,
-                            showNavigationArrow: true,
-                            headerStyle: const CalendarHeaderStyle(
-                              backgroundColor: AppColors.pageBackground,
-                              textAlign: TextAlign.left,
-                              textStyle: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
+                          const Text(
+                            'Grafik ogólny',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.logo,
                             ),
-                            firstDayOfWeek: 1,
-                            dataSource: _CalendarDataSource(
-                              _getAppointments(userController.filteredEmployees),
-                              userController.filteredEmployees,
-                            ),
-                            specialRegions: _getSpecialRegions(),
-                            timeSlotViewSettings: TimeSlotViewSettings(
-                              startHour: 8,
-                              endHour: 21,
-                              timeIntervalHeight: 40,
-                              timeIntervalWidth: dynamicIntervalWidth,
-                              timeInterval: const Duration(hours: 1),
-                              timeFormat: 'HH:mm',
-                              timeTextStyle: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            todayHighlightColor: AppColors.logo,
-                            resourceViewSettings: const ResourceViewSettings(
-                              visibleResourceCount: 10,
-                              size: 170,
-                              showAvatar: false,
-                              displayNameTextStyle: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            
-                            appointmentBuilder: _buildAppointmentWidget,
+                          ),
+                          const Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10.0),
+                            child: _buildTagFilterDropdown(tagsController),
+                          ),
+                          const SizedBox(width: 16),
+                          _buildSearchBar(),
+                          const SizedBox(width: 16),
+                          CustomButton(
+                            onPressed: () {},
+                            text: "Generuj grafik",
+                            width: 155,
+                            icon: Icons.edit,
+                          ),
+                          const SizedBox(width: 10),
+                          CustomButton(
+                            onPressed: () => _showExportDialog(context),
+                            text: "Eksportuj",
+                            width: 125,
+                            icon: Icons.download,
                           ),
                         ],
-                      );
-                    }),
-                  ),
-                ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Obx(() {
+                        if (userController.isLoading.value) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+
+                        if (userController.filteredEmployees.isEmpty) {
+                          return const Center(child: Text('Brak dopasowań'));
+                        }
+
+                        return Stack(
+                          children: [
+                            SfCalendar(
+                              controller: _calendarController,
+                              view: CalendarView.timelineWeek,
+                              showDatePickerButton: false,
+                              showNavigationArrow: true,
+                              headerStyle: const CalendarHeaderStyle(
+                                backgroundColor: AppColors.pageBackground,
+                                textAlign: TextAlign.left,
+                                textStyle: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              firstDayOfWeek: 1,
+                              dataSource: _CalendarDataSource(
+                                _getAppointments(userController.filteredEmployees),
+                                userController.filteredEmployees,
+                              ),
+                              specialRegions: _getSpecialRegions(),
+                              timeSlotViewSettings: TimeSlotViewSettings(
+                                startHour: 8,
+                                endHour: 21,
+                                timeIntervalHeight: 40,
+                                timeIntervalWidth: dynamicIntervalWidth,
+                                timeInterval: const Duration(hours: 1),
+                                timeFormat: 'HH:mm',
+                                timeTextStyle: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              todayHighlightColor: AppColors.logo,
+                              resourceViewSettings: const ResourceViewSettings(
+                                visibleResourceCount: 10,
+                                size: 170,
+                                showAvatar: false,
+                                displayNameTextStyle: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+
+                              appointmentBuilder: _buildAppointmentWidget,
+                            ),
+                          ],
+                        );
+                      }),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
