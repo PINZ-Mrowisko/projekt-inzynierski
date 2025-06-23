@@ -84,7 +84,7 @@ class AuthRepo extends GetxController {
             //print("Updated hasLoggedIn to true for first login.");
           }
 
-          //_navigateToMainApp();
+          _navigateToMainApp();
         } catch (e) {
           throw(e.toString());
         }
@@ -134,7 +134,8 @@ class AuthRepo extends GetxController {
 
   void _navigateToMainApp() {
     Future.delayed(Duration.zero, () { // Ensures context is available
-      Get.offAll(() => const MainCalendar());
+      //Get.offAll(() => const MainCalendar());
+      Get.offAllNamed('/grafik-ogolny');
     });
   }
 

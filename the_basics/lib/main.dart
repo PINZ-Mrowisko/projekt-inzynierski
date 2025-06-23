@@ -125,10 +125,11 @@ class AuthWrapper extends StatelessWidget {
           // user is logged in
           final String? lastRoute = authRepo.getLastRoute();
           if (lastRoute != null && Get.currentRoute != lastRoute) {
-            // we vavigate to the last saved route if it's not the current route
+            // we navigate to the last saved route if it's not the current route
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (Get.currentRoute != lastRoute) {
-                Get.offAllNamed(lastRoute);
+                //Get.offAllNamed(lastRoute);
+                Get.offNamed(lastRoute);
               }
             });
             // lets return a loading indicator  while navigating
