@@ -133,7 +133,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
 
       // Get unique statuses by converting to a Set and back to List
       final uniqueStatuses = leaveController.allLeaveRequests
-          .map((leave) => leave.status)
+          .map((leave) => capitalize(leave.status))
           .toSet() // Removes duplicates
           .toList();
 
@@ -190,6 +190,8 @@ class ManagerLeavesManagementPage extends StatelessWidget {
     );
   }
 
+  String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
+
   Widget _buildStatusChip(String status) {
     IconData icon;
 
@@ -210,6 +212,8 @@ class ManagerLeavesManagementPage extends StatelessWidget {
         icon = Icons.help_outline;
     }
 
+    final fixStatus = capitalize(status);
+
     return RawChip(
       label: Row(
         mainAxisSize: MainAxisSize.min,
@@ -221,7 +225,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            status,
+            fixStatus,
             style: const TextStyle(
               fontFamily: 'Roboto',
               fontWeight: FontWeight.w600,

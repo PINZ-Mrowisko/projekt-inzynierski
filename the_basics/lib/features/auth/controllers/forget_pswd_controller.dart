@@ -29,7 +29,7 @@ class ForgetPswdController extends GetxController {
       // stop the loader loading
       // display warning snackbar
       //Get.snackbar(titleText: "Niepowodzenie", messageText: e.toString());
-      print(e.toString());
+      //print(e.toString());
     }
   }
 
@@ -41,7 +41,7 @@ class ForgetPswdController extends GetxController {
       //display success msg
 
     } catch (e) {
-      print(e.toString());
+      //print(e.toString());
     }
   }
 }

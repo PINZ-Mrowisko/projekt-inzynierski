@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/controllers/forget_pswd_controller.dart';
@@ -56,11 +55,8 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _sendResetEmail(UserModel employee) async {
-    final now = DateTime.now();
-
-
+    //final now = DateTime.now();
     try {
-      print(employee.email);
       Get.put(ForgetPswdController());
       await ForgetPswdController.instance.resendPswdResetEmail(employee.email);
       Get.snackbar("Wysłano", "Link do resetowania hasła został wysłany.");

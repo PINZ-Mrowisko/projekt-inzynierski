@@ -24,7 +24,7 @@ class PlaceholderPage extends StatelessWidget {
               color: const Color(0xFFF5F5F5),
               child: Center(
                 child: Obx(() => Text(
-                  controller.employee.value.firstName + '\nPlaceholder Page', 
+                  '${controller.employee.value.firstName}\nPlaceholder Page',
                   style: const TextStyle(fontSize: 24),
                 )),
               ),
