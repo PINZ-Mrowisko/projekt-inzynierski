@@ -17,7 +17,7 @@ class LoginPage extends StatelessWidget {
     final controller = Get.put(LoginController());
 
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvoked: (bool didPop) async{
         if (didPop) {controller.clearControllers();}
       },

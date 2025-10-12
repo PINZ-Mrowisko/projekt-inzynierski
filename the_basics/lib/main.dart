@@ -65,7 +65,14 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/features', page: () => FeaturesPage()),
 
         GetPage(name: '/dashboard', page: () => PlaceholderPage()),
-        GetPage(name: '/grafik-ogolny', page: () => MainCalendar()),
+        GetPage(
+          name: '/grafik-ogolny',
+          page:
+              () => PopScope(
+                canPop: false,
+                child: const MainCalendar(),
+              ),
+        ),
         GetPage(name: '/grafik-indywidualny', page: () => PlaceholderPage()),
         GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => EmployeeLeavesManagementPage()),
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => ManagerLeavesManagementPage()),
@@ -77,12 +84,14 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/raporty', page: () => PlaceholderPage()),
 
         GetPage(name: '/ustawienia', page: () => SettingsScreen()),
-        GetPage(name: '/login', page: () => LoginPage())
+        GetPage(name: '/login', page: () => LoginPage()),
       ],
       title: 'Mrowisko',
       themeMode: ThemeMode.light,
       theme: MyAppTheme.lightTheme,
-      transitionDuration: const Duration(milliseconds: 0), // so the pages don't slide around all crazy
+      transitionDuration: const Duration(
+        milliseconds: 0,
+      ), // so the pages don't slide around all crazy
       debugShowCheckedModeBanner: false,
       //home: isLoggedIn? MainCalendar() :MainCalendar(),
       home: AuthWrapper(),
@@ -125,15 +134,17 @@ class AuthWrapper extends StatelessWidget {
           // user is logged in
           final String? lastRoute = authRepo.getLastRoute();
           if (lastRoute != null && Get.currentRoute != lastRoute) {
-            // we vavigate to the last saved route if it's not the current route
+            // we navigate to the last saved route if it's not the current route
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (Get.currentRoute != lastRoute) {
-                Get.offAllNamed(lastRoute);
+                //Get.offAllNamed(lastRoute);
+                Get.offNamed(lastRoute);
               }
             });
             // lets return a loading indicator  while navigating
             return const Scaffold(
-                body: Center(child: CircularProgressIndicator()));
+              body: Center(child: CircularProgressIndicator()),
+            );
           } else {
             return MainCalendar();
           }
@@ -144,5 +155,3 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 }
-
-
