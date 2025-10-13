@@ -12,6 +12,7 @@ import 'package:the_basics/features/leaves/screens/manager_leaves_management.dar
 import 'package:the_basics/features/schedules/screens/after_login/placeholder_page.dart';
 import 'package:the_basics/features/settings/screens/settings.dart';
 import 'package:the_basics/features/templates/screens/algoritm_screen.dart';
+import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
@@ -80,7 +81,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/twoj-profil', page: () => PlaceholderPage()),
         GetPage(name: '/tagi', page: () => TagsPage()),
         GetPage(name: '/pracownicy', page: () => EmployeeManagementPage()),
-        GetPage(name: '/szablony', page: () => SchedulePage()),
+        GetPage(name: '/szablony', page: () => TemplatesPage()),
         GetPage(name: '/raporty', page: () => PlaceholderPage()),
 
         GetPage(name: '/ustawienia', page: () => SettingsScreen()),

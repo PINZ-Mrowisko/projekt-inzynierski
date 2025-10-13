@@ -77,7 +77,7 @@ class TagsRepo extends GetxController {
     }
   }
 
-  /// Aktualizuje tag o konkretnym id - NOT USED
+  /// Aktualizuje tag o konkretnym id
   Future<void> updateTag(TagsModel tag) async {
     try {
       await _db.collection('Tags').doc(tag.id).update(tag.toMap());

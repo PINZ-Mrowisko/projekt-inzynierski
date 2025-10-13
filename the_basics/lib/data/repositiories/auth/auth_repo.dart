@@ -1,14 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
-import '../../../features/auth/screens/login_page.dart';
+import 'package:the_basics/features/templates/controllers/template_controller.dart';
 import '../../../features/auth/screens/verify_email.dart';
-import '../../../features/schedules/screens/after_login/main_calendar.dart';
 import '../../../features/tags/controllers/tags_controller.dart';
 import '../../../features/employees/controllers/user_controller.dart';
 import '../exceptions.dart';
@@ -127,6 +125,9 @@ class AuthRepo extends GetxController {
 
       final leaveController = Get.find<LeaveController>();
       await leaveController.initialize();
+
+      final templateController = Get.find<TemplateController>();
+      await templateController.initialize();
 
     } catch (e) {
       throw(e.toString());
