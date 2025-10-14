@@ -36,6 +36,12 @@ class TemplateController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
 
+  // controll the edit state of the form
+  final isEditMode = false.obs;
+
+  void enableEditMode() => isEditMode.value = true;
+  void cancelEditMode() => isEditMode.value = false;
+
   final userController = Get.find<UserController>();
 
   Future<void> initialize() async {
@@ -104,7 +110,7 @@ class TemplateController extends GetxController {
   }
 
   /// saves the created template in firestore
-  Future<void> saveTemplate() async {
+  Future<void> saveTemplate(bool asNew) async {
     try {
       isLoading(true);
       errorMessage('');
@@ -158,163 +164,73 @@ class TemplateController extends GetxController {
     }
   }
 
-  // /// pobierz konkretny tag przez ID
-  // Future<void> fetchTagById(String tagId) async {
-  //   try {
-  //     isLoading(true);
-  //     final tag = await _tagsRepo.getTagById(tagId);
-  //     if (tag != null) {
-  //
-  //     }
-  //   } catch (e) {
-  //     errorMessage(e.toString());
-  //     Get.snackbar('Błąd', e.toString());
-  //   } finally {
-  //     isLoading(false);
-  //   }
-  // }
-  //
-  // Future<void> updateTag(TagsModel tag) async {
-  //   try {
-  //     isLoading(true);
-  //     await _tagsRepo.updateTag(tag);
-  //
-  //     // odświeżamy listę tagów
-  //     await fetchTags();
-  //
-  //     // zamykamy dialog edycji
-  //     Get.back();
-  //
-  //     // wiadomosc o sukcesie
-  //     //Get.snackbar('Sukces', 'Tag zaktualizowany pomyślnie');
-  //   } catch (e) {
-  //     errorMessage(e.toString());
-  //     Get.snackbar('Błąd', e.toString());
-  //   } finally {
-  //     isLoading(false);
-  //   }
-  // }
-  //
-  // /// przez nasza strukture plikow musimy wykonywac takie dziedziczne aktualizowanie
-  // /// uzytkownicy posiadaja nazwy tagów w sobie - przy aktualizacji nazwy tagu, musimy zmienic ja
-  // /// u wszystkich affected uzytkowników
-  // /// wyszukujemy tych co mają stary tag, wysyłamy ich do aktualizacji, aktualizujemy tag w kolekcji tagów
-  // /// w obu kontrolerach aktualizujemy listy wszystkich tagów i pracowników, tak aby zawierały najnowsze dane
-  //
-  // Future<void> updateTagAndUsers(TagsModel oldTag, TagsModel newTag) async {
-  //   try {
-  //     isLoading(true);
-  //
-  //     // 1. Robimy batch (zeby wszystko bylo ladnie zgrabnie atomowo)
-  //     final batch = FirebaseFirestore.instance.batch();
-  //
-  //
-  //     // 2. Przechodzimy przez wszystkich userów z tagiem i zmieniamy w nich wartosci
-  //     for (final user in userController.allEmployees) {
-  //       if (user.tags.contains(oldTag.tagName)) {
-  //         final updatedUser = user.copyWithUpdatedTags(oldTag.tagName, newTag.tagName);
-  //
-  //         final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
-  //
-  //         final userRef2 = FirebaseFirestore.instance
-  //             .collection('Markets')
-  //             .doc(user.marketId)
-  //             .collection('members')
-  //             .doc(user.id);
-  //
-  //         batch.update(userRef, {'tags': updatedUser.tags});
-  //
-  //         batch.update(userRef2, {'tags': updatedUser.tags});
-  //       }
-  //     }
-  //
-  //     // 3. Aktualizujemy tag w kolekcji Tags
-  //     //final tagRef = FirebaseFirestore.instance.collection('Tags').doc(oldTag.id);
-  //     final tagRef = FirebaseFirestore.instance
-  //         .collection('Markets')
-  //         .doc(oldTag.marketId)
-  //         .collection('Tags')
-  //         .doc(oldTag.id);
-  //
-  //     batch.update(tagRef, newTag.toMap());
-  //
-  //     // 4. Wykonujemy wszystkie operacje naraz (atomowo)
-  //     await batch.commit();
-  //
-  //     // 5. Odświeżamy dane
-  //     await fetchTags();
-  //     userController.fetchAllEmployees();
-  //
-  //   } catch (e) {
-  //     Get.snackbar('Błąd', 'Nie udało się zaktualizować tagu: ${e.toString()}');
-  //   } finally {
-  //     isLoading(false);
-  //   }
-  // }
-  //
-  // /// returns the count of users with specified tag !
-  // int countUsersWithTag(String tagName) {
-  //   return userController.allEmployees
-  //       .where((user) => user.tags.contains(tagName))
-  //       .length;
-  // }
-  //
-  // /// deletes a tag with a specific id - also in users collection !
-  // Future<void> deleteTag(String tagId, String tagName, String marketId) async {
-  //   try {
-  //     isLoading(true);
-  //
-  //     // 1. Za pomocą batcha będziemy usuwac tagi z pracownikow i tagi z tagow
-  //     final batch = FirebaseFirestore.instance.batch();
-  //     for (final user in userController.allEmployees.where((u) => u.tags.contains(tagName))) {
-  //       final userRef = FirebaseFirestore.instance.collection('Users').doc(user.id);
-  //
-  //       final userRef2 = FirebaseFirestore.instance
-  //           .collection('Markets')
-  //           .doc(marketId)
-  //           .collection('members')
-  //           .doc(user.id);
-  //
-  //       batch.update(userRef, {
-  //         'tags': FieldValue.arrayRemove([tagName]),
-  //         'updatedAt': Timestamp.now()
-  //       });
-  //
-  //       batch.update(userRef2, {
-  //         'tags': FieldValue.arrayRemove([tagName]),
-  //         'updatedAt': Timestamp.now(),
-  //       });
-  //     }
-  //
-  //     // 2. Usuwamy tag z kolekcji Tags
-  //     final tagRef = FirebaseFirestore.instance
-  //         .collection('Markets')
-  //         .doc(marketId)
-  //         .collection('Tags')
-  //         .doc(tagId);
-  //
-  //     batch.delete(tagRef);
-  //
-  //     await batch.commit();
-  //     //await _tagsRepo.deleteTag(tagId);
-  //
-  //     // odświeżamy listę tagów i pracownikow
-  //     await fetchTags();
-  //     userController.fetchAllEmployees();
-  //
-  //     // zamykamy dialog edycji
-  //     Get.back();
-  //
-  //     // wiadomosc o sukcesie
-  //     //Get.snackbar('Sukces', 'Tag został trwale usunięty');
-  //   } catch (e) {
-  //     errorMessage(e.toString());
-  //     Get.snackbar('Błąd', e.toString());
-  //   } finally {
-  //     isLoading(false);
-  //   }
-  // }
-  //
+  Future<void> updateTemplate(TemplateModel template) async {
+    // first we update the template
+    final updatedTemplate = TemplateModel(
+      id: template.id,
+      templateName: nameController.text,
+      description: descController.text,
+      minMen: minMen.value,
+      maxMen: maxMen.value,
+      minWomen: minWomen.value,
+      maxWomen: maxWomen.value,
+      marketId: template.marketId,
+      insertedAt: template.updatedAt,
+      updatedAt: DateTime.now(),
+      // other fields...
+    );
+
+    await _templateRepo.updateTemplate(updatedTemplate);
+
+    // then we update the connected shifts
+    await _templateRepo.updateTemplateShifts(
+      template.marketId,
+      template.id,
+      addedShifts,
+    );
+
+
+    // refresh template list
+    fetchTemplates();
+
+    Get.snackbar('Sukces', 'Szablon zaktualizowany');
+  }
+
+  /// we will use this when viewing the shifts, first we want to store them in the controller list
+  /// we call this method in newTemplatePage to fill the list
+  Future<void> loadShiftsForTemplate(String marketId, String templateId) async {
+    final shiftsSnapshot = await FirebaseFirestore.instance
+        .collection('Markets')
+        .doc(marketId)
+        .collection('Templates')
+        .doc(templateId)
+        .collection('Shifts')
+        .get();
+
+    final shifts = shiftsSnapshot.docs
+        .map((doc) => ShiftModel.fromSnapshot(doc))
+        .toList();
+
+    addedShifts.assignAll(shifts);
+  }
+
+
+  Future<void> clearController() async {
+    isLoading(true);
+    addedShifts.clear();
+
+    nameController.clear();
+    descController.clear();
+
+    minMen = 0.obs;
+    maxMen = 0.obs;
+    minWomen = 0.obs;
+    maxWomen = 0.obs;
+
+    isEditMode.value = false;
+    isLoading(false);
+  }
+
   // void filterTags(String query) {
   //   searchQuery.value = query.trim();
   //
@@ -341,6 +257,14 @@ class TemplateController extends GetxController {
   void resetFilters() {
     searchQuery.value = '';
     filteredTemplates.assignAll(allTemplates);
+  }
+
+  Future<void> deleteTemplate(String marketId, String templateId) async {
+    _templateRepo.softDeleteTemplate(marketId: marketId, templateId: templateId);
+    Get.snackbar('Success', 'Template has been deleted');
+
+    // after successful deletion refresh the list
+    fetchTemplates();
   }
 
 }

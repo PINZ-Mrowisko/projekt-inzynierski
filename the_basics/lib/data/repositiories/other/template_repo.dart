@@ -114,6 +114,28 @@ class TemplateRepo extends GetxController {
     }
   }
 
+  /// update all shifts conencted to a template when editing
+  Future<void> updateTemplateShifts(
+      String marketId, String templateId, List<ShiftModel> shifts) async {
+    final shiftsRef = _db
+        .collection('Markets')
+        .doc(marketId)
+        .collection('Templates')
+        .doc(templateId)
+        .collection('Shifts');
+
+    // clear old shifts - completely deletes the subcollection
+    final existingShifts = await shiftsRef.get();
+    for (final doc in existingShifts.docs) {
+      await doc.reference.delete();
+    }
+
+    // save all new shifts
+    for (final shift in shifts) {
+      await shiftsRef.doc(shift.id).set(shift.toMap());
+    }
+  }
+
   /// delete template (hard delete)
   Future<void> deleteTemplate({
     required String marketId,

@@ -50,7 +50,7 @@ class TemplatesPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        _buildAddTagButton(context, templateController),
+                        _buildAddTemplateButton(context, templateController),
                       ],
                     ),
                   ),
@@ -73,7 +73,7 @@ class TemplatesPage extends StatelessWidget {
                         );
                       }
                       //  if there are no error msgs in the controller, we will just build the template list
-                      return _buildTagsList(context, templateController);
+                      return _buildTemplateList(context, templateController);
                     }),
                   ),
                 ],
@@ -85,16 +85,20 @@ class TemplatesPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAddTagButton(BuildContext context, TemplateController controller) {
+  Widget _buildAddTemplateButton(BuildContext context, TemplateController controller) {
     return CustomButton(
       text: 'Stwórz szablon',
       icon: Icons.add,
       width: 130,
       // navigate to new create controller page
-      onPressed: () => Navigator.pushReplacement(
+      onPressed: () => (
+          controller.clearController(),
+
+          //make sure the page isnt set to viewing
+          Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => NewTemplatePage()),
-      ),
+        MaterialPageRoute(builder: (context) => NewTemplatePage(isViewMode: false)),
+      )),
     );
   }
 
@@ -112,11 +116,15 @@ class TemplatesPage extends StatelessWidget {
   //   );
   // }
 
-  Widget _buildTagsList(BuildContext context, TemplateController controller) {
+  Widget _buildTemplateList(BuildContext context, TemplateController controller) {
     return GenericList<TemplateModel>(
       items: controller.allTemplates,
       // i guess on tap we will navigate to the "newTemplateScreen", but just with options limited to viewing / editing ?
-      onItemTap: (template) => (print("oho")),
+      onItemTap: (template) => (
+          // clear the controller of the changes from last screen
+          controller.clearController(),
+          Get.to(() => NewTemplatePage(template: template, isViewMode: true))
+      ),
       itemBuilder: (context, template) {
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(
@@ -132,14 +140,58 @@ class TemplatesPage extends StatelessWidget {
             ),
           ),
           subtitle: Text(
-            template.description,
+            "${template.insertedAt.day}.${template.insertedAt.month}.${template.insertedAt.year}",
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.textColor2,
             ),
           ),
+          // trailing delete button
+          trailing: IconButton(
+            tooltip: "Usuń szablon",
+              onPressed: () async {
+                final confirm = await _showDeleteDialog(context, template);
+                if (confirm == true) {
+                  await controller.deleteTemplate(template.marketId, template.id);
+                }
+              },
+              icon: const Icon(Icons.delete, color: Colors.redAccent),
+          ),
         );
       },
     );
   }
+
+  Future<bool?> _showDeleteDialog(
+      BuildContext context, TemplateModel template) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        title: const Text(
+          'Usuń szablon',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Czy na pewno chcesz usunąć szablon "${template.templateName}"?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Anuluj'),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+            ),
+            icon: const Icon(Icons.delete, color: Colors.white),
+            label: const Text('Usuń'),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
