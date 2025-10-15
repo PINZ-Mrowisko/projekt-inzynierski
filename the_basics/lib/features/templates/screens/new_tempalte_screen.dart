@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
+import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../../utils/common_widgets/side_menu.dart';
 import '../controllers/template_controller.dart';
@@ -51,12 +52,26 @@ class NewTemplatePage extends StatelessWidget {
             final action = await _showEditOptionsDialog(context);
             // i assumed we will have 3 options here, either normal save of changes to the
             // curr template, saving the changes to a new one or canceling
+            // these actions get used during editing
             if (action == 'save') {
-              await templateController.updateTemplate(template!);
-              templateController.isEditMode.value = false;
+              await templateController.checkRuleValues();
+              if (templateController.errorMessage.isEmpty) {
+                await templateController.updateTemplate(template!);
+                templateController.isEditMode.value = false;
+              }
             } else if (action == 'saveAsNew') {
-              await templateController.saveTemplate(true);
-              templateController.isEditMode.value = false;
+              await templateController.checkRuleValues();
+              if (templateController.errorMessage.isEmpty) {
+                // after saving as new lets navigate back to the main template screen
+                await templateController.saveTemplate(true);
+                templateController.isEditMode.value = false;
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => TemplatesPage()),
+                );
+              }
+
             } else if (action == 'cancel') {
               templateController.isEditMode.value = false;
               Get.snackbar('Anulowano', 'Edycja została anulowana');
@@ -134,6 +149,10 @@ class NewTemplatePage extends StatelessWidget {
                             readOnly),
                       ],
                     ),
+                    const SizedBox(height: 20),
+                    // will display potential errors from controller
+                    Text(templateController.errorMessage.value),
+
                     const SizedBox(height: 20),
 
                     // ---- 7 DAYS ----
@@ -222,7 +241,7 @@ class NewTemplatePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // ---- SAVE BUTTON ----
+                    // save button - used when creating a new template
                     if (!isViewMode)
                       Center(
                         child: ElevatedButton.icon(
@@ -232,7 +251,24 @@ class NewTemplatePage extends StatelessWidget {
                                 horizontal: 24, vertical: 12),
                           ),
                           onPressed: () async {
-                            await templateController.saveTemplate(false);
+                            await templateController.checkRuleValues();
+                            if (templateController.errorMessage.isEmpty) {
+                              // save the template
+                              await templateController.saveTemplate(false);
+
+                              // move to all template screen
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => TemplatesPage()),
+                              );
+
+                            }else {
+                            // we can maybe display popup about there being errors
+                            // for time being only rules involving num of People are checked
+                            // after UI is implemented I will create a time checking logic, just want to see what format the data will be in first
+
+                              //or maybe no popup needed since error msg is there :X
+                            }
                           },
                           icon:
                           const Icon(Icons.save, color: Colors.white),
@@ -253,7 +289,7 @@ class NewTemplatePage extends StatelessWidget {
     );
   }
 
-  // ---- Dialog for edit options ----
+  // okienko wyskakujace po kliknieciu zapisz podczas edycji, chwilowo 3 opcje wyboru
   Future<String?> _showEditOptionsDialog(BuildContext context) async {
     return await showDialog<String>(
       context: context,
@@ -273,7 +309,9 @@ class NewTemplatePage extends StatelessWidget {
             child: const Text('Anuluj'),
           ),
           TextButton(
-            onPressed: () => Get.back(result: 'saveAsNew'),
+            onPressed: () {
+              Get.back(result: 'saveAsNew');
+            },
             child: const Text('Zapisz jako nowy'),
           ),
           ElevatedButton(
@@ -285,7 +323,8 @@ class NewTemplatePage extends StatelessWidget {
     );
   }
 
-  // ---- Rule Button Builder ----
+  // przyciski zasad ogólnych - chwilowo takie troche hardcoded, ale to musimy omówić czy chcemy te zasady mieć te same do każdego szablonu
+  // czy może mieć katalog zasad do wyboru, które może pod szablon podłączyc K
   Widget _buildRuleButton(BuildContext context, TemplateController controller,
       String key, String label, RxInt value, bool readOnly) {
     return Obx(() => Padding(
@@ -310,7 +349,7 @@ class NewTemplatePage extends StatelessWidget {
     ));
   }
 
-  // number Input Dialog
+  // number Input Dialog - chwilowo sluzy tylko do wprowadzania liczb w zasadach ogólnych
   Future<int?> _showNumberInputDialog(
       BuildContext context, String label, int currentValue) async {
     final controller = TextEditingController(text: currentValue.toString());
@@ -342,7 +381,7 @@ class NewTemplatePage extends StatelessWidget {
     );
   }
 
-  // new shift dialog
+  // new shift dialog - kafelek ze zmianą, w którym K wybiera tag, ilość oraz godziny zmiany
   void _showAddShiftDialog(BuildContext context,
       TemplateController templateController,
       TagsController tagsController,

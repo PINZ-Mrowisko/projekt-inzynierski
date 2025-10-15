@@ -31,6 +31,7 @@ class TemplateController extends GetxController {
   RxList<TemplateModel> allTemplates= <TemplateModel>[].obs;
   RxList<TemplateModel> filteredTemplates= <TemplateModel>[].obs;
 
+  //used for filtering template names
   RxString searchQuery = ''.obs;
 
   final RxBool isLoading = true.obs;
@@ -81,6 +82,30 @@ class TemplateController extends GetxController {
         maxWomen.value = value;
         break;
     }
+  }
+
+  Future <void> checkRuleValues() async{
+
+    if(nameController.text == ''){
+      errorMessage.value = "Nazwa szablonu nie może być pusta.";
+      return;
+    };
+
+    if (minWomen.value < 0 || maxWomen.value <0 || minMen.value < 0 || maxMen.value < 0) {
+      errorMessage.value = "Ograniczenie nie może być ujemne.";
+      return;
+    };
+
+    if (minMen.value  > maxMen.value) {
+      errorMessage.value = "Ograniczenie górne nie może być mniejsze od dolnego. (mężczyźni)";
+      return;
+    };
+    if (minWomen.value > maxWomen.value) {
+      errorMessage.value = "Ograniczenie górne nie może być mniejsze od dolnego. (kobiety)";
+      return;
+    }
+    errorMessage.value = '';
+    return;
   }
 
   /// fetches all available templates in a list, which is saved in the controller
@@ -231,28 +256,26 @@ class TemplateController extends GetxController {
     isLoading(false);
   }
 
-  // void filterTags(String query) {
-  //   searchQuery.value = query.trim();
-  //
-  //   if (query.isEmpty) {
-  //     filteredTags.assignAll(allTags);
-  //   } else {
-  //
-  //     final queryWords = query.toLowerCase().trim().split(' ')
-  //       ..removeWhere((word) => word.isEmpty);
-  //
-  //     final results = allTags.where((tag) {
-  //       final tagName = tag.tagName.toLowerCase();
-  //       final description = tag.description.toLowerCase();
-  //
-  //       return queryWords.every((word) =>
-  //       tagName.contains(word) ||
-  //           description.contains(word));
-  //     }).toList();
-  //
-  //     filteredTags.assignAll(results);
-  //   }
-  // }
+  void filterTemplates(String query) {
+    searchQuery.value = query.trim();
+
+    if (query.isEmpty) {
+      filteredTemplates.assignAll(allTemplates);
+    } else {
+
+      final queryWords = query.toLowerCase().trim().split(' ')
+        ..removeWhere((word) => word.isEmpty);
+
+      final results = allTemplates.where((template) {
+        final templateName = template.templateName.toLowerCase();
+
+        return queryWords.every((word) =>
+        templateName.contains(word));
+      }).toList();
+
+      filteredTemplates.assignAll(results);
+    }
+  }
 
   void resetFilters() {
     searchQuery.value = '';
