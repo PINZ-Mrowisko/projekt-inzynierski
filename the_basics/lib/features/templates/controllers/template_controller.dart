@@ -213,6 +213,16 @@ class TemplateController extends GetxController {
         template.id,
         addedShifts,
       );
+      // after updating the template, we can check if there is / was any missing data
+
+      final hasMissingTag =
+      addedShifts.any((shift) => shift.tagName == "BRAK");
+      if (!hasMissingTag && template.isDataMissing == true) {
+        await _templateRepo.markTemplateAsComplete(
+          template.marketId,
+          template.id,
+        );
+      }
 
       await fetchTemplates();
 

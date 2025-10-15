@@ -136,6 +136,15 @@ class TemplateRepo extends GetxController {
     }
   }
 
+  Future<void> markTemplateAsComplete(String marketId, String templateId) async {
+    await _db
+        .collection('Markets')
+        .doc(marketId)
+        .collection('Templates')
+        .doc(templateId)
+        .update({'isDataMissing': false});
+  }
+
   /// delete template (hard delete)
   Future<void> deleteTemplate({
     required String marketId,

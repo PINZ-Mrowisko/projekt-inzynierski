@@ -57,6 +57,7 @@ class NewTemplatePage extends StatelessWidget {
               await templateController.checkRuleValues();
               if (templateController.errorMessage.isEmpty) {
                 await templateController.updateTemplate(template!);
+
                 templateController.isEditMode.value = false;
               }
             } else if (action == 'saveAsNew') {
@@ -238,7 +239,7 @@ class NewTemplatePage extends StatelessWidget {
                                               padding: const EdgeInsets.all(6),
                                               decoration: BoxDecoration(
                                                 // if the tag was previously deleted, it will show up red and angry
-                                                color: template?.isDataMissing == true & (shift.tagName == "BRAK")
+                                                color: (shift.tagName == "BRAK")
                                                     ? Colors.redAccent
                                                     : Colors.deepPurple.shade300,
                                                 borderRadius:
@@ -539,8 +540,11 @@ void _showEditShiftDialog(
           children: [
             Obx(() {
               final tags = tagsController.allTags;
+              // if old tag was deleted, the dropdown will start empty to not cause error
+              final dropdownValue = tags.any((tag) => tag.id == selectedTagId) ? selectedTagId : null;
+
               return DropdownButtonFormField<String>(
-                value: selectedTagId,
+                value: dropdownValue,
                 dropdownColor: Colors.grey.shade800,
                 decoration: const InputDecoration(
                   labelText: 'Tag',
