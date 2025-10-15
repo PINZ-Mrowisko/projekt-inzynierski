@@ -4,6 +4,7 @@ import 'package:the_basics/features/templates/models/template_model.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../../utils/common_widgets/custom_button.dart';
 import '../../../utils/common_widgets/generic_list.dart';
+import '../../../utils/common_widgets/search_bar.dart';
 import '../../../utils/common_widgets/side_menu.dart';
 import '../controllers/template_controller.dart';
 import 'new_tempalte_screen.dart';
@@ -49,7 +50,10 @@ class TemplatesPage extends StatelessWidget {
                             color: AppColors.logo,
                           ),
                         ),
+                        const Spacer(),
+
                         const SizedBox(width: 16),
+                        _buildSearchBar(),
                         _buildAddTemplateButton(context, templateController),
                       ],
                     ),
@@ -62,7 +66,7 @@ class TemplatesPage extends StatelessWidget {
                       if (templateController.errorMessage.value.isNotEmpty) {
                         return Center(child: Text(templateController.errorMessage.value));
                       }
-                      if (templateController.allTemplates.isEmpty) {
+                      if (templateController.filteredTemplates.isEmpty) {
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -102,23 +106,23 @@ class TemplatesPage extends StatelessWidget {
     );
   }
 
-  // Widget _buildSearchBar() {
-  //   final tagsController = Get.find<TagsController>();
-  //   return CustomSearchBar(
-  //     hintText: 'Wyszukaj tag',
-  //     widthPercentage: 0.2,
-  //     maxWidth: 360,
-  //     minWidth: 160,
-  //     onChanged: (query) {
-  //       tagsController.searchQuery.value = query;
-  //       tagsController.filterTags(query);
-  //     } ,
-  //   );
-  // }
+  Widget _buildSearchBar() {
+    final templateController = Get.find<TemplateController>();
+    return CustomSearchBar(
+      hintText: 'Wyszukaj szablon',
+      widthPercentage: 0.2,
+      maxWidth: 360,
+      minWidth: 160,
+      onChanged: (query) {
+        templateController.searchQuery.value = query;
+        templateController.filterTemplates(query);
+      } ,
+    );
+  }
 
   Widget _buildTemplateList(BuildContext context, TemplateController controller) {
     return GenericList<TemplateModel>(
-      items: controller.allTemplates,
+      items: controller.filteredTemplates,
       // i guess on tap we will navigate to the "newTemplateScreen", but just with options limited to viewing / editing ?
       onItemTap: (template) => (
           // clear the controller of the changes from last screen

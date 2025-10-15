@@ -176,4 +176,36 @@ class TemplateRepo extends GetxController {
       throw 'Nie udało się oznaczyć szablonu jako usunięty: ${e.toString()}';
     }
   }
+
+  /// we use in TagsController after updating a tag
+  Future<void> updateTagInTemplates(String marketId, String oldTagName, String newTagName) async {
+    final firestore = FirebaseFirestore.instance;
+    final templatesRef = firestore.collection('Markets').doc(marketId).collection('Templates');
+
+    final templatesSnapshot = await templatesRef.get();
+
+    // we go through shift subcollections in each Template Tree
+    for (final templateDoc in templatesSnapshot.docs) {
+      final shiftsRef = templateDoc.reference.collection('Shifts');
+      final shiftsSnapshot = await shiftsRef.get();
+
+      // batch it up
+      final batch = firestore.batch();
+
+      for (final shiftDoc in shiftsSnapshot.docs) {
+        final shiftData = shiftDoc.data();
+
+        if (shiftData['tagName'] != null) {
+          if (shiftData['tagName'] == (oldTagName)) {
+            batch.update(shiftDoc.reference, {'tagName': newTagName});
+          }
+        }
+      }
+
+      // end the batch
+      await batch.commit();
+    }
+  }
+
+
 }

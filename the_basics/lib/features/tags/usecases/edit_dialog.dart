@@ -36,12 +36,17 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
           ),
           DialogActionButton(
             label: 'Zapisz',
-            onPressed: () {
+            onPressed: () async {
               try {
                 if (nameController.text.isEmpty) {
                   showCustomSnackbar(context, 'Nazwa tagu nie może być pusta');
                   return;
                 }
+                // test if tag with the updated name exists already
+                final t = controller.tagExists(controller.userController.employee.value.marketId, controller.nameController.text);
+                if (await t){
+                  showCustomSnackbar(context, controller.tagExistanceMessage.value); Navigator.of(Get.overlayContext!, rootNavigator: true).pop() ;return;
+                } else {
                 showSaveConfirmationDialog(() async {
                   try {
                     final updatedTag = tag.copyWith(
@@ -58,7 +63,7 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
                   } catch (e) {
                     showCustomSnackbar(context, 'Błąd podczas aktualizacji tagu: ${e.toString()}');
                   }
-                });
+                });};
               } catch (e) {
                 //showCustomSnackbar(context, 'Wystąpił nieoczekiwany błąd');
               }
