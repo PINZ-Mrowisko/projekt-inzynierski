@@ -10,13 +10,14 @@ class TemplateModel {
   final int? maxWomen;
   final int? minMen;
   final int? maxMen;
+  final bool? isDataMissing; // this field will be used with tag management; if tag is deleted data will be missing
   final bool isDeleted;
   final DateTime insertedAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
   final List<ShiftModel>? shifts;
 
-  TemplateModel({
+  TemplateModel( {
     required this.id,
     required this.templateName,
     required this.description,
@@ -26,6 +27,7 @@ class TemplateModel {
     this.minMen,
     this.maxMen,
     this.isDeleted = false,
+    this.isDataMissing = false,
     required this.insertedAt,
     required this.updatedAt,
     this.deletedAt,
@@ -38,6 +40,7 @@ class TemplateModel {
     description: '',
     marketId: '',
     insertedAt: DateTime.now(),
+    isDataMissing: false,
     updatedAt: DateTime.now(),
   );
 
@@ -51,6 +54,7 @@ class TemplateModel {
       'maxWomen': maxWomen,
       'minMen': minMen,
       'maxMen': maxMen,
+      'isDataMissing': isDataMissing,
       'isDeleted': isDeleted,
       'insertedAt': insertedAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -72,6 +76,7 @@ class TemplateModel {
       maxWomen: data['maxWomen'],
       minMen: data['minMen'],
       maxMen: data['maxMen'],
+      isDataMissing: data['isDataMissing'] ?? false,
       isDeleted: data['isDeleted'] ?? false,
       insertedAt: DateTime.parse(data['insertedAt']),
       updatedAt: DateTime.parse(data['updatedAt']),
@@ -90,6 +95,7 @@ class TemplateModel {
     int? maxWomen,
     int? minMen,
     int? maxMen,
+    bool? isDataMissing,
     bool? isDeleted,
     DateTime? insertedAt,
     DateTime? updatedAt,
@@ -105,6 +111,7 @@ class TemplateModel {
       maxWomen: maxWomen ?? this.maxWomen,
       minMen: minMen ?? this.minMen,
       maxMen: maxMen ?? this.maxMen,
+      isDataMissing: isDataMissing ?? this.isDataMissing,
       isDeleted: isDeleted ?? this.isDeleted,
       insertedAt: insertedAt ?? this.insertedAt,
       updatedAt: updatedAt ?? this.updatedAt,

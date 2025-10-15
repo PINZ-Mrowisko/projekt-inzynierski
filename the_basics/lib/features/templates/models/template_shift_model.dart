@@ -59,4 +59,22 @@ class ShiftModel {
     }
     return const TimeOfDay(hour: 0, minute: 0);
   }
+
+  ShiftModel copyWith({
+    String? day,
+    String? tagId,
+    String? tagName,
+    int? count,
+    TimeOfDay? start,
+    TimeOfDay? end
+  }) {
+  return ShiftModel(
+      day: day ?? this.day,
+      start: start ?? this.start,
+      end: end ?? this.start,
+      tagId: tagId ?? this.tagId,
+      tagName: tagName ?? this.tagName,
+      count: count ?? this.count,
+      id: id
+  );}
 }

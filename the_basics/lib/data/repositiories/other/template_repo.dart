@@ -207,5 +207,38 @@ class TemplateRepo extends GetxController {
     }
   }
 
+  Future<void> deleteTagInTemplates(String marketId, String tagName) async {
+    final firestore = FirebaseFirestore.instance;
+    final templatesRef = firestore.collection('Markets').doc(marketId).collection('Templates');
+
+    final templatesSnapshot = await templatesRef.get();
+
+    for (final templateDoc in templatesSnapshot.docs) {
+      final shiftsRef = templateDoc.reference.collection('Shifts');
+      final shiftsSnapshot = await shiftsRef.get();
+
+      final batch = firestore.batch();
+      bool hasMissingData = false; // track if this template lost any tag
+
+      for (final shiftDoc in shiftsSnapshot.docs) {
+        final shiftData = shiftDoc.data();
+
+        if (shiftData['tagName'] != null && shiftData['tagName'] == tagName) {
+          batch.update(shiftDoc.reference, {'tagName': 'BRAK'});
+          hasMissingData = true;
+        }
+      }
+
+      // Commit the batch for this template
+      if (hasMissingData) {
+        await batch.commit();
+
+        // Mark the template as having missing data
+        await templateDoc.reference.update({'isDataMissing': true});
+      }
+    }
+  }
+
+
 
 }

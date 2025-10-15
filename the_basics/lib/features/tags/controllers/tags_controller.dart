@@ -246,6 +246,7 @@ class TagsController extends GetxController {
   Future<void> deleteTag(String tagId, String tagName, String marketId) async {
     try {
       isLoading(true);
+      final TemplateRepo _templateRepo = Get.find();
 
       // 1. Za pomocą batcha będziemy usuwac tagi z pracownikow i tagi z tagow
       final batch = FirebaseFirestore.instance.batch();
@@ -280,6 +281,10 @@ class TagsController extends GetxController {
 
       await batch.commit();
       //await _tagsRepo.deleteTag(tagId);
+
+      // musimy jeszcze przjesc przez szablony w danym markecie i sprawidz wystepowanie tagu tam:
+      _templateRepo.deleteTagInTemplates(marketId, tagName);
+
 
       // odświeżamy listę tagów i pracownikow
       await fetchTags();

@@ -199,7 +199,8 @@ class NewTemplatePage extends StatelessWidget {
                                     ),
                                   const SizedBox(height: 10),
 
-                                  // ---- DISPLAY SHIFTS ----
+                                  // kafelki zmianowe
+                                  // po kliknieciu user nadal powinien miec moc edycji w trybie nowego lub editu
                                   Expanded(
                                     child: Obx(() {
                                       final shifts = templateController
@@ -207,25 +208,48 @@ class NewTemplatePage extends StatelessWidget {
                                           .where(
                                               (s) => s.day == days[index])
                                           .toList();
+
+                                      //  to make sure we are not in view
+                                      final editingAllowed = !isViewMode || templateController.isEditMode.value;
+
                                       return ListView.builder(
                                         itemCount: shifts.length,
                                         itemBuilder: (context, i) {
+
                                           final shift = shifts[i];
-                                          return Container(
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 4, vertical: 2),
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color:
-                                              Colors.deepPurple.shade300,
-                                              borderRadius:
-                                              BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              '${shift.tagName} (${shift.count})\n${shift.start.format(context)} - ${shift.end.format(context)}',
-                                              style: const TextStyle(
-                                                  fontSize: 12),
-                                              textAlign: TextAlign.center,
+                                          final isMissing = (template?.isDataMissing == true && shift.tagName == "BRAK");
+                                          
+                                          // wrap it in a Gesture Detector to make sure its editable after setting
+                                          
+                                          return GestureDetector(
+                                            onTap: editingAllowed
+                                                ? () {
+                                              _showEditShiftDialog(
+                                                context,
+                                                templateController,
+                                                tagsController,
+                                                shift,
+                                              );
+                                            }
+                                                : null,
+                                            child: Container(
+                                              margin: const EdgeInsets.symmetric(
+                                                  horizontal: 4, vertical: 2),
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                // if the tag was previously deleted, it will show up red and angry
+                                                color: template?.isDataMissing == true & (shift.tagName == "BRAK")
+                                                    ? Colors.redAccent
+                                                    : Colors.deepPurple.shade300,
+                                                borderRadius:
+                                                BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                '${shift.tagName} (${shift.count})\n${shift.start.format(context)} - ${shift.end.format(context)}',
+                                                style: const TextStyle(
+                                                    fontSize: 12),
+                                                textAlign: TextAlign.center,
+                                              ),
                                             ),
                                           );
                                         },
@@ -256,7 +280,7 @@ class NewTemplatePage extends StatelessWidget {
                               // save the template
                               await templateController.saveTemplate(false);
 
-                              // move to all template screen
+                              // move to all template screen - we push replacement to ovverride last
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(builder: (context) => TemplatesPage()),
@@ -381,7 +405,7 @@ class NewTemplatePage extends StatelessWidget {
     );
   }
 
-  // new shift dialog - kafelek ze zmianą, w którym K wybiera tag, ilość oraz godziny zmiany
+  // new shift dialog - kafelek ze zmianą, w którym K wybiera tag, ilość oraz godziny zmiany: tutaj tylko ten popup pytajacy jak to wszystko ma wygladac
   void _showAddShiftDialog(BuildContext context,
       TemplateController templateController,
       TagsController tagsController,
@@ -487,4 +511,116 @@ class NewTemplatePage extends StatelessWidget {
       ),
     );
   }
+
+
+// korzystamy do edycji kafelków, metoda podobna do tamej wyzej tylko z prefilled data
+void _showEditShiftDialog(
+    BuildContext context,
+    TemplateController templateController,
+    TagsController tagsController,
+    ShiftModel shift,
+    ) {
+
+    final countController = TextEditingController(text: shift.count.toString());
+  TimeOfDay startTime = shift.start;
+  TimeOfDay endTime = shift.end;
+  String selectedTagName = shift.tagName;
+  String selectedTagId = shift.tagId;
+
+
+  Get.dialog(
+    AlertDialog(
+      backgroundColor: Colors.grey.shade900,
+      title: const Text('Edytuj zmianę', style: TextStyle(color: Colors.white)),
+      content: SizedBox(
+        width: 300,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Obx(() {
+              final tags = tagsController.allTags;
+              return DropdownButtonFormField<String>(
+                value: selectedTagId,
+                dropdownColor: Colors.grey.shade800,
+                decoration: const InputDecoration(
+                  labelText: 'Tag',
+                  labelStyle: TextStyle(color: Colors.white),
+                ),
+                items: tags
+                    .map((tag) => DropdownMenuItem(
+                  value: tag.id,
+                  child: Text(tag.tagName,
+                      style: const TextStyle(color: Colors.white)),
+                ))
+                    .toList(),
+                onChanged: (value) {
+                  final tag = tags.firstWhereOrNull((t) => t.id == value);
+                  selectedTagId = tag?.id ?? '';
+                  selectedTagName = tag?.tagName ?? '';
+                },
+              );
+            }),
+            const SizedBox(height: 10),
+            TextField(
+              controller: countController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Liczba osób',
+                labelStyle: TextStyle(color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: startTime,
+                );
+                if (picked != null) startTime = picked;
+              },
+              child: Text('Początek: ${startTime.format(context)}'),
+            ),
+            const SizedBox(height: 6),
+            ElevatedButton(
+              onPressed: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: endTime,
+                );
+                if (picked != null) endTime = picked;
+              },
+              child: Text('Koniec: ${endTime.format(context)}'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Get.back(), child: const Text('Anuluj')),
+        // actions for saving the edited shift
+        ElevatedButton(
+          onPressed: () {
+            // we update the fields in the created shift
+            final updatedShift = shift.copyWith(
+              tagName: selectedTagName,
+              count: int.tryParse(countController.text) ?? shift.count,
+              start: startTime,
+              end: endTime,
+            );
+
+            // we also update the shift in our added shifts list in the controller
+            final index = templateController.addedShifts.indexWhere((s) => s.id == shift.id);
+            if (index != -1) {
+              templateController.addedShifts[index] = updatedShift;
+              templateController.addedShifts.refresh(); // so ui refreshes
+            }
+
+            Get.back();
+          },
+          child: const Text('Zapisz'),
+        ),
+      ],
+    ),
+  );
+}
 }

@@ -97,12 +97,13 @@ class TemplatesPage extends StatelessWidget {
       // navigate to new create controller page
       onPressed: () => (
           controller.clearController(),
-
+          Get.to(() => NewTemplatePage(isViewMode: false))
           //make sure the page isnt set to viewing
-          Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => NewTemplatePage(isViewMode: false)),
-      )),
+      //     Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => NewTemplatePage(isViewMode: false)),
+      // )),
+    )
     );
   }
 

@@ -134,7 +134,6 @@ class TemplateController extends GetxController {
     }
   }
 
-  /// saves the created template in firestore
   Future<void> saveTemplate(bool asNew) async {
     try {
       isLoading(true);
@@ -144,7 +143,6 @@ class TemplateController extends GetxController {
       if (user.marketId.isEmpty) throw "Market ID not available";
       if (nameController.text.isEmpty) throw "Nazwa szablonu jest wymagana";
 
-      // generate a new tempalte id to use in firestore
       final templateId = FirebaseFirestore.instance
           .collection('Markets')
           .doc(user.marketId)
@@ -166,7 +164,6 @@ class TemplateController extends GetxController {
         updatedAt: DateTime.now(),
       );
 
-      // save via repo
       await _templateRepo.saveTemplate(newTemplate);
 
       // and then go through shifts and saved them to the same template
@@ -175,12 +172,11 @@ class TemplateController extends GetxController {
         await _templateRepo.saveShift(user.marketId, templateId, shift);
       }
 
-      // refresh the list
       await fetchTemplates();
 
-      Get.snackbar('Sukces', 'Szablon został zapisany pomyślnie');
       nameController.clear();
       descController.clear();
+      Get.snackbar('Sukces', 'Szablon został zapisany pomyślnie');
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', 'Nie udało się zapisać szablonu: ${e.toString()}');
@@ -189,37 +185,46 @@ class TemplateController extends GetxController {
     }
   }
 
+
   Future<void> updateTemplate(TemplateModel template) async {
-    // first we update the template
-    final updatedTemplate = TemplateModel(
-      id: template.id,
-      templateName: nameController.text,
-      description: descController.text,
-      minMen: minMen.value,
-      maxMen: maxMen.value,
-      minWomen: minWomen.value,
-      maxWomen: maxWomen.value,
-      marketId: template.marketId,
-      insertedAt: template.updatedAt,
-      updatedAt: DateTime.now(),
-      // other fields...
-    );
+    try {
+      isLoading(true);
+      errorMessage('');
 
-    await _templateRepo.updateTemplate(updatedTemplate);
+      if (nameController.text.isEmpty) {
+        Get.snackbar('Błąd', 'Nazwa szablonu nie może być pusta');
+        return;
+      }
 
-    // then we update the connected shifts
-    await _templateRepo.updateTemplateShifts(
-      template.marketId,
-      template.id,
-      addedShifts,
-    );
+      final updatedTemplate = template.copyWith(
+        templateName: nameController.text.trim(),
+        description: descController.text.trim(),
+        minMen: minMen.value,
+        maxMen: maxMen.value,
+        minWomen: minWomen.value,
+        maxWomen: maxWomen.value,
+        updatedAt: DateTime.now(),
+      );
 
+      await _templateRepo.updateTemplate(updatedTemplate);
 
-    // refresh template list
-    fetchTemplates();
+      await _templateRepo.updateTemplateShifts(
+        template.marketId,
+        template.id,
+        addedShifts,
+      );
 
-    Get.snackbar('Sukces', 'Szablon zaktualizowany');
+      await fetchTemplates();
+
+      Get.snackbar('Sukces', 'Szablon został zaktualizowany');
+    } catch (e) {
+      errorMessage(e.toString());
+      Get.snackbar('Błąd', 'Nie udało się zaktualizować szablonu: ${e.toString()}');
+    } finally {
+      isLoading(false);
+    }
   }
+
 
   /// we will use this when viewing the shifts, first we want to store them in the controller list
   /// we call this method in newTemplatePage to fill the list
