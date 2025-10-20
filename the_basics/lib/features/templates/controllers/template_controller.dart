@@ -25,6 +25,9 @@ class TemplateController extends GetxController {
   RxInt minWomen = 0.obs;
   RxInt maxWomen = 0.obs;
 
+  // will hold info about sorting order
+  RxInt sortOrder = 0.obs;
+
   // create an observable list that will hold chosen templete data
   // that would make extracting the data for the alg easier
   // during setting up the schedule, K chooses one of the templetes and those lists get filled with filtered data
@@ -289,6 +292,16 @@ class TemplateController extends GetxController {
       }).toList();
 
       filteredTemplates.assignAll(results);
+    }
+  }
+
+  void sortByDate() {
+    if (sortOrder.value == 0) {
+      filteredTemplates.sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+      sortOrder.value = 1;
+    } else {
+      filteredTemplates.sort((a, b) => b.insertedAt.compareTo(a.insertedAt));
+      sortOrder.value = 0;
     }
   }
 

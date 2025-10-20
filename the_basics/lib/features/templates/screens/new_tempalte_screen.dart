@@ -482,6 +482,8 @@ class NewTemplatePage extends StatelessWidget {
                 },
                 child: const Text('Wybierz koniec zmiany'),
               ),
+
+
             ],
           ),
         ),
@@ -508,6 +510,7 @@ class NewTemplatePage extends StatelessWidget {
             },
             child: const Text('Dodaj'),
           ),
+
         ],
       ),
     );
@@ -515,6 +518,7 @@ class NewTemplatePage extends StatelessWidget {
 
 
 // korzystamy do edycji kafelków, metoda podobna do tamej wyzej tylko z prefilled data
+  // tutaj tez dodajemy opcje usuwania
 void _showEditShiftDialog(
     BuildContext context,
     TemplateController templateController,
@@ -601,7 +605,7 @@ void _showEditShiftDialog(
       ),
       actions: [
         TextButton(onPressed: () => Get.back(), child: const Text('Anuluj')),
-        // actions for saving the edited shift
+        /// actions for saving the edited shift
         ElevatedButton(
           onPressed: () {
             // we update the fields in the created shift
@@ -622,6 +626,24 @@ void _showEditShiftDialog(
             Get.back();
           },
           child: const Text('Zapisz'),
+        ),
+
+        /// actions for deleting the chosen shift
+        ElevatedButton(
+          onPressed: () {
+            final specificID = shift.id;
+
+
+            // we also update the shift in our added shifts list in the controller
+            final index = templateController.addedShifts.indexWhere((s) => s.id == specificID);
+            if (index != -1) {
+              templateController.addedShifts.removeAt(index);
+              templateController.addedShifts.refresh(); // so ui refreshes
+            }
+
+            Get.back();
+          },
+          child: const Text('Usuń'),
         ),
       ],
     ),

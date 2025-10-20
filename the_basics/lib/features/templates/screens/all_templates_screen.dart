@@ -55,6 +55,7 @@ class TemplatesPage extends StatelessWidget {
                         const SizedBox(width: 16),
                         _buildSearchBar(),
                         _buildAddTemplateButton(context, templateController),
+                        TextButton(onPressed: templateController.sortByDate, child: Text("Sortuj"))
                       ],
                     ),
                   ),
@@ -109,6 +110,7 @@ class TemplatesPage extends StatelessWidget {
 
   Widget _buildSearchBar() {
     final templateController = Get.find<TemplateController>();
+    // tutaj jest filtering
     return CustomSearchBar(
       hintText: 'Wyszukaj szablon',
       widthPercentage: 0.2,
