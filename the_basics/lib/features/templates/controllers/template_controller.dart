@@ -312,7 +312,8 @@ class TemplateController extends GetxController {
 
   void resetFilters() {
     searchQuery.value = '';
-    filteredTemplates.assignAll(allTemplates);
+    // filteredTemplates.assignAll(allTemplates);
+    // sortByDate();
   }
 
   Future<void> deleteTemplate(String marketId, String templateId) async {
