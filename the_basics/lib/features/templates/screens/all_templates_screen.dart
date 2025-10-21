@@ -124,48 +124,59 @@ class TemplatesPage extends StatelessWidget {
   }
 
   Widget _buildTemplateList(BuildContext context, TemplateController controller) {
-    return GenericList<TemplateModel>(
-      items: controller.filteredTemplates,
-      // i guess on tap we will navigate to the "newTemplateScreen", but just with options limited to viewing / editing ?
-      onItemTap: (template) => (
+    return GetBuilder<TemplateController>(
+      builder: (controller) {
+        return GenericList<TemplateModel>(
+          items: controller.filteredTemplates,
+          // i guess on tap we will navigate to the "newTemplateScreen", but just with options limited to viewing / editing ?
+          onItemTap: (template) =>
+          (
           // clear the controller of the changes from last screen
           controller.clearController(),
           Get.to(() => NewTemplatePage(template: template, isViewMode: true))
-      ),
-      itemBuilder: (context, template) {
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
           ),
-          title: Text(
-            template.templateName,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textColor1,
-            ),
-          ),
-          subtitle: Text(
-            "${template.insertedAt.day}.${template.insertedAt.month}.${template.insertedAt.year}",
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textColor2,
-            ),
-          ),
-          // trailing delete button
-          trailing: IconButton(
-            tooltip: "Usuń szablon",
-              onPressed: () async {
-                final confirm = await _showDeleteDialog(context, template);
-                if (confirm == true) {
-                  await controller.deleteTemplate(template.marketId, template.id);
-                }
-              },
-              icon: const Icon(Icons.delete, color: Colors.redAccent),
-          ),
+          itemBuilder: (context, template) {
+            return ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              title: Text(
+                template.templateName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textColor1,
+                ),
+              ),
+              subtitle: Text(
+                "${template.insertedAt.day}.${template.insertedAt
+                    .month}.${template.insertedAt.year}",
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textColor2,
+                ),
+              ),
+              leading: template.isDataMissing == true
+                  ? Icon(Icons.warning_amber, color: Colors.redAccent)
+                  : null,
+              // trailing delete button
+              trailing: IconButton(
+                tooltip: "Usuń szablon",
+                onPressed: () async {
+                  final confirm = await _showDeleteDialog(context, template);
+                  if (confirm == true) {
+                    await controller.deleteTemplate(
+                        template.marketId, template.id);
+                  }
+                },
+                icon: const Icon(Icons.delete, color: Colors.redAccent),
+              ),
+            );
+          },
         );
-      },
+
+      }
     );
   }
 

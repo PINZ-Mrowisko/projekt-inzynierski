@@ -286,6 +286,7 @@ class TagsController extends GetxController {
       _templateRepo.deleteTagInTemplates(marketId, tagName);
 
 
+
       // odświeżamy listę tagów i pracownikow
       await fetchTags();
       userController.fetchAllEmployees();
@@ -309,7 +310,7 @@ class TagsController extends GetxController {
     if (query.isEmpty) {
       filteredTags.assignAll(allTags);
     } else {
-
+      isLoading(true);
       final queryWords = query.toLowerCase().trim().split(' ')
         ..removeWhere((word) => word.isEmpty);
 
@@ -323,6 +324,7 @@ class TagsController extends GetxController {
       }).toList();
 
       filteredTags.assignAll(results);
+      isLoading(true);
     }
   }
 
