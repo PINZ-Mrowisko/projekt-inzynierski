@@ -33,8 +33,11 @@ void showAddTagDialog(BuildContext context, TagsController controller) {
                 } else {
                   final t = controller.tagExists(controller.userController.employee.value.marketId, controller.nameController.text);
                   // we check if tag exists, if yes then just display the msg and cancel the saving
-                  if (await t){showCustomSnackbar(context, controller.tagExistanceMessage.value); return; }
+                  if (await t){
+                    print("tag repreats?");
+                    showCustomSnackbar(context, controller.tagExistanceMessage.value); return; }
                   else {
+                    print("saving");
                   await controller.saveTag(
                       controller.userController.employee.value.marketId);
                   Get.back();

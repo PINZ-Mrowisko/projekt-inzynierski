@@ -68,7 +68,8 @@ class TagsController extends GetxController {
   }
 
   /// checks if a tag with the given name already exists in the market.
-  Future<bool> tagExists(String marketId, String tagName) async {
+  Future<bool> tagExists(String marketId, String tagName, {String? tagID}) async {
+    try{
     final snapshot = await FirebaseFirestore.instance
         .collection('Markets')
         .doc(marketId)
@@ -76,8 +77,29 @@ class TagsController extends GetxController {
         .where('tagName', isEqualTo: tagName)
         .get();
 
-    if(snapshot.docs.isNotEmpty){tagExistanceMessage.value = "Tag o podanej nazwie już istnieje.";}else {tagExistanceMessage.value = "";};
+    // check if the tag we got is the tag with the same ID, if yes then exclude
+    if(tagID != null) {
+      // this is the case used in editing
+
+      final matchingTags = snapshot.docs.where((doc) => doc.id != tagID);
+      tagExistanceMessage.value = matchingTags.isNotEmpty ? "Tag o podanej nazwie już istnieje." : "here2";
+      return matchingTags.isNotEmpty;
+    }else {
+      // this is the check in creation
+      print("Im here");
+      tagExistanceMessage.value = snapshot.docs.isNotEmpty
+          ? 'Tag o tej nazwie już istnieje'
+          : 'here1';
+      if(snapshot.docs.isNotEmpty) print("found something");
+      return snapshot.docs.isNotEmpty;
+    }
+
     return snapshot.docs.isNotEmpty;
+  } catch (e) {
+      tagExistanceMessage.value = 'Błąd podczas sprawdzania tagu';
+      return false;
+    }
+
   }
 
   /// saves the provided tag in Firestore
@@ -86,10 +108,7 @@ class TagsController extends GetxController {
 
       final tagName = nameController.text.trim();
       final exists = await tagExists(marketId, tagName);
-      if (tagExistanceMessage.value.isNotEmpty) {
-        // if we felt in the air that a tag with a name like that already existis we dont move anywhere
-        return;
-      } else {
+
         // generate a custom tag id from firebase
         //final tagId = FirebaseFirestore.instance.collection('Tags').doc().id;
 
@@ -115,7 +134,7 @@ class TagsController extends GetxController {
 
         // we need to fetch the new updated list of tags
         fetchTags();
-      }
+
     } catch (e) {
       //display error msg
       errorMessage(e.toString());

@@ -43,7 +43,9 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
                   return;
                 }
                 // test if tag with the updated name exists already
-                final t = controller.tagExists(controller.userController.employee.value.marketId, controller.nameController.text);
+                final t = controller.tagExists(controller.userController.employee.value.marketId, controller.nameController.text, tagID: tag.id);
+
+                // if tag exists finds a match in the tags collestion, it displays a match
                 if (await t){
                   showCustomSnackbar(context, controller.tagExistanceMessage.value); Navigator.of(Get.overlayContext!, rootNavigator: true).pop() ;return;
                 } else {
@@ -57,6 +59,8 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
 
 
                     await controller.updateTagAndUsers(tag, updatedTag);
+
+
                     Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
 
                     showCustomSnackbar(context, 'Zmiany zostały zapisane.');
