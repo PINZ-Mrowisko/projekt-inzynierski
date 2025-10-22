@@ -51,14 +51,26 @@ class TemplatesPage extends StatelessWidget {
                             color: AppColors.logo,
                           ),
                         ),
-                        const Spacer(),
-
                         const SizedBox(width: 16),
-                        _buildSearchBar(),
-                        const SizedBox(width: 16),
-                        _buildAddTemplateButton(context, templateController),
-                        const SizedBox(width: 16),
-                        _buildSortButton(context, templateController),
+                        
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Flexible(
+                                child: _buildSearchBar(),
+                              ),
+                              const SizedBox(width: 16),
+                              Flexible(
+                                child: _buildAddTemplateButton(context, templateController),
+                              ),
+                              const SizedBox(width: 16),
+                              Flexible(
+                                child: _buildSortButton(context, templateController),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),

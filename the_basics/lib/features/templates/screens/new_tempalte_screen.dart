@@ -236,18 +236,29 @@ class NewTemplatePage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Wrap(
-                          spacing: 10,
-                          children: [
-                            _buildRuleButton(context, templateController, 'minMen',
-                                'Min mężczyzn', templateController.minMen, readOnly),
-                            _buildRuleButton(context, templateController, 'maxMen',
-                                'Max mężczyzn', templateController.maxMen, readOnly),
-                            _buildRuleButton(context, templateController, 'minWomen',
-                                'Min kobiet', templateController.minWomen, readOnly),
-                            _buildRuleButton(context, templateController, 'maxWomen',
-                                'Max kobiet', templateController.maxWomen, readOnly),
-                          ],
+                        Expanded(
+                          child: Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: [
+                              Flexible(
+                                child: _buildRuleButton(context, templateController, 'minMen',
+                                    'Min mężczyzn', templateController.minMen, readOnly),
+                              ),
+                              Flexible(
+                                child: _buildRuleButton(context, templateController, 'maxMen',
+                                    'Max mężczyzn', templateController.maxMen, readOnly),
+                              ),
+                              Flexible(
+                                child: _buildRuleButton(context, templateController, 'minWomen',
+                                    'Min kobiet', templateController.minWomen, readOnly),
+                              ),
+                              Flexible(
+                                child: _buildRuleButton(context, templateController, 'maxWomen',
+                                    'Max kobiet', templateController.maxWomen, readOnly),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
