@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../features/templates/controllers/template_controller.dart';
 import '../../../features/templates/models/template_model.dart';
 import '../../../features/templates/models/template_shift_model.dart';
 import '../exceptions.dart';
@@ -217,6 +218,7 @@ class TemplateRepo extends GetxController {
   }
 
   Future<void> deleteTagInTemplates(String marketId, String tagName) async {
+    Get.find<TemplateController>().isLoading.value = true;
     final firestore = FirebaseFirestore.instance;
     final templatesRef = firestore.collection('Markets').doc(marketId).collection('Templates');
 
@@ -245,7 +247,17 @@ class TemplateRepo extends GetxController {
         // Mark the template as having missing data
         await templateDoc.reference.update({'isDataMissing': true});
       }
+
     }
+
+    // after the loop update the UI :)
+
+
+    // and now refresh template list
+    await Get.find<TemplateController>().fetchTemplates();
+    Get.find<TemplateController>().update();
+
+    Get.find<TemplateController>().isLoading.value = false;
   }
 
 

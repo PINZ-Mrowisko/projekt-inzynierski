@@ -137,10 +137,13 @@ class TemplatesPage extends StatelessWidget {
   }
 
   Widget _buildTemplateList(BuildContext context, TemplateController controller) {
-    return GenericList<TemplateModel>(
-      items: controller.filteredTemplates,
-      // i guess on tap we will navigate to the "newTemplateScreen", but just with options limited to viewing / editing ?
-      onItemTap: (template) => (
+    return GetBuilder<TemplateController>(
+      builder: (controller) {
+        return GenericList<TemplateModel>(
+          items: controller.filteredTemplates,
+          // i guess on tap we will navigate to the "newTemplateScreen", but just with options limited to viewing / editing ?
+          onItemTap: (template) =>
+          (
           // clear the controller of the changes from last screen
           controller.clearController(),
           Get.to(() => NewTemplatePage(template: template, isViewMode: true))
@@ -166,6 +169,9 @@ class TemplatesPage extends StatelessWidget {
               color: AppColors.textColor2,
             ),
           ),
+          leading: template.isDataMissing == true
+                  ? Icon(Icons.warning_amber, color: Colors.redAccent)
+                  : null,
           // trailing delete button
           trailing: IconButton(
             tooltip: "Usuń szablon",
@@ -173,9 +179,12 @@ class TemplatesPage extends StatelessWidget {
                 confirmDeleteTemplate(template, template.marketId);
               },
               icon: const Icon(Icons.delete, color: AppColors.warning),
-          ),
+              ),
+            );
+          },
         );
-      },
+
+      }
     );
   }
 }

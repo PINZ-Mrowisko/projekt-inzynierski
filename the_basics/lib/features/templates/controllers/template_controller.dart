@@ -126,7 +126,12 @@ class TemplateController extends GetxController {
 
       /// save the tags locally for later use
       allTemplates.assignAll(templates);
+
       filteredTemplates.assignAll(templates);
+      filteredTemplates.sort((a, b) => b.insertedAt.compareTo(a.insertedAt));
+
+      filteredTemplates.refresh();
+
 
     } catch (e) {
       //display error msg
@@ -305,7 +310,8 @@ class TemplateController extends GetxController {
 
   void resetFilters() {
     searchQuery.value = '';
-    filteredTemplates.assignAll(allTemplates);
+    // filteredTemplates.assignAll(allTemplates);
+    // sortByDate();
   }
 
   Future<void> deleteTemplate(String marketId, String templateId) async {

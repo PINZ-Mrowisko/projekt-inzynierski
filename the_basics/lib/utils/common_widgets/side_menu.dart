@@ -108,7 +108,12 @@ class SideMenu extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: menuController.isExpanded ? 8 * _scaleFactor : 0),
       child: Obx(() {
+
+        if (userController.isLoading.value) {
+          return const Center(child: CircularProgressIndicator(),);
+        }
         final isAdmin = userController.isAdmin.value;
+
         return Column(
           children: isAdmin ? _buildAdminMenuItems() : _buildUserMenuItems(),
         );
