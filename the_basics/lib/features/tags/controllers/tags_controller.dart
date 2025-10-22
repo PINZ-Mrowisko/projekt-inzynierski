@@ -5,6 +5,9 @@ import 'package:the_basics/data/repositiories/other/tags_repo.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/tags/models/tags_model.dart';
 
+import '../../../data/repositiories/other/template_repo.dart';
+import '../../templates/controllers/template_controller.dart';
+
 
 class TagsController extends GetxController {
   static TagsController get instance => Get.find();
@@ -22,6 +25,8 @@ class TagsController extends GetxController {
 
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
+  final RxString tagExistanceMessage = ''.obs;
+
 
   final userController = Get.find<UserController>();
 
@@ -62,34 +67,73 @@ class TagsController extends GetxController {
     }
   }
 
+  /// checks if a tag with the given name already exists in the market.
+  Future<bool> tagExists(String marketId, String tagName, {String? tagID}) async {
+    try{
+    final snapshot = await FirebaseFirestore.instance
+        .collection('Markets')
+        .doc(marketId)
+        .collection('Tags')
+        .where('tagName', isEqualTo: tagName)
+        .get();
+
+    // check if the tag we got is the tag with the same ID, if yes then exclude
+    if(tagID != null) {
+      // this is the case used in editing
+
+      final matchingTags = snapshot.docs.where((doc) => doc.id != tagID);
+      tagExistanceMessage.value = matchingTags.isNotEmpty ? "Tag o podanej nazwie już istnieje." : "here2";
+      return matchingTags.isNotEmpty;
+    }else {
+      // this is the check in creation
+      print("Im here");
+      tagExistanceMessage.value = snapshot.docs.isNotEmpty
+          ? 'Tag o tej nazwie już istnieje'
+          : 'here1';
+      if(snapshot.docs.isNotEmpty) print("found something");
+      return snapshot.docs.isNotEmpty;
+    }
+
+    return snapshot.docs.isNotEmpty;
+  } catch (e) {
+      tagExistanceMessage.value = 'Błąd podczas sprawdzania tagu';
+      return false;
+    }
+
+  }
+
   /// saves the provided tag in Firestore
   Future <void> saveTag(String marketId) async{
     try {
-      // generate a custom tag id from firebase
-      //final tagId = FirebaseFirestore.instance.collection('Tags').doc().id;
 
-      final tagId = FirebaseFirestore.instance
-          .collection('Markets')
-          .doc(marketId)
-          .collection('Tags')
-          .doc()
-          .id;
+      final tagName = nameController.text.trim();
+      final exists = await tagExists(marketId, tagName);
 
-      final newTag = TagsModel(
-        id: tagId,
-        tagName: nameController.text,
-        description: descController.text,
-        marketId: marketId,
-        insertedAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+        // generate a custom tag id from firebase
+        //final tagId = FirebaseFirestore.instance.collection('Tags').doc().id;
 
-      // Save the provided tag through the tag Repo
-      final tagsRepo = Get.put(TagsRepo());
-      await tagsRepo.saveTag(newTag);
+        final tagId = FirebaseFirestore.instance
+            .collection('Markets')
+            .doc(marketId)
+            .collection('Tags')
+            .doc()
+            .id;
 
-      // we need to fetch the new updated list of tags
-      fetchTags();
+        final newTag = TagsModel(
+          id: tagId,
+          tagName: nameController.text,
+          description: descController.text,
+          marketId: marketId,
+          insertedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        // Save the provided tag through the tag Repo
+        final tagsRepo = Get.put(TagsRepo());
+        await tagsRepo.saveTag(newTag);
+
+        // we need to fetch the new updated list of tags
+        fetchTags();
 
     } catch (e) {
       //display error msg
@@ -119,16 +163,21 @@ class TagsController extends GetxController {
   Future<void> updateTag(TagsModel tag) async {
     try {
       isLoading(true);
-      await _tagsRepo.updateTag(tag);
+      final exists = await tagExists(tag.marketId, tag.tagName);
+      if (tagExistanceMessage.value.isNotEmpty) {
+        return;
+      } else {
+        await _tagsRepo.updateTag(tag);
 
-      // odświeżamy listę tagów
-      await fetchTags();
+        // odświeżamy listę tagów
+        await fetchTags();
 
-      // zamykamy dialog edycji
-      Get.back();
+        // zamykamy dialog edycji
+        Get.back();
 
-      // wiadomosc o sukcesie
-      //Get.snackbar('Sukces', 'Tag zaktualizowany pomyślnie');
+        // wiadomosc o sukcesie
+        //Get.snackbar('Sukces', 'Tag zaktualizowany pomyślnie');
+      }
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', e.toString());
@@ -143,8 +192,11 @@ class TagsController extends GetxController {
   /// wyszukujemy tych co mają stary tag, wysyłamy ich do aktualizacji, aktualizujemy tag w kolekcji tagów
   /// w obu kontrolerach aktualizujemy listy wszystkich tagów i pracowników, tak aby zawierały najnowsze dane
 
+  /// teraz updated: musimy ulepszać tagi również w szablonach
   Future<void> updateTagAndUsers(TagsModel oldTag, TagsModel newTag) async {
     try {
+      final TemplateRepo _templateRepo = Get.find();
+
       isLoading(true);
 
       // 1. Robimy batch (zeby wszystko bylo ladnie zgrabnie atomowo)
@@ -183,9 +235,17 @@ class TagsController extends GetxController {
       // 4. Wykonujemy wszystkie operacje naraz (atomowo)
       await batch.commit();
 
-      // 5. Odświeżamy dane
+      // 5. odpalamy update taga w szablonach
+      await _templateRepo.updateTagInTemplates(
+        oldTag.marketId,
+        oldTag.tagName,
+        newTag.tagName,
+      );
+
+      // 6. Odświeżamy dane
       await fetchTags();
       userController.fetchAllEmployees();
+      await Get.find<TemplateController>().fetchTemplates();
 
     } catch (e) {
       Get.snackbar('Błąd', 'Nie udało się zaktualizować tagu: ${e.toString()}');
@@ -205,6 +265,7 @@ class TagsController extends GetxController {
   Future<void> deleteTag(String tagId, String tagName, String marketId) async {
     try {
       isLoading(true);
+      final TemplateRepo _templateRepo = Get.find();
 
       // 1. Za pomocą batcha będziemy usuwac tagi z pracownikow i tagi z tagow
       final batch = FirebaseFirestore.instance.batch();
@@ -240,6 +301,11 @@ class TagsController extends GetxController {
       await batch.commit();
       //await _tagsRepo.deleteTag(tagId);
 
+      // musimy jeszcze przjesc przez szablony w danym markecie i sprawidz wystepowanie tagu tam:
+      _templateRepo.deleteTagInTemplates(marketId, tagName);
+
+
+
       // odświeżamy listę tagów i pracownikow
       await fetchTags();
       userController.fetchAllEmployees();
@@ -263,7 +329,7 @@ class TagsController extends GetxController {
     if (query.isEmpty) {
       filteredTags.assignAll(allTags);
     } else {
-
+      isLoading(true);
       final queryWords = query.toLowerCase().trim().split(' ')
         ..removeWhere((word) => word.isEmpty);
 
@@ -277,6 +343,7 @@ class TagsController extends GetxController {
       }).toList();
 
       filteredTags.assignAll(results);
+      isLoading(true);
     }
   }
 
