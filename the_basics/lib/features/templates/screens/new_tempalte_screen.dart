@@ -101,27 +101,36 @@ class NewTemplatePage extends StatelessWidget {
                                         ),
                                       ),
                                     )
-                                  : TextField(
-                                      controller: templateController.nameController,
-                                      enabled: true,
-                                      style: const TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.logo,
-                                      ),
-                                      decoration: InputDecoration(
-                                        hintText: 'Wpisz nazwę szablonu...',
-                                        hintStyle: TextStyle(color: AppColors.logo),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(28),
-                                          borderSide: BorderSide.none,
+                                  : SizedBox(
+                                      height: 56,
+                                      child: TextField(
+                                        controller: templateController.nameController,
+                                        enabled: true,
+                                        style: const TextStyle(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.logo,
                                         ),
-                                        filled: true,
-                                        fillColor: AppColors.white,
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                        decoration: InputDecoration(
+                                          hintText: 'Wpisz nazwę szablonu...',
+                                          hintStyle: TextStyle(
+                                            color: AppColors.logo.withOpacity(0.5),
+                                            fontSize: 32,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(20),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          filled: true,
+                                          fillColor: AppColors.white,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                            ),
+                                  ),
 
                             const SizedBox(width: 16),
 
