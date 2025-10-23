@@ -105,7 +105,7 @@ class NewTemplatePage extends StatelessWidget {
                     TextField(
                       controller: templateController.nameController,
                       enabled: !readOnly,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: AppColors.logo,

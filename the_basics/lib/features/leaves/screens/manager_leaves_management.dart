@@ -50,7 +50,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Wnioski urlopowe',
                           style: TextStyle(
                             fontSize: 32,
@@ -177,7 +177,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           ),
           title: Text(
             '${item.name} - ${item.leaveType}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColors.textColor1,
@@ -185,7 +185,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           ),
           subtitle: Text(
             formattedDate,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               color: AppColors.textColor2,
             ),
@@ -235,7 +235,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             fixStatus,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Roboto',
               fontWeight: FontWeight.w600,
               fontSize: 12,
@@ -334,7 +334,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Roboto',
               fontWeight: FontWeight.w600,
               fontSize: 12,

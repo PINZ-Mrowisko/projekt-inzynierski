@@ -9,13 +9,22 @@ class SideMenuController extends GetxController {
   final RxBool _darkMode = false.obs;
 
   bool get isExpanded => _isExpanded.value;
-  bool get darkMode => _darkMode.value;
+  bool get isDarkMode => Get.isDarkMode;
 
   void toggleExpanded() => _isExpanded.toggle();
-  void toggleDarkMode() => _darkMode.toggle();
+  
+  void toggleDarkMode() {
+    final newMode = !Get.isDarkMode;
+    Get.changeThemeMode(newMode ? ThemeMode.dark : ThemeMode.light);
+    update();
+}
 
   void setExpanded(bool value) => _isExpanded.value = value;
-  void setDarkMode(bool value) => _darkMode.value = value;
+
+  void setDarkMode(bool value) {
+    Get.changeThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+    update();
+  }
 }
 
 class SideMenu extends StatelessWidget {
@@ -224,7 +233,7 @@ class SideMenu extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.symmetric(horizontal: menuController.isExpanded ? 8 * _scaleFactor : 0),
-          child: const Divider(color: AppColors.divider),
+          child: Divider(color: AppColors.divider),
         ),
         Padding(
           padding: EdgeInsets.symmetric(
@@ -254,62 +263,66 @@ class SideMenu extends StatelessWidget {
   }
 
   Widget _buildDarkModeSwitch() {
-    return SizedBox(
-      height: 56 * _scaleFactor,
-      child: InkWell(
-        onTap: menuController.toggleDarkMode,
-        borderRadius: BorderRadius.circular(15 * _scaleFactor),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8 * _scaleFactor),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              menuController.isExpanded
-                  ? SizedBox(
-                      width: 56 * _scaleFactor,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Obx(() => Switch(
-                          value: menuController.darkMode,
-                          onChanged: (value) => menuController.setDarkMode(value),
-                          activeColor: AppColors.logo,
-                        )),
+  return GetBuilder<SideMenuController>(
+    builder: (controller) {
+      return SizedBox(
+        height: 56 * _scaleFactor,
+        child: InkWell(
+          onTap: controller.toggleDarkMode,
+          borderRadius: BorderRadius.circular(15 * _scaleFactor),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8 * _scaleFactor),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                controller.isExpanded
+                    ? SizedBox(
+                        width: 56 * _scaleFactor,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Switch(
+                            value: Get.isDarkMode,
+                            onChanged: (value) => controller.setDarkMode(value),
+                            activeColor: AppColors.logo,
+                          ),
+                        ),
+                      )
+                    : Expanded(
+                        child: Center(
+                          child: Switch(
+                            value: Get.isDarkMode,
+                            onChanged: (value) => controller.setDarkMode(value),
+                            activeColor: AppColors.logo,
+                          ),
+                        ),
                       ),
-                    )
-                  : Expanded(
-                      child: Center(
-                        child: Obx(() => Switch(
-                          value: menuController.darkMode,
-                          onChanged: (value) => menuController.setDarkMode(value),
-                          activeColor: AppColors.logo,
-                        )),
+                if (controller.isExpanded) ...[
+                  SizedBox(width: 12 * _scaleFactor),
+                  Expanded(
+                    child: AnimatedOpacity(
+                      opacity: controller.isExpanded ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Text(
+                        'Tryb ciemny',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 28 * _scaleFactor,
+                          color: AppColors.textColor2,
+                        ),
+                        overflow: TextOverflow.fade,
+                        softWrap: false,
                       ),
-                    ),
-              if (menuController.isExpanded) ...[
-                SizedBox(width: 12 * _scaleFactor),
-                Expanded(
-                  child: AnimatedOpacity(
-                    opacity: menuController.isExpanded ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Text(
-                      'Tryb ciemny',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 28 * _scaleFactor,
-                        color: AppColors.textColor2,
-                      ),
-                      overflow: TextOverflow.fade,
-                      softWrap: false,
                     ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  );
+}
 
   Widget _buildMenuItem({
     required IconData icon,

@@ -28,7 +28,7 @@ class LoginPage extends StatelessWidget {
             width: 400,
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(color: Colors.black12, blurRadius: 12, spreadRadius: 2),
@@ -119,7 +119,7 @@ class LoginPage extends StatelessWidget {
                     onPressed: () => Get.to(() => ForgetPswd()),
                       child: Text('Zapomniałeś hasła?',
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: AppColors.logo,
                               ),
                         overflow: TextOverflow.ellipsis,
                             ),
@@ -167,7 +167,7 @@ class LoginPage extends StatelessWidget {
                         },
                         child: Text("Zarejestruj się",
                           style: TextStyle(
-                            color: Colors.blue),
+                            color: AppColors.logo),
                           overflow: TextOverflow.ellipsis,
                         )
                     ),

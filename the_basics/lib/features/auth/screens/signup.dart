@@ -23,7 +23,7 @@ class SignUpPage extends StatelessWidget {
             width: 400,
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -177,9 +177,9 @@ class SignUpPage extends StatelessWidget {
                           MaterialPageRoute(builder: (context) => LoginPage()),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         "Zaloguj się",
-                        style: TextStyle(color: Colors.blue),
+                        style: TextStyle(color: AppColors.logo),
                       ),
                     ),
                     const SizedBox(height: 10),

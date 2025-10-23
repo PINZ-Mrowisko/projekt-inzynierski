@@ -42,7 +42,7 @@ class TemplatesPage extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Szablony',
                           style: TextStyle(
                             fontSize: 32,
@@ -143,7 +143,7 @@ class TemplatesPage extends StatelessWidget {
               ),
               title: Text(
                 template.templateName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textColor1,
@@ -152,7 +152,7 @@ class TemplatesPage extends StatelessWidget {
               subtitle: Text(
                 "${template.insertedAt.day}.${template.insertedAt
                     .month}.${template.insertedAt.year}",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: AppColors.textColor2,
                 ),

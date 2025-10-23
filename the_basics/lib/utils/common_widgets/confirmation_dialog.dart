@@ -7,8 +7,8 @@ class ConfirmationDialog extends StatelessWidget {
   final String? subtitle;
   final String confirmText;
   final String cancelText;
-  final Color confirmButtonColor;
-  final Color confirmTextColor;
+  final Color? confirmButtonColor;
+  final Color? confirmTextColor;
   final VoidCallback onConfirm;
 
   const ConfirmationDialog({
@@ -17,8 +17,8 @@ class ConfirmationDialog extends StatelessWidget {
     this.subtitle,
     this.confirmText = 'Confirm',
     this.cancelText = 'Cancel',
-    this.confirmButtonColor = AppColors.blue,
-    this.confirmTextColor = AppColors.textColor2,
+    this.confirmButtonColor,
+    this.confirmTextColor,
     required this.onConfirm,
   });
 
@@ -33,7 +33,7 @@ class ConfirmationDialog extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w400,
               color: AppColors.textColor2,
@@ -44,7 +44,7 @@ class ConfirmationDialog extends StatelessWidget {
             Text(
               subtitle!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textColor2,
@@ -68,7 +68,7 @@ class ConfirmationDialog extends StatelessWidget {
                   ),
                   child: Text(
                     cancelText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: AppColors.textColor2,
@@ -86,7 +86,7 @@ class ConfirmationDialog extends StatelessWidget {
                     onConfirm();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: confirmButtonColor,
+                    backgroundColor: confirmButtonColor ?? AppColors.blue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(100),
                     ),
@@ -96,7 +96,7 @@ class ConfirmationDialog extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: confirmTextColor,
+                      color: confirmTextColor ?? AppColors.textColor2,
                     ),
                   ),
                 ),

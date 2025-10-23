@@ -93,7 +93,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: const [
+      children: [
         Text(
           'Grafik',
           style: TextStyle(

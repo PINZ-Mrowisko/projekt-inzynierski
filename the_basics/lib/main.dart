@@ -13,6 +13,7 @@ import 'package:the_basics/features/schedules/screens/after_login/placeholder_pa
 import 'package:the_basics/features/settings/screens/settings.dart';
 import 'package:the_basics/features/templates/screens/algoritm_screen.dart';
 import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
+import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
@@ -88,8 +89,10 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/login', page: () => LoginPage()),
       ],
       title: 'Mrowisko',
-      themeMode: ThemeMode.light,
+      navigatorKey: navigatorKey,
+      themeMode: ThemeMode.system,
       theme: MyAppTheme.lightTheme,
+      darkTheme: MyAppTheme.darkTheme,
       transitionDuration: const Duration(
         milliseconds: 0,
       ), // so the pages don't slide around all crazy
