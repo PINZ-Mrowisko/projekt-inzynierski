@@ -47,7 +47,9 @@ class LoginPage extends StatelessWidget {
                       child: Column(
                         children: [
                         SvgPicture.asset(
-                          'assets/mrowisko_logo_blue.svg',
+                          Get.isDarkMode 
+                            ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                            : 'assets/mrowisko_logo_blue.svg',
                           height: 48,
                         ),
 

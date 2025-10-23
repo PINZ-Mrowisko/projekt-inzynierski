@@ -41,7 +41,9 @@ class ForgetPswd extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Center(
                     child: SvgPicture.asset(
-                      'assets/mrowisko_logo_blue.svg',
+                      Get.isDarkMode 
+                        ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                        : 'assets/mrowisko_logo_blue.svg',
                       height: 48,
                     ),
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/utils/app_colors.dart';
 import '../../../../utils/common_widgets/side_menu.dart';
 import '../../../employees/controllers/user_controller.dart';
 
@@ -11,7 +12,7 @@ class PlaceholderPage extends StatelessWidget {
     final controller = Get.find<UserController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.pageBackground,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -21,7 +22,7 @@ class PlaceholderPage extends StatelessWidget {
           ),
           Expanded(
             child: Container(
-              color: const Color(0xFFF5F5F5),
+              color: AppColors.pageBackground,
               child: Center(
                 child: Obx(() => Text(
                   '${controller.employee.value.firstName}\nPlaceholder Page',

@@ -88,7 +88,9 @@ class SideMenu extends StatelessWidget {
                     constraints: BoxConstraints(
                         maxWidth: menuController.isExpanded ? 250 * _scaleFactor : 60 * _scaleFactor),
                     child: SvgPicture.asset(
-                      'assets/mrowisko_logo_blue.svg',
+                      Get.isDarkMode 
+                        ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                        : 'assets/mrowisko_logo_blue.svg',
                       height: 50 * _scaleFactor,
                       semanticsLabel: 'Mrowisko Logo',
                     ),
