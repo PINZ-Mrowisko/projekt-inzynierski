@@ -1,0 +1,9 @@
+services:
+  backend:
+    build: ./backend-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
+    environment:
+        - GOOGLE_APPLICATION_CREDENTIALS=/app/serviceAccountKey.json
