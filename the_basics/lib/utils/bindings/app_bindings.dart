@@ -6,6 +6,7 @@ import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/templates/controllers/template_controller.dart';
+import 'package:the_basics/utils/platform_controller.dart';
 
 import '../../data/repositiories/other/tags_repo.dart';
 
@@ -28,6 +29,8 @@ class AppBindings implements Bindings {
     // Get.lazyPut(() => UserController(), fenix: true);
     // Get.lazyPut(() => TagsController(), fenix: true);
 
+    // we initialize the controllers at the start of the app,but dont call the initialzie methods withing yet, that happends only after login
+    Get.put(PlatformController());
     Get.put(UserController());
     Get.put(TagsController());
     Get.put(LeaveController());

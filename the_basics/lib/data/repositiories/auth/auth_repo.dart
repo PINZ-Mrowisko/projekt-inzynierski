@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -7,9 +8,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/templates/controllers/template_controller.dart';
 import '../../../features/auth/screens/verify_email.dart';
+import '../../../features/schedules/screens/after_login/main_calendar.dart';
 import '../../../features/tags/controllers/tags_controller.dart';
 import '../../../features/employees/controllers/user_controller.dart';
 import '../exceptions.dart';
+
+/// how the process looks currently:
+/// auth repo gets initialized in Main
+/// App Bindings get called: it creates all the Repos and Controllers, but doesnt initialize it yet with data
+/// The login controller calls in the loginWithEmailAndPassword()
+/// after user successfully logs in
+/// 1. initializeControllers() is called, filling all controllers with needed data
+/// 2. user gets redirected to the main app
 
 class AuthRepo extends GetxController {
   static AuthRepo get instance => Get.find();
@@ -35,8 +45,10 @@ class AuthRepo extends GetxController {
       //print("in not authenitaced");
     } else {
       //print("detected a user");
+
+      await _initializeControllers();
+
     }
-    await _initializeControllers();
   }
 
   // handles which screen to show to the user - if hes authenticated, then .....
@@ -66,6 +78,7 @@ class AuthRepo extends GetxController {
   // handles after login functions for emps and manager
   afterLogin() async {
     final user =  _auth.currentUser;
+
     //print("moved here");
     //print(user?.uid);
 
@@ -74,15 +87,15 @@ class AuthRepo extends GetxController {
           // Initialize controllers sequentially
           await _initializeControllers();
 
-          /// perform a check if its the first login, if yes mark the flag
           final userController = Get.find<UserController>();
           final employee = userController.employee.value;
+
+          /// perform a check if its the first login, if yes mark the flag
 
           if (employee.hasLoggedIn == false) {
             await userController.updateEmployee(employee.copyWith(hasLoggedIn: true));
             //print("Updated hasLoggedIn to true for first login.");
           }
-
           _navigateToMainApp();
         } catch (e) {
           throw(e.toString());
@@ -90,7 +103,6 @@ class AuthRepo extends GetxController {
 
 
     } else {
-    //print("user is null");
     }
   }
 
@@ -137,7 +149,11 @@ class AuthRepo extends GetxController {
   void _navigateToMainApp() {
     Future.delayed(Duration.zero, () { // Ensures context is available
       //Get.offAll(() => const MainCalendar());
-      Get.offAllNamed('/grafik-ogolny');
+      Get.offAll(() => PopScope(
+        canPop: false,
+        child: const MainCalendar(),
+      ));
+
     });
   }
 
@@ -180,15 +196,19 @@ class AuthRepo extends GetxController {
   Future<UserCredential> loginWithEmailAndPassword(String mail, String password, bool rememberMe) async {
     try {
 
-      await FirebaseAuth.instance.setPersistence(
-        rememberMe ? Persistence.LOCAL : Persistence.SESSION,
-      );
+      /// this apparently doesnt work on mobile - to do later to return it to webb
+      // await FirebaseAuth.instance.setPersistence(
+      //   rememberMe ? Persistence.LOCAL : Persistence.SESSION,
+      // );
 
       final userCredential = await _auth.signInWithEmailAndPassword(email: mail, password: password);
 
       if(rememberMe) {
         await _prefs.setBool("remember_me", true);
       }
+
+      // if user logs in successfully, we can start the controllers
+      afterLogin();
 
       return userCredential;
     }on FirebaseAuthException catch (e) {
