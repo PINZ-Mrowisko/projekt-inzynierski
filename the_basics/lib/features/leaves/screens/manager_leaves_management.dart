@@ -58,31 +58,18 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                             color: AppColors.logo,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Flexible(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 10.0),
-                                  child: _buildEmployeeFilterDropdown(userController, selectedEmployees, leaveController, selectedStatuses),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Flexible(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 10.0),
-                                  child: _buildStatusFilterDropdown(leaveController, selectedStatuses, selectedEmployees),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Flexible(
-                                child: _buildAddLeaveButton(context, leaveController),
-                              ),
-                            ],
-                          ),
+                        const Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: _buildEmployeeFilterDropdown(userController, selectedEmployees, leaveController, selectedStatuses),
                         ),
+                        const SizedBox(width: 16),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: _buildStatusFilterDropdown(leaveController, selectedStatuses, selectedEmployees),
+                        ),
+                        const SizedBox(width: 16),
+                        _buildAddLeaveButton(context, leaveController),
                       ],
                     ),
                   ),

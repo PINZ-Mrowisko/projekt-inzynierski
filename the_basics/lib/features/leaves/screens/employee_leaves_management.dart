@@ -47,17 +47,8 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
                             color: AppColors.logo,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Flexible(
-                              child: _buildAddLeaveButton(context, userController),
-                            ),
-                          ],
-                         ),
-                        )
+                        const Spacer(),
+                        _buildAddLeaveButton(context, userController),
                       ],
                     ),
                   ),

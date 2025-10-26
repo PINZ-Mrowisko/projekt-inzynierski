@@ -184,6 +184,7 @@ class TemplateController extends GetxController {
 
       nameController.clear();
       descController.clear();
+      Get.snackbar('Sukces', 'Szablon został zapisany pomyślnie');
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', 'Nie udało się zapisać szablonu: ${e.toString()}');
@@ -233,6 +234,7 @@ class TemplateController extends GetxController {
 
       await fetchTemplates();
 
+      Get.snackbar('Sukces', 'Szablon został zaktualizowany');
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', 'Nie udało się zaktualizować szablonu: ${e.toString()}');

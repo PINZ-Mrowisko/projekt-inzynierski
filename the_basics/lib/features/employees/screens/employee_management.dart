@@ -59,31 +59,18 @@ class EmployeeManagementPage extends StatelessWidget {
                             color: AppColors.logo,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Flexible(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 10.0),
-                                  child: _buildTagFilterDropdown(
-                                    tagsController,
-                                    selectedTags,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Flexible(
-                                child: _buildSearchBar(selectedTags),
-                              ),
-                              const SizedBox(width: 16),
-                              Flexible(
-                                child: _buildAddEmployeeButton(context, userController),
-                              ),
-                            ],
+                        const Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: _buildTagFilterDropdown(
+                            tagsController,
+                            selectedTags,
                           ),
                         ),
+                        const SizedBox(width: 16),
+                        _buildSearchBar(selectedTags),
+                        const SizedBox(width: 16),
+                        _buildAddEmployeeButton(context, userController),
                       ],
                     ),
                   ),

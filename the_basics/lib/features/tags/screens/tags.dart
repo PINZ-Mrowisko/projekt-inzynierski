@@ -50,21 +50,10 @@ class TagsPage extends StatelessWidget {
                             color: AppColors.logo,
                           ),
                         ),
+                        const Spacer(),
+                        _buildSearchBar(),
                         const SizedBox(width: 16),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Flexible(
-                                child: _buildSearchBar(),
-                              ),
-                              const SizedBox(width: 16),
-                              Flexible(
-                                child: _buildAddTagButton(context, tagsController),
-                              ),
-                            ],
-                          ),
-                        ),
+                        _buildAddTagButton(context, tagsController),
                       ],
                     ),
                   ),

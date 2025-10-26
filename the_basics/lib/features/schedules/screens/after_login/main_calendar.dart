@@ -157,42 +157,26 @@ class _MainCalendarState extends State<MainCalendar> {
                               color: AppColors.logo,
                             ),
                           ),
+                          const Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10.0),
+                            child: _buildTagFilterDropdown(tagsController),
+                          ),
                           const SizedBox(width: 16),
-                          
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Flexible(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: _buildTagFilterDropdown(tagsController),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Flexible(
-                                  child: _buildSearchBar(),
-                                ),
-                                const SizedBox(width: 16),
-                                Flexible(
-                                  child: CustomButton(
-                                    onPressed: () {},
-                                    text: "Generuj grafik",
-                                    width: 155,
-                                    icon: Icons.edit,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Flexible(
-                                  child: CustomButton(
-                                    onPressed: () => _showExportDialog(context),
-                                    text: "Eksportuj",
-                                    width: 125,
-                                    icon: Icons.download,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          _buildSearchBar(),
+                          const SizedBox(width: 16),
+                          CustomButton(
+                            onPressed: () {},
+                            text: "Generuj grafik",
+                            width: 155,
+                            icon: Icons.edit,
+                          ),
+                          const SizedBox(width: 10),
+                          CustomButton(
+                            onPressed: () => _showExportDialog(context),
+                            text: "Eksportuj",
+                            width: 125,
+                            icon: Icons.download,
                           ),
                         ],
                       ),
