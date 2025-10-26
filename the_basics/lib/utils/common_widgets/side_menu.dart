@@ -16,14 +16,21 @@ class SideMenuController extends GetxController {
   void toggleDarkMode() {
     final newMode = !Get.isDarkMode;
     Get.changeThemeMode(newMode ? ThemeMode.dark : ThemeMode.light);
-    update();
+    _restartCurrentRoute();
 }
 
   void setExpanded(bool value) => _isExpanded.value = value;
 
   void setDarkMode(bool value) {
     Get.changeThemeMode(value ? ThemeMode.dark : ThemeMode.light);
-    update();
+    _restartCurrentRoute();
+  }
+
+  void _restartCurrentRoute() {
+    final currentRoute = Get.currentRoute;
+    Future.delayed(Duration(milliseconds: 50), () {
+    Get.offAllNamed(currentRoute);
+    });
   }
 }
 
