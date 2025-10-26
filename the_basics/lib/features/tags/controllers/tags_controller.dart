@@ -343,7 +343,7 @@ class TagsController extends GetxController {
       }).toList();
 
       filteredTags.assignAll(results);
-      isLoading(true);
+      isLoading(false);
     }
   }
 

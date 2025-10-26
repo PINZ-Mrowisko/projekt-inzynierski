@@ -5,6 +5,7 @@ import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
 import '../../../../utils/common_widgets/side_menu.dart';
+import '../../../../utils/platform_controller.dart';
 import '../../../employees/controllers/user_controller.dart';
 import '../../../../utils/app_colors.dart';
 import '../../../tags/controllers/tags_controller.dart';
@@ -21,6 +22,10 @@ class MainCalendar extends StatefulWidget {
 
 class _MainCalendarState extends State<MainCalendar> {
   final CalendarController _calendarController = CalendarController();
+
+  final platformController = Get.find<PlatformController>();
+  // use method from this to detect device!
+
   DateTime? _lastBackPressTime;
   final RxList<String> _selectedTags = <String>[].obs;
 
@@ -152,26 +157,42 @@ class _MainCalendarState extends State<MainCalendar> {
                               color: AppColors.logo,
                             ),
                           ),
-                          const Spacer(),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: _buildTagFilterDropdown(tagsController),
-                          ),
                           const SizedBox(width: 16),
-                          _buildSearchBar(),
-                          const SizedBox(width: 16),
-                          CustomButton(
-                            onPressed: () {},
-                            text: "Generuj grafik",
-                            width: 155,
-                            icon: Icons.edit,
-                          ),
-                          const SizedBox(width: 10),
-                          CustomButton(
-                            onPressed: () => _showExportDialog(context),
-                            text: "Eksportuj",
-                            width: 125,
-                            icon: Icons.download,
+                          
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Flexible(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 10.0),
+                                    child: _buildTagFilterDropdown(tagsController),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Flexible(
+                                  child: _buildSearchBar(),
+                                ),
+                                const SizedBox(width: 16),
+                                Flexible(
+                                  child: CustomButton(
+                                    onPressed: () {},
+                                    text: "Generuj grafik",
+                                    width: 155,
+                                    icon: Icons.edit,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Flexible(
+                                  child: CustomButton(
+                                    onPressed: () => _showExportDialog(context),
+                                    text: "Eksportuj",
+                                    width: 125,
+                                    icon: Icons.download,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

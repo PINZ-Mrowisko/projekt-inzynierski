@@ -63,7 +63,7 @@ class LoginController extends GetxController {
     } on PlatformException catch (e) {
       errorMessage.value = 'Błąd systemowy: ${e.message}';
     } catch (e) {
-      errorMessage.value = 'Coś poszło nie tak :(';
+      errorMessage.value = 'Błąd logowania: $e';
     }
   }
   String _getFriendlyErrorMessage(dynamic error) {
