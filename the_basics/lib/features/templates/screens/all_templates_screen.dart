@@ -191,7 +191,7 @@ class TemplatesPage extends StatelessWidget {
               onPressed: () async {
                 confirmDeleteTemplate(template, template.marketId);
               },
-              icon: const Icon(Icons.delete, color: AppColors.warning),
+              icon: Icon(Icons.delete, color: AppColors.warning),
               ),
             );
           },

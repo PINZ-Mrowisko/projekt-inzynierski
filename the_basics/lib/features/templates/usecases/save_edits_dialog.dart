@@ -10,7 +10,7 @@ Future<String?> showEditOptionsDialog() async {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             'Zakończyć edycję?',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -20,7 +20,7 @@ Future<String?> showEditOptionsDialog() async {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Wybierz co chcesz zrobić ze zmianami:',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -44,7 +44,7 @@ Future<String?> showEditOptionsDialog() async {
                       borderRadius: BorderRadius.circular(100),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Anuluj',
                     style: TextStyle(
                       fontSize: 14,
@@ -60,8 +60,8 @@ Future<String?> showEditOptionsDialog() async {
                 height: 56,
                 child: ElevatedButton.icon(
                   onPressed: () => Get.back(result: 'saveAsNew'),
-                  icon: const Icon(Icons.add, color: AppColors.textColor2),
-                  label: const Text(
+                  icon: Icon(Icons.add, color: AppColors.textColor2),
+                  label: Text(
                     'Zapisz jako nowy',
                     style: TextStyle(
                       fontSize: 14,
@@ -83,8 +83,8 @@ Future<String?> showEditOptionsDialog() async {
                 height: 56,
                 child: ElevatedButton.icon(
                   onPressed: () => Get.back(result: 'save'),
-                  icon: const Icon(Icons.save, color: AppColors.textColor2),
-                  label: const Text(
+                  icon: Icon(Icons.save, color: AppColors.textColor2),
+                  label: Text(
                     'Zapisz zmiany',
                     style: TextStyle(
                       fontSize: 14,
