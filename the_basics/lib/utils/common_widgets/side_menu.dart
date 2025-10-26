@@ -29,7 +29,7 @@ class SideMenuController extends GetxController {
   void _restartCurrentRoute() {
     final currentRoute = Get.currentRoute;
     Future.delayed(Duration(milliseconds: 50), () {
-    Get.offAllNamed(currentRoute);
+    Get.toNamed(currentRoute, preventDuplicates: false);
     });
   }
 }
