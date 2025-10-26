@@ -113,7 +113,7 @@ class TemplatesPage extends StatelessWidget {
       // navigate to new create controller page
       onPressed: () => (
           controller.clearController(),
-          Get.to(() => NewTemplatePage(isViewMode: false))
+          Get.toNamed('/szablony/nowy-szablon', arguments: {'isViewMode': false})
           //make sure the page isnt set to viewing
       //     Navigator.pushReplacement(
       //   context,
@@ -158,7 +158,10 @@ class TemplatesPage extends StatelessWidget {
           (
           // clear the controller of the changes from last screen
           controller.clearController(),
-          Get.to(() => NewTemplatePage(template: template, isViewMode: true))
+          Get.toNamed('/szablony/edytuj-szablon', arguments: {
+            'template': template, 
+            'isViewMode': true
+          })
       ),
       itemBuilder: (context, template) {
         return ListTile(

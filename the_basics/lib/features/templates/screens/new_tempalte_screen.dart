@@ -22,7 +22,10 @@ class NewTemplatePage extends StatelessWidget {
   final bool isViewMode;
   final DateFormat datetimeFormatter = DateFormat('dd.MM.yyyy');
 
-  NewTemplatePage({super.key, this.template, this.isViewMode = false});
+   NewTemplatePage({super.key}) : 
+    template = Get.arguments?['template'],
+    isViewMode = Get.arguments?['isViewMode'] ?? false;
+  
 
   @override
   Widget build(BuildContext context) {
@@ -77,10 +80,10 @@ class NewTemplatePage extends StatelessWidget {
                                 final editing = templateController.isEditMode.value || !isViewMode;
                                 if (editing) {
                                   showLeaveConfirmationDialog(() {
-                                    Navigator.of(context).pop();
+                                    Get.offNamed('/szablony');
                                   });
                                 } else {
-                                  Navigator.of(context).pop();
+                                  Get.offNamed('/szablony');
                                 }
                               },
                             ),
@@ -160,10 +163,7 @@ class NewTemplatePage extends StatelessWidget {
                                         if (templateController.errorMessage.isEmpty) {
                                           await templateController.saveTemplate(true);
                                           templateController.isEditMode.value = false;
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(builder: (_) => TemplatesPage()),
-                                          );
+                                          Get.offNamed('/szablony');
                                           showCustomSnackbar(context, 'Szablon został zapisany jako nowy');
                                         }
                                       } else if (action == 'cancel') {
@@ -188,10 +188,7 @@ class NewTemplatePage extends StatelessWidget {
                                   await templateController.checkRuleValues();
                                   if (templateController.errorMessage.isEmpty) {
                                     await templateController.saveTemplate(false);
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => TemplatesPage()),
-                                    );
+                                    Get.offNamed('/szablony');
                                   }
                                 },
                                 backgroundColor: AppColors.blue,

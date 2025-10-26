@@ -13,6 +13,7 @@ import 'package:the_basics/features/schedules/screens/after_login/placeholder_pa
 import 'package:the_basics/features/settings/screens/settings.dart';
 import 'package:the_basics/features/templates/screens/algoritm_screen.dart';
 import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
+import 'package:the_basics/features/templates/screens/new_tempalte_screen.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/route_observer.dart';
@@ -83,6 +84,8 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/tagi', page: () => TagsPage()),
         GetPage(name: '/pracownicy', page: () => EmployeeManagementPage()),
         GetPage(name: '/szablony', page: () => TemplatesPage()),
+        GetPage(name: '/szablony/nowy-szablon', page: () => NewTemplatePage()),
+        GetPage(name: '/szablony/edytuj-szablon', page: () => NewTemplatePage()),
         GetPage(name: '/raporty', page: () => PlaceholderPage()),
 
         GetPage(name: '/ustawienia', page: () => SettingsScreen()),
