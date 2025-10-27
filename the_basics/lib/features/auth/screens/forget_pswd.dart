@@ -15,6 +15,7 @@ class ForgetPswd extends StatelessWidget {
       ForgetPswdController(),
     ); //create the instance here
 
+  return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Center(
@@ -85,5 +86,6 @@ class ForgetPswd extends StatelessWidget {
         ),
       ),
     );
+  });
   }
 }

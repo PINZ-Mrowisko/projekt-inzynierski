@@ -23,6 +23,7 @@ class TagsPage extends StatelessWidget {
       tagsController.resetFilters();
     });
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -96,6 +97,7 @@ class TagsPage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   Widget _buildAddTagButton(BuildContext context, TagsController controller) {

@@ -6,31 +6,37 @@ import '/utils/app_colors.dart';
 
 class SideMenuController extends GetxController {
   final RxBool _isExpanded = true.obs;
-  final RxBool _darkMode = false.obs;
+
+  late RxBool isDarkMode;
+
+  final RxString currentRoute = ''.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final Brightness systemBrightness = WidgetsBinding.instance.window.platformBrightness;
+    isDarkMode = RxBool(systemBrightness == Brightness.dark);
+
+    Get.changeThemeMode(isDarkMode.value ? ThemeMode.dark : ThemeMode.light);
+    //to make sure routing doesnt mess up after changing theme
+    currentRoute.value = Get.currentRoute;
+  }
+
 
   bool get isExpanded => _isExpanded.value;
-  bool get isDarkMode => Get.isDarkMode;
 
   void toggleExpanded() => _isExpanded.toggle();
   
   void toggleDarkMode() {
-    final newMode = !Get.isDarkMode;
-    Get.changeThemeMode(newMode ? ThemeMode.dark : ThemeMode.light);
-    _restartCurrentRoute();
+    isDarkMode.value = !isDarkMode.value;
+    Get.changeThemeMode(isDarkMode.value ? ThemeMode.dark : ThemeMode.light);
 }
 
   void setExpanded(bool value) => _isExpanded.value = value;
 
   void setDarkMode(bool value) {
+    isDarkMode.value = value;
     Get.changeThemeMode(value ? ThemeMode.dark : ThemeMode.light);
-    _restartCurrentRoute();
-  }
-
-  void _restartCurrentRoute() {
-    final currentRoute = Get.currentRoute;
-    Future.delayed(Duration(milliseconds: 50), () {
-    Get.toNamed(currentRoute, preventDuplicates: false);
-    });
   }
 }
 
@@ -38,7 +44,7 @@ class SideMenu extends StatelessWidget {
   SideMenu({Key? key}) : super(key: key);
 
   final userController = Get.find<UserController>();
-  final menuController = Get.put(SideMenuController());
+  final menuController = Get.find<SideMenuController>();
 
   double get _scaleFactor {
     final screenWidth = MediaQuery.of(Get.context!).size.width;
@@ -95,7 +101,7 @@ class SideMenu extends StatelessWidget {
                     constraints: BoxConstraints(
                         maxWidth: menuController.isExpanded ? 250 * _scaleFactor : 60 * _scaleFactor),
                     child: SvgPicture.asset(
-                      Get.isDarkMode 
+                      menuController.isDarkMode.value 
                         ? 'assets/mrowisko_logo_blue_dark_mode.svg'
                         : 'assets/mrowisko_logo_blue.svg',
                       height: 50 * _scaleFactor,
@@ -290,8 +296,8 @@ class SideMenu extends StatelessWidget {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Switch(
-                            value: Get.isDarkMode,
-                            onChanged: (value) => controller.setDarkMode(value),
+                            value: menuController.isDarkMode.value,
+                            onChanged: (value) => menuController.setDarkMode(value),
                             activeColor: AppColors.logo,
                           ),
                         ),
@@ -299,8 +305,8 @@ class SideMenu extends StatelessWidget {
                     : Expanded(
                         child: Center(
                           child: Switch(
-                            value: Get.isDarkMode,
-                            onChanged: (value) => controller.setDarkMode(value),
+                            value: menuController.isDarkMode.value,
+                            onChanged: (value) => menuController.setDarkMode(value),
                             activeColor: AppColors.logo,
                           ),
                         ),
@@ -338,7 +344,9 @@ class SideMenu extends StatelessWidget {
     required String text,
     required String route,
   }) {
-    final isActive = Get.currentRoute == route;
+
+    return Obx(() {
+    final isActive = menuController.currentRoute.value == route;
     
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: menuController.isExpanded ? 0 : 8 * _scaleFactor),
@@ -417,11 +425,15 @@ class SideMenu extends StatelessWidget {
         ),
       ),
     );
+    });
   }
 
   void _navigateTo(String route) {
     if (Get.currentRoute != route) {
-      Get.toNamed(route);
+      menuController.currentRoute.value = route;
+      Get.toNamed(route)?.then((_) {
+        menuController.currentRoute.value = Get.currentRoute;
+      });
     }
   }
 }

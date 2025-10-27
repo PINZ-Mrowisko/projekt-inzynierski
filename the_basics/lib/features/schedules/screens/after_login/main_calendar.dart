@@ -130,7 +130,8 @@ class _MainCalendarState extends State<MainCalendar> {
     
     return PopScope(
     canPop: false,
-      child: Scaffold(
+      child: Obx(() {
+      return Scaffold(
         backgroundColor: AppColors.pageBackground,
         body: Row(
           children: [
@@ -263,7 +264,8 @@ class _MainCalendarState extends State<MainCalendar> {
             ),
           ],
         ),
-      ),
+      );
+      }),
     );
   }
 

@@ -16,6 +16,7 @@ import 'package:the_basics/features/templates/screens/all_templates_screen.dart'
 import 'package:the_basics/features/templates/screens/new_tempalte_screen.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
+import 'package:the_basics/utils/common_widgets/side_menu.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
 import 'features/schedules/screens/after_login/main_calendar.dart';
@@ -40,6 +41,7 @@ void main() async {
   //print('Prefs initialized with keys: ${prefs.getKeys()}');
   Get.put<AuthRepo>(AuthRepo(prefs), permanent: true);
   Get.put(ScheduleController());
+  Get.put(SideMenuController(), permanent: true);
 
   final authRepo = Get.find<AuthRepo>();
 
@@ -92,7 +94,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/login', page: () => LoginPage()),
       ],
       title: 'Mrowisko',
-      navigatorKey: navigatorKey,
+      //navigatorKey: navigatorKey,
       themeMode: ThemeMode.system,
       theme: MyAppTheme.lightTheme,
       darkTheme: MyAppTheme.darkTheme,

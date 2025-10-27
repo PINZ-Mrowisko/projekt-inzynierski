@@ -21,7 +21,8 @@ class LoginPage extends StatelessWidget {
       onPopInvoked: (bool didPop) async{
         if (didPop) {controller.clearControllers();}
       },
-      child: Scaffold(
+      child: Obx(() {
+      return Scaffold(
         backgroundColor: AppColors.pageBackground,
         body: Center(
           child: Container(
@@ -180,7 +181,8 @@ class LoginPage extends StatelessWidget {
               ),
           ),
           ),
-        ),
+        );
+      }),
     );
   }
 }

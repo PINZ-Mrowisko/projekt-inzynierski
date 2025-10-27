@@ -15,6 +15,7 @@ class SignUpPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(SignUpController());
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Center(
@@ -193,5 +194,6 @@ class SignUpPage extends StatelessWidget {
         ),
       ),
     );
+    });
   }
 }

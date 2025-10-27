@@ -24,6 +24,7 @@ class TemplatesPage extends StatelessWidget {
       templateController.resetFilters();
     });
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -103,6 +104,7 @@ class TemplatesPage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   Widget _buildAddTemplateButton(BuildContext context, TemplateController controller) {

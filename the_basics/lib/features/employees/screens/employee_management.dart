@@ -31,7 +31,7 @@ class EmployeeManagementPage extends StatelessWidget {
     ever(selectedTags, (tags) {
       userController.filterEmployees(tags);
     });
-
+  return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -134,6 +134,7 @@ class EmployeeManagementPage extends StatelessWidget {
         ],
       ),
     );
+  });
   }
 
   Widget _buildTagFilterDropdown(TagsController tagsController, RxList<String> selectedTags) {

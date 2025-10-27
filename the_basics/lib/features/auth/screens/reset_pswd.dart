@@ -13,6 +13,7 @@ class ResetPswd extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Center(
@@ -85,5 +86,6 @@ class ResetPswd extends StatelessWidget {
         ),
       ),
     );
+    });
   }
 }

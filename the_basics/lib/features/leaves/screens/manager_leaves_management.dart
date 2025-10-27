@@ -30,7 +30,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
       leaveController.resetFilters();
     });
 
-
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -107,6 +107,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   Widget _buildAddLeaveButton(BuildContext context, LeaveController controller) {

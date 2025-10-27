@@ -49,6 +49,7 @@ class NewTemplatePage extends StatelessWidget {
       });
     }
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -247,22 +248,14 @@ class NewTemplatePage extends StatelessWidget {
                             spacing: 10,
                             runSpacing: 10,
                             children: [
-                              Flexible(
-                                child: _buildRuleButton(context, templateController, 'minMen',
+                                 _buildRuleButton(context, templateController, 'minMen',
                                     'Min mężczyzn', templateController.minMen, readOnly),
-                              ),
-                              Flexible(
-                                child: _buildRuleButton(context, templateController, 'maxMen',
+                                 _buildRuleButton(context, templateController, 'maxMen',
                                     'Max mężczyzn', templateController.maxMen, readOnly),
-                              ),
-                              Flexible(
-                                child: _buildRuleButton(context, templateController, 'minWomen',
+                                 _buildRuleButton(context, templateController, 'minWomen',
                                     'Min kobiet', templateController.minWomen, readOnly),
-                              ),
-                              Flexible(
-                                child: _buildRuleButton(context, templateController, 'maxWomen',
+                                 _buildRuleButton(context, templateController, 'maxWomen',
                                     'Max kobiet', templateController.maxWomen, readOnly),
-                              ),
                             ],
                           ),
                         ),
@@ -290,7 +283,7 @@ class NewTemplatePage extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: List.generate(days.length, (index) {
-                        return Expanded(
+                        return Flexible(
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 6),
                             decoration: BoxDecoration(
@@ -436,6 +429,7 @@ class NewTemplatePage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
   
   // genral rule button builder

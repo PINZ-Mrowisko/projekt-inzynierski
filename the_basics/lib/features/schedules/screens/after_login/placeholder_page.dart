@@ -11,6 +11,7 @@ class PlaceholderPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<UserController>();
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -34,5 +35,6 @@ class PlaceholderPage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 }

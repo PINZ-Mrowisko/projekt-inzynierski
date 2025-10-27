@@ -20,6 +20,7 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
     final userController = Get.find<UserController>();
     final leaveController = Get.find<LeaveController>();
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -79,6 +80,7 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   Widget _buildAddLeaveButton(BuildContext context, UserController controller) {
