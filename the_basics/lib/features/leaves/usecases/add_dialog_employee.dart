@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
+import '../../../utils/common_widgets/text_area.dart';
 import '../../employees/controllers/user_controller.dart';
 import '../controllers/leave_controller.dart';
 import '../models/holiday_model.dart';
@@ -15,6 +15,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
   final userController = Get.find<UserController>();
   final employee = userController.employee.value;
   final leaveController = Get.find<LeaveController>();
+  final comment = RxString('');
 
   final errorMessage = RxString('');
   final holidayMessage = RxString('');
@@ -130,15 +131,6 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
           return;
         }
 
-    // On-demand leave validation
-    final dateMinusOne = today.subtract(const Duration(days: 1));
-    // if (isOnDemand) {
-    //   if (startDate.isBefore(dateMinusOne)) {
-    //     errorMessage.value = "Urlop na żądanie nie może być w przeszłości (ale dziś może).";
-    //     return;
-    //   }
-    // }
-
     // Days availability validation
     // if (isOnDemand) {
     //   if (requestedDays > employee.onDemandDays) {
@@ -155,7 +147,8 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     //     return;
     //   }
     // }
-  // }
+    // }
+  }
 
   final fields = [
     holidayText,
@@ -180,6 +173,14 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
         selectedRange.value = range;
         validateDates(range);
       },
+    ),
+    TextAreaDialogField( // Add comment field here
+      label: 'Komentarz (opcjonalnie)',
+      hintText: 'Wpisz komentarz do swojego wniosku urlopowego...',
+      onChanged: (value) {
+        comment.value = value;
+      },
+      maxLines: 5,
     ),
     errorText,
   ];
@@ -206,8 +207,8 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
         final startDate = selectedRange.value!.startDate!;
         final endDate = selectedRange.value!.endDate ?? startDate;
         final requestedDays = endDate.difference(startDate).inDays + 1 - numOfHolidays.value;
-
-        final comment = "Placeholder";
+        print(requestedDays);
+        final commentText = comment.value.isEmpty ? "Brak komentarza" : comment.value; // Use actual comment
 
         try {
           await leaveController.saveEmpLeave(
@@ -215,7 +216,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
               endDate,
               "Oczekujący",
               requestedDays,
-              comment
+              commentText
           );
           //Get.back();
           await userController.fetchCurrentUserRecord();
@@ -239,5 +240,4 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     ),
     barrierDismissible: false,
   );
-}
 }

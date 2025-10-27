@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
-import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
+import '../../../utils/common_widgets/text_area.dart';
 import '../controllers/leave_controller.dart';
 import '../models/holiday_model.dart';
 
@@ -19,6 +19,8 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
   final errorMessage = RxString('');
   final holidayMessage = RxString('');
   final overlapMessage = RxString('');
+
+  final comment = RxString('');
 
   final numOfHolidays = RxInt(0);
 
@@ -87,7 +89,6 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
     final endOnly = normalizeDate(endDate);
 
 
-    final isOnDemand = leaveType.value == 'Urlop na żądanie';
     //for now set it like that, we need to substract the holidays
     var requestedDays = endDate.difference(startDate).inDays + 1;
 
@@ -190,6 +191,16 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
         validateDates(range, controller);
       },
     ),
+    // add field for comment
+    TextAreaDialogField(
+      label: 'Komentarz (opcjonalnie)',
+      hintText: 'Wpisz komentarz do swojego urlopu...',
+      onChanged: (value) {
+        // Store the comment value
+        comment.value = value;
+      },
+      maxLines: 5, // Allows multiline input
+    ),
     errorText,
 
   ];
@@ -217,15 +228,16 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
         final leaveController = Get.find<LeaveController>();
         final startDate = selectedRange.value!.startDate;
         final endDate = selectedRange.value!.endDate ?? selectedRange.value!.startDate;
-        final comment = "PH";
+        final commentText = comment.value.isEmpty ? "Brak komentarza" : comment.value;
         final requestedDays = endDate!.difference(startDate!).inDays + 1 - numOfHolidays.value;
+
         try {
           await leaveController.saveLeave(
               startDate,
               endDate,
               "Mój urlop",
               requestedDays,
-            comment
+              commentText
           );
           //Get.back();
           await userController.fetchCurrentUserRecord();
