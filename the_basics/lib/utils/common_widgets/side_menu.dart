@@ -19,7 +19,10 @@ class SideMenuController extends GetxController {
 }
 
 class SideMenu extends StatelessWidget {
-  SideMenu({Key? key}) : super(key: key);
+  // to allow adding confirmation dialog before navigating to another page without savin changes (specifically for template and schedule editing)
+  final Function(String route)? onNavigation;
+
+  SideMenu({Key? key, this.onNavigation}) : super(key: key);
 
   final userController = Get.find<UserController>();
   final menuController = Get.put(SideMenuController());
@@ -399,7 +402,11 @@ class SideMenu extends StatelessWidget {
 
   void _navigateTo(String route) {
     if (Get.currentRoute != route) {
-      Get.toNamed(route);
+      if (onNavigation != null) {
+        onNavigation!(route);
+      } else {
+        Get.toNamed(route);
+      }
     }
   }
 }

@@ -185,7 +185,9 @@ class _MainCalendarState extends State<MainCalendar> {
                                 const SizedBox(width: 10),
                                 Flexible(
                                   child: CustomButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Get.toNamed('/grafik-ogolny/edytuj-grafik', arguments: {'initialDate': _calendarController.displayDate});
+                                    },
                                     text: "Edytuj grafik",
                                     width: 155,
                                     icon: Icons.edit,

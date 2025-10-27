@@ -52,8 +52,20 @@ class NewTemplatePage extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: SideMenu(),
+            child: SideMenu(
+              onNavigation: (route) {
+              final editing = templateController.isEditMode.value || !isViewMode;
+              if (editing) {
+                showLeaveConfirmationDialog(() {
+                  Get.toNamed(route);
+                });
+              } else {
+                // if view mode -> navigate immediately
+                Get.toNamed(route);
+              }
+            },
           ),
+        ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
