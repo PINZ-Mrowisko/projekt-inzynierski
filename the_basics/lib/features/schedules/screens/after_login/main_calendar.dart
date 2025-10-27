@@ -135,7 +135,7 @@ class _MainCalendarState extends State<MainCalendar> {
         body: Row(
           children: [
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
               child: SideMenu(),
             ),
             Expanded(
@@ -179,6 +179,15 @@ class _MainCalendarState extends State<MainCalendar> {
                                     onPressed: () {},
                                     text: "Generuj grafik",
                                     width: 155,
+                                    icon: Icons.add,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Flexible(
+                                  child: CustomButton(
+                                    onPressed: () {},
+                                    text: "Edytuj grafik",
+                                    width: 155,
                                     icon: Icons.edit,
                                   ),
                                 ),
@@ -189,6 +198,7 @@ class _MainCalendarState extends State<MainCalendar> {
                                     text: "Eksportuj",
                                     width: 125,
                                     icon: Icons.download,
+                                    backgroundColor: AppColors.lightBlue,
                                   ),
                                 ),
                               ],
