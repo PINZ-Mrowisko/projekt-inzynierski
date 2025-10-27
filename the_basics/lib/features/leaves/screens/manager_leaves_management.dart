@@ -189,7 +189,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
             vertical: 12,
           ),
           title: Text(
-            '${item.name} - ${item.leaveType}',
+            '${item.name}',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -292,12 +292,13 @@ class ManagerLeavesManagementPage extends StatelessWidget {
               // add back the holdiay days to the employee
               final duration = leave.totalDays;
               final updatedEmployee = employee.copyWith(
-                vacationDays: leave.leaveType == 'Urlop wypoczynkowy'
-                    ? employee.vacationDays + duration
-                    : employee.vacationDays,
-                onDemandDays: leave.leaveType == 'Urlop na żądanie'
-                    ? employee.onDemandDays + duration
-                    : employee.onDemandDays,
+                // vacationDays: leave.leaveType == 'Urlop wypoczynkowy'
+                //     ? employee.vacationDays + duration
+                //     : employee.vacationDays,
+                // onDemandDays: leave.leaveType == 'Urlop na żądanie'
+                //     ? employee.onDemandDays + duration
+                //     : employee.onDemandDays,
+                numberOfLeaves: employee.numberOfLeaves - duration
               );
 
               // update the leave request

@@ -21,21 +21,21 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
   final overlapMessage = RxString('');
   final numOfHolidays = RxInt(0);
 
-  final leaveStatusText = Obx(() {
-    final type = leaveType.value;
-    if (type == null) return const SizedBox.shrink();
-    final statusMap = {
-      'Urlop wypoczynkowy': 'Pozostało dni urlopu wypoczynkowego: ${employee.vacationDays}/20',
-      'Urlop na żądanie': 'Pozostało dni urlopu na żądanie: ${employee.onDemandDays}/4',
-    };
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 22.0),
-      child: Text(
-        statusMap[type] ?? '',
-        style: const TextStyle(color: AppColors.logo, fontSize: 14),
-      ),
-    );
-  });
+  // final leaveStatusText = Obx(() {
+  //   // final type = leaveType.value;
+  //   // if (type == null) return const SizedBox.shrink();
+  //   // final statusMap = {
+  //   //   'Urlop wypoczynkowy': 'Pozostało dni urlopu wypoczynkowego: ${employee.vacationDays}/20',
+  //   //   'Urlop na żądanie': 'Pozostało dni urlopu na żądanie: ${employee.onDemandDays}/4',
+  //   // };
+  //   return Padding(
+  //     padding: const EdgeInsets.only(bottom: 22.0),
+  //     child: Text(
+  //       statusMap[type] ?? '',
+  //       style: const TextStyle(color: AppColors.logo, fontSize: 14),
+  //     ),
+  //   );
+  // });
 
   final errorText = Obx(() {
     if (errorMessage.value.isEmpty) return const SizedBox.shrink();
@@ -84,7 +84,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     final startOnly = normalizeDate(startDate);
     final endOnly = normalizeDate(endDate);
 
-    final isOnDemand = leaveType.value == 'Urlop na żądanie';
+    //final isOnDemand = leaveType.value == 'Urlop na żądanie';
     var requestedDays = endDate.difference(startDate).inDays + 1;
 
     // Check for holidays
@@ -117,59 +117,64 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
       return;
     }
 
-    // Vacation leave validation
-    if (!isOnDemand) {
-      if (startDate.isBefore(today)) {
-        errorMessage.value = 'Urlop wypoczynkowy nie może być w przeszłości';
-        return;
-      }
-    }
+    // // Vacation leave validation
+    // if (!isOnDemand) {
+    //   if (startDate.isBefore(today)) {
+    //     errorMessage.value = 'Urlop wypoczynkowy nie może być w przeszłości';
+    //     return;
+    //   }
+    // }
+
+    if (startDate.isBefore(today)) {
+          errorMessage.value = 'Nieobecność nie może być w przeszłości';
+          return;
+        }
 
     // On-demand leave validation
     final dateMinusOne = today.subtract(const Duration(days: 1));
-    if (isOnDemand) {
-      if (startDate.isBefore(dateMinusOne)) {
-        errorMessage.value = "Urlop na żądanie nie może być w przeszłości (ale dziś może).";
-        return;
-      }
-    }
+    // if (isOnDemand) {
+    //   if (startDate.isBefore(dateMinusOne)) {
+    //     errorMessage.value = "Urlop na żądanie nie może być w przeszłości (ale dziś może).";
+    //     return;
+    //   }
+    // }
 
     // Days availability validation
-    if (isOnDemand) {
-      if (requestedDays > employee.onDemandDays) {
-        errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu na żądanie';
-        return;
-      }
-      if (requestedDays > 1) {
-        errorMessage.value = 'Urlop na żądanie może trwać maksymalnie 1 dzień';
-        return;
-      }
-    } else {
-      if (requestedDays > employee.vacationDays) {
-        errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu wypoczynkowego';
-        return;
-      }
-    }
-  }
+    // if (isOnDemand) {
+    //   if (requestedDays > employee.onDemandDays) {
+    //     errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu na żądanie';
+    //     return;
+    //   }
+    //   if (requestedDays > 1) {
+    //     errorMessage.value = 'Urlop na żądanie może trwać maksymalnie 1 dzień';
+    //     return;
+    //   }
+    // } else {
+    //   if (requestedDays > employee.vacationDays) {
+    //     errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu wypoczynkowego';
+    //     return;
+    //   }
+    // }
+  // }
 
   final fields = [
     holidayText,
     overlapText,
-    DropdownDialogField(
-        label: 'Typ urlopu',
-        hintText: 'Wybierz typ urlopu',
-        items: [
-          DropdownItem(value: 'Urlop wypoczynkowy', label: 'Urlop wypoczynkowy'),
-          DropdownItem(value: 'Urlop na żądanie', label: 'Urlop na żądanie'),
-        ],
-        onChanged: (value) {
-          leaveType.value = value;
-          validateDates(selectedRange.value);
-        }
-    ),
-    leaveStatusText,
+    // DropdownDialogField(
+    //     label: 'Typ urlopu',
+    //     hintText: 'Wybierz typ urlopu',
+    //     items: [
+    //       DropdownItem(value: 'Urlop wypoczynkowy', label: 'Urlop wypoczynkowy'),
+    //       DropdownItem(value: 'Urlop na żądanie', label: 'Urlop na żądanie'),
+    //     ],
+    //     onChanged: (value) {
+    //       leaveType.value = value;
+    //       validateDates(selectedRange.value);
+    //     }
+    // ),
+    // leaveStatusText,
     DatePickerDialogField(
-      label: 'Wybierz zakres dat urlopu',
+      label: 'Wybierz zakres dat nieobecności',
       selectedRange: selectedRange,
       onRangeChanged: (range) {
         selectedRange.value = range;
@@ -183,8 +188,8 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     DialogActionButton(
       label: 'Zatwierdź',
       onPressed: () async {
-        if (leaveType.value == null || selectedRange.value == null) {
-          showCustomSnackbar(context, 'Wybierz typ urlopu i zakres dat');
+        if (selectedRange.value == null) {
+          showCustomSnackbar(context, 'Wybierz zakres dat');
           return;
         }
 
@@ -202,13 +207,15 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
         final endDate = selectedRange.value!.endDate ?? startDate;
         final requestedDays = endDate.difference(startDate).inDays + 1 - numOfHolidays.value;
 
+        final comment = "Placeholder";
+
         try {
           await leaveController.saveEmpLeave(
               startDate,
               endDate,
-              leaveType.value!,
               "Oczekujący",
-              requestedDays
+              requestedDays,
+              comment
           );
           //Get.back();
           await userController.fetchCurrentUserRecord();
@@ -232,4 +239,5 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     ),
     barrierDismissible: false,
   );
+}
 }

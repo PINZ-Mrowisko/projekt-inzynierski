@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/data/repositiories/other/leave_repo.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 
@@ -79,7 +80,7 @@ class LeaveController extends GetxController {
   }
 
   /// Save a new leave request - KIEROWNIK
-  Future<void> saveLeave(DateTime startDate, DateTime endDate, String leaveType, String status, int requestedDays) async {
+  Future<void> saveLeave(DateTime startDate, DateTime endDate, String status, int requestedDays, String? comment) async {
     try {
       // maybe add looking for overlap here as well
 
@@ -103,27 +104,40 @@ class LeaveController extends GetxController {
         status: status,
         insertedAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        leaveType: leaveType,
+        comment: comment
       );
 
       await _leaveRepo.saveLeave(newLeave);
       await fetchLeaves();
 
-      // jako że kierownik nie potrzebuje zatwierdzania - odejmujemy mu od razu dni od licznika
+      // OLD: jako że kierownik nie potrzebuje zatwierdzania - odejmujemy mu od razu dni od licznika
+      // NOW: bedziemy liczyc liczbe dni nieobecnosci, zaczynajac od 0 - mozna resetowac np na poczatku roku
+
+      // if status = urlop kierownika
       if (status == 'Mój urlop') {
-        if (leaveType == 'Urlop na żądanie') {
-            userController.updateEmployee(
-              userController.employee.value.copyWith(
-                onDemandDays: userController.employee.value.onDemandDays - requestedDays,
-              ),
-            );
-          } else {
-            userController.updateEmployee(
-              userController.employee.value.copyWith(
-                vacationDays: userController.employee.value.vacationDays - requestedDays,
-              ),
-            );
-          }
+        // teraz nie rozrozniamy typow urlopow po prostu dodajemy liczbe requested days do liczby nieobecnosci
+
+        userController.updateEmployee(
+          userController.employee.value.copyWith(
+            numberOfLeaves: userController.employee.value.numberOfLeaves + requestedDays
+          )
+        );
+
+        // if (leaveType == 'Urlop na żądanie') {
+        //     userController.updateEmployee(
+        //       userController.employee.value.copyWith(
+        //         onDemandDays: userController.employee.value.onDemandDays - requestedDays,
+        //       ),
+        //     );
+        //   } else {
+        //     userController.updateEmployee(
+        //       userController.employee.value.copyWith(
+        //         vacationDays: userController.employee.value.vacationDays - requestedDays,
+        //       ),
+        //     );
+        //   }
+
+
       }
 
     } catch (e) {
@@ -136,7 +150,7 @@ class LeaveController extends GetxController {
 
 
   /// FOR EMPLOYEEEES
-  Future<void> saveEmpLeave(DateTime startDate, DateTime endDate, String leaveType, String status, int requestedDays) async {
+  Future<void> saveEmpLeave(DateTime startDate, DateTime endDate, String status, int requestedDays, String? comment) async {
     try {
       final marketId = userController.employee.value.marketId;
       final requestedDays = endDate.difference(startDate).inDays + 1;
@@ -159,7 +173,7 @@ class LeaveController extends GetxController {
         status: status,
         insertedAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        leaveType: leaveType,
+        comment: comment
       );
 
       await _leaveRepo.saveLeave(newLeave);
@@ -170,19 +184,26 @@ class LeaveController extends GetxController {
       /// or maybe its better to substract now, and then add them back if the request is denied ?????
       /// vote today for your favorite option
       ///
-      if (leaveType == 'Urlop na żądanie') {
-        userController.updateEmployee(
-          userController.employee.value.copyWith(
-            onDemandDays: userController.employee.value.onDemandDays - requestedDays,
-          ),
-        );
-      } else {
-        userController.updateEmployee(
-          userController.employee.value.copyWith(
-            vacationDays: userController.employee.value.vacationDays - requestedDays,
-          ),
-        );
-      }
+      /// NEW: lets add the leave days now, substract if kierownik denies
+      userController.updateEmployee(
+                 userController.employee.value.copyWith(
+                   numberOfLeaves: userController.employee.value.numberOfLeaves + requestedDays,
+                 )
+               );
+
+      // if (leaveType == 'Urlop na żądanie') {
+      //   userController.updateEmployee(
+      //     userController.employee.value.copyWith(
+      //       onDemandDays: userController.employee.value.onDemandDays - requestedDays,
+      //     ),
+      //   );
+      // } else {
+      //   userController.updateEmployee(
+      //     userController.employee.value.copyWith(
+      //       vacationDays: userController.employee.value.vacationDays - requestedDays,
+      //     ),
+      //   );
+      // }
 
     } catch (e) {
       errorMessage(e.toString());

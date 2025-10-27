@@ -116,7 +116,7 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
             vertical: 12,
           ),
           title: Text(
-            item.leaveType,
+            "placeholder",
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

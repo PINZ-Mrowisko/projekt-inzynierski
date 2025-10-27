@@ -29,9 +29,11 @@ class UserRepo extends GetxController {
   Future<void> addNewEmployee(UserModel employee, UserModel newUserTemp) async {
     try {
       //await _db.collection('Users').doc(employee.id).set(employee.toMap());
+      print("1");
       await _db.collection('Users').doc(employee.id).set(newUserTemp.toMap());
 
       // also append the new user to the members subcollection
+      print("2");
       await _db
           .collection('Markets')
           .doc(employee.marketId)
