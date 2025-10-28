@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
-import 'package:the_basics/features/auth/screens/reset_pswd.dart';
+import 'package:the_basics/features/auth/screens/mobile/reset_pswd_mobile.dart';
+import 'package:the_basics/features/auth/screens/web/reset_pswd.dart';
+import 'package:the_basics/utils/platform_wrapper.dart';
 
 class ForgetPswdController extends GetxController {
   static ForgetPswdController get instance => Get.find();
@@ -24,7 +26,7 @@ class ForgetPswdController extends GetxController {
       // snack bar !
 
       // redirect to reset pswd screen
-      Get.to(() => ResetPswd(email: email.text.trim()));
+      Get.to(() => PlatformWrapper(mobile: ResetPswdMobile(email: email.text.trim()), web: ResetPswd(email: email.text.trim())));
     } catch (e) {
       // stop the loader loading
       // display warning snackbar

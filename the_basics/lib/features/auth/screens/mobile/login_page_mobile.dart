@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:the_basics/features/auth/controllers/login_controller.dart';
-import 'package:the_basics/features/auth/screens/forget_pswd.dart';
-import 'package:the_basics/features/auth/screens/signup.dart';
+import 'package:the_basics/features/auth/screens/mobile/forget_pswd_mobile.dart';
+import 'package:the_basics/features/auth/screens/mobile/signup_mobile.dart';
+import 'package:the_basics/features/auth/screens/web/forget_pswd.dart';
+import 'package:the_basics/features/auth/screens/web/signup.dart';
+import 'package:the_basics/utils/platform_wrapper.dart';
 import 'package:the_basics/utils/validators/validation.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class LoginPageMobile extends StatelessWidget {
+  const LoginPageMobile({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +122,7 @@ class LoginPage extends StatelessWidget {
                   ),
 
                   TextButton(
-                    onPressed: () => Get.to(() => ForgetPswd()),
+                    onPressed: () => Get.to(() => PlatformWrapper(mobile: ForgetPswdMobile(), web: ForgetPswd())),
                       child: Text('Zapomniałeś hasła?',
                         style: TextStyle(
                           color: AppColors.logo,
@@ -165,7 +168,7 @@ class LoginPage extends StatelessWidget {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => SignUpPage()),
+                            MaterialPageRoute(builder: (context) => PlatformWrapper(mobile: SignUpPageMobile(), web: SignUpPage())),
                           );
                         },
                         child: Text("Zarejestruj się",

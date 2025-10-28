@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/data/repositiories/other/tags_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
-import 'package:the_basics/features/auth/screens/verify_email.dart';
+import 'package:the_basics/features/auth/screens/web/verify_email.dart';
 import 'package:the_basics/features/tags/models/tags_model.dart';
 
 import '../../../data/repositiories/other/market_repo.dart';

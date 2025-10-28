@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
-import 'package:the_basics/features/auth/screens/login_page.dart';
+import 'package:the_basics/features/auth/screens/mobile/login_page_mobile.dart';
+import 'package:the_basics/features/auth/screens/web/login_page.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
 import 'package:the_basics/features/leaves/screens/employee_leaves_management.dart';
 import 'package:the_basics/features/leaves/screens/manager_leaves_management.dart';
@@ -17,6 +18,8 @@ import 'package:the_basics/features/templates/screens/new_tempalte_screen.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
+import 'package:the_basics/utils/platform_controller.dart';
+import 'package:the_basics/utils/platform_wrapper.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
 import 'features/schedules/screens/after_login/main_calendar.dart';
@@ -53,6 +56,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return GetMaterialApp(
       locale: const Locale('pl'),
       supportedLocales: const [Locale('pl'), Locale('en')],
@@ -91,7 +95,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/raporty', page: () => PlaceholderPage()),
 
         GetPage(name: '/ustawienia', page: () => SettingsScreen()),
-        GetPage(name: '/login', page: () => LoginPage()),
+        GetPage(name: '/login', page: () => PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
       ],
       title: 'Mrowisko',
       //navigatorKey: navigatorKey,
@@ -159,7 +163,7 @@ class AuthWrapper extends StatelessWidget {
           }
         }
         // user is not logged in, show login page
-        return LoginPage();
+        return PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage());
       },
     );
   }
