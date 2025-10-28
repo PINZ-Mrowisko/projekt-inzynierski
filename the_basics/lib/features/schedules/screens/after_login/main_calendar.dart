@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
+import 'package:the_basics/features/schedules/usecases/choose_existing_schedule.dart';
+import 'package:the_basics/features/schedules/usecases/choose_schedule_generation_type.dart';
+import 'package:the_basics/features/schedules/usecases/choose_template.dart';
+import 'package:the_basics/features/schedules/usecases/choose_work_code_rules_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
@@ -41,6 +45,76 @@ class _MainCalendarState extends State<MainCalendar> {
       userController.filterEmployees(tags);
     });
   }
+
+  // PLACEHOLDER to be implemented
+void _handleRulesSelected(List<String> selectedRules) {
+  print('Selected rules: $selectedRules');
+  showGenerationMethodDialog(context, _handleMethodSelected); 
+}
+
+// PLACEHOLDER to be implemented
+void _handleMethodSelected(String? selectedMethod) {
+  print('Selected method: $selectedMethod');
+  
+  if (selectedMethod != null) {
+    if (selectedMethod == 'template') {
+      showChooseTemplateDialog(context, _handleTemplateSelected);
+    } else if (selectedMethod == 'existing_schedule') {
+      showChooseExistingScheduleDialog(context, _handleScheduleSelected);
+    }
+  }
+}
+
+// PLACEHOLDER to be implemented
+void _handleTemplateSelected(String? selectedTemplate) {
+  print('Selected template: $selectedTemplate');
+  if (selectedTemplate != null) {
+    _generateAndNavigateToEdit(selectedTemplate, 'template');
+  }
+}
+
+// PLACEHOLDER to be implemented
+void _handleScheduleSelected(String? selectedSchedule) {
+  print('Selected schedule: $selectedSchedule');
+  if (selectedSchedule != null) {
+    _generateAndNavigateToEdit(selectedSchedule, 'existing_schedule');
+  }
+}
+
+// PLACEHOLDER to be implemented
+void _generateAndNavigateToEdit(String sourceId, String sourceType) {
+  try {
+    final newScheduleId = _generateNewSchedule(sourceId, sourceType);
+    
+    Get.toNamed('/grafik-ogolny/edytuj-grafik', arguments: {
+      'scheduleId': newScheduleId,
+      'sourceType': sourceType,
+      'initialDate': _calendarController.displayDate
+    });
+    
+    // Show success message
+    showCustomSnackbar(
+      context,
+      sourceType == 'template' 
+        ? "Wygenerowano nowy grafik z szablonu" 
+        : "Wygenerowano nowy grafik z istniejącego grafiku",
+    );
+    
+  } catch (e) {
+    // Show error message if generation fails
+    showCustomSnackbar(
+      context,
+      "Błąd podczas generowania grafiku: $e",
+    );
+  }
+}
+
+// PLACEHOLDER to be implemented
+String _generateNewSchedule(String sourceId, String sourceType) {
+  print('Generating new schedule from $sourceType: $sourceId');
+  
+  return 'generated_${DateTime.now().millisecondsSinceEpoch}';
+}
 
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
@@ -176,7 +250,7 @@ class _MainCalendarState extends State<MainCalendar> {
                                 const SizedBox(width: 16),
                                 Flexible(
                                   child: CustomButton(
-                                    onPressed: () {},
+                                    onPressed: () => showWorkCodeRulesDialog(context, _handleRulesSelected),
                                     text: "Generuj grafik",
                                     width: 155,
                                     icon: Icons.add,
