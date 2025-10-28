@@ -22,7 +22,10 @@ class NewTemplatePage extends StatelessWidget {
   final bool isViewMode;
   final DateFormat datetimeFormatter = DateFormat('dd.MM.yyyy');
 
-  NewTemplatePage({super.key, this.template, this.isViewMode = false});
+   NewTemplatePage({super.key}) : 
+    template = Get.arguments?['template'],
+    isViewMode = Get.arguments?['isViewMode'] ?? false;
+  
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +49,7 @@ class NewTemplatePage extends StatelessWidget {
       });
     }
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -84,15 +88,15 @@ class NewTemplatePage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.arrow_back, size: 28, color: AppColors.logo),
+                              icon: Icon(Icons.arrow_back, size: 28, color: AppColors.logo),
                               onPressed: () {
                                 final editing = templateController.isEditMode.value || !isViewMode;
                                 if (editing) {
                                   showLeaveConfirmationDialog(() {
-                                    Navigator.of(context).pop();
+                                    Get.offNamed('/szablony');
                                   });
                                 } else {
-                                  Navigator.of(context).pop();
+                                  Get.offNamed('/szablony');
                                 }
                               },
                             ),
@@ -106,7 +110,7 @@ class NewTemplatePage extends StatelessWidget {
                                         templateController.nameController.text.isNotEmpty
                                             ? templateController.nameController.text
                                             : template?.templateName ?? '',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 32,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.logo,
@@ -118,7 +122,7 @@ class NewTemplatePage extends StatelessWidget {
                                       child: TextField(
                                         controller: templateController.nameController,
                                         enabled: true,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 32,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.logo,
@@ -172,10 +176,7 @@ class NewTemplatePage extends StatelessWidget {
                                         if (templateController.errorMessage.isEmpty) {
                                           await templateController.saveTemplate(true);
                                           templateController.isEditMode.value = false;
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(builder: (_) => TemplatesPage()),
-                                          );
+                                          Get.offNamed('/szablony');
                                           showCustomSnackbar(context, 'Szablon został zapisany jako nowy');
                                         }
                                       } else if (action == 'cancel') {
@@ -200,10 +201,7 @@ class NewTemplatePage extends StatelessWidget {
                                   await templateController.checkRuleValues();
                                   if (templateController.errorMessage.isEmpty) {
                                     await templateController.saveTemplate(false);
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => TemplatesPage()),
-                                    );
+                                    Get.offNamed('/szablony');
                                   }
                                 },
                                 backgroundColor: AppColors.blue,
@@ -222,7 +220,7 @@ class NewTemplatePage extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             child: Text(
                               datetimeFormatter.format(template!.insertedAt),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 color: AppColors.textColor2,
                               ),
@@ -236,7 +234,7 @@ class NewTemplatePage extends StatelessWidget {
                     Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                                 BoxShadow(
@@ -248,7 +246,7 @@ class NewTemplatePage extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Text(
+                        Text(
                           'Zasady ogólne:',
                           style: TextStyle(
                             fontSize: 18,
@@ -262,22 +260,14 @@ class NewTemplatePage extends StatelessWidget {
                             spacing: 10,
                             runSpacing: 10,
                             children: [
-                              Flexible(
-                                child: _buildRuleButton(context, templateController, 'minMen',
+                                 _buildRuleButton(context, templateController, 'minMen',
                                     'Min mężczyzn', templateController.minMen, readOnly),
-                              ),
-                              Flexible(
-                                child: _buildRuleButton(context, templateController, 'maxMen',
+                                 _buildRuleButton(context, templateController, 'maxMen',
                                     'Max mężczyzn', templateController.maxMen, readOnly),
-                              ),
-                              Flexible(
-                                child: _buildRuleButton(context, templateController, 'minWomen',
+                                 _buildRuleButton(context, templateController, 'minWomen',
                                     'Min kobiet', templateController.minWomen, readOnly),
-                              ),
-                              Flexible(
-                                child: _buildRuleButton(context, templateController, 'maxWomen',
+                                 _buildRuleButton(context, templateController, 'maxWomen',
                                     'Max kobiet', templateController.maxWomen, readOnly),
-                              ),
                             ],
                           ),
                         ),
@@ -291,7 +281,7 @@ class NewTemplatePage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           templateController.errorMessage.value,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.warning,
@@ -305,7 +295,7 @@ class NewTemplatePage extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: List.generate(days.length, (index) {
-                        return Expanded(
+                        return Flexible(
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 6),
                             decoration: BoxDecoration(
@@ -326,7 +316,7 @@ class NewTemplatePage extends StatelessWidget {
                                       vertical: 10, horizontal: 8),
                                   child: Text(
                                     days[index],
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textColor2,
@@ -338,7 +328,7 @@ class NewTemplatePage extends StatelessWidget {
                                 // przycisk dodawania zmiany (jeżeli nie jest w trybie tylko do odczytu)
                                 if (!readOnly)
                                   IconButton(
-                                    icon: const Icon(Icons.add_circle_outline,
+                                    icon: Icon(Icons.add_circle_outline,
                                         color: AppColors.logo, size: 28),
                                     onPressed: () {
                                       showAddShiftDialog(
@@ -407,7 +397,7 @@ class NewTemplatePage extends StatelessWidget {
                                                 children: [
                                                   Text(
                                                     shift.tagName,
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       color: AppColors.textColor2,
                                                       fontWeight: FontWeight.w600,
                                                     ),
@@ -415,13 +405,13 @@ class NewTemplatePage extends StatelessWidget {
                                                   const SizedBox(height: 4),
                                                   Text(
                                                     '${shift.start.format(context)} - ${shift.end.format(context)}',
-                                                    style: const TextStyle(
-                                                        color: Colors.black87,
+                                                    style: TextStyle(
+                                                        color: AppColors.textColor2,
                                                         fontSize: 13),
                                                   ),
                                                   Text(
                                                     '${shift.count}x',
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       color: AppColors.textColor2,
                                                       fontWeight: FontWeight.bold,
                                                       fontSize: 13,
@@ -451,6 +441,7 @@ class NewTemplatePage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
   
   // genral rule button builder

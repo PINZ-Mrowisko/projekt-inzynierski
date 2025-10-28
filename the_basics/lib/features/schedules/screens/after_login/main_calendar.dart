@@ -204,7 +204,8 @@ String _generateNewSchedule(String sourceId, String sourceType) {
     
     return PopScope(
     canPop: false,
-      child: Scaffold(
+      child: Obx(() {
+      return Scaffold(
         backgroundColor: AppColors.pageBackground,
         body: Row(
           children: [
@@ -223,7 +224,7 @@ String _generateNewSchedule(String sourceId, String sourceType) {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'Grafik ogólny',
                             style: TextStyle(
                               fontSize: 32,
@@ -300,10 +301,10 @@ String _generateNewSchedule(String sourceId, String sourceType) {
                               view: CalendarView.timelineWeek,
                               showDatePickerButton: false,
                               showNavigationArrow: true,
-                              headerStyle: const CalendarHeaderStyle(
+                              headerStyle: CalendarHeaderStyle(
                                 backgroundColor: AppColors.pageBackground,
                                 textAlign: TextAlign.left,
-                                textStyle: TextStyle(
+                                textStyle: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -349,7 +350,8 @@ String _generateNewSchedule(String sourceId, String sourceType) {
             ),
           ],
         ),
-      ),
+      );
+      }),
     );
   }
 
@@ -407,7 +409,7 @@ String _generateNewSchedule(String sourceId, String sourceType) {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 32),
-            const Text(
+            Text(
               "Wybierz opcję eksportu grafiku.",
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -425,8 +427,8 @@ String _generateNewSchedule(String sourceId, String sourceType) {
                   height: 56,
                   child: ElevatedButton.icon(
                     onPressed: () {},
-                    icon: const Icon(Icons.print, color: AppColors.textColor2),
-                    label: const Text(
+                    icon: Icon(Icons.print, color: AppColors.textColor2),
+                    label: Text(
                       "Drukuj",
                       style: TextStyle(
                         fontSize: 14,
@@ -454,8 +456,8 @@ String _generateNewSchedule(String sourceId, String sourceType) {
                         "Grafik został pomyślnie zapisany.",
                       );
                     },
-                    icon: const Icon(Icons.download, color: AppColors.textColor2),
-                    label: const Text(
+                    icon: Icon(Icons.download, color: AppColors.textColor2),
+                    label: Text(
                       "Zapisz jako PDF",
                       style: TextStyle(
                         fontSize: 14,

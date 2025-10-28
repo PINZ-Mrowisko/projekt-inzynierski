@@ -23,6 +23,7 @@ class TagsPage extends StatelessWidget {
       tagsController.resetFilters();
     });
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -42,7 +43,7 @@ class TagsPage extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Tagi',
                           style: TextStyle(
                             fontSize: 32,
@@ -96,6 +97,7 @@ class TagsPage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   Widget _buildAddTagButton(BuildContext context, TagsController controller) {
@@ -133,7 +135,7 @@ class TagsPage extends StatelessWidget {
           ),
           title: Text(
             tag.tagName,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColors.textColor1,
@@ -141,7 +143,7 @@ class TagsPage extends StatelessWidget {
           ),
           subtitle: Text(
             tag.description,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               color: AppColors.textColor2,
             ),

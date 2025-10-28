@@ -31,7 +31,7 @@ class EmployeeManagementPage extends StatelessWidget {
     ever(selectedTags, (tags) {
       userController.filterEmployees(tags);
     });
-
+  return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -51,7 +51,7 @@ class EmployeeManagementPage extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Pracownicy',
                           style: TextStyle(
                             fontSize: 32,
@@ -134,6 +134,7 @@ class EmployeeManagementPage extends StatelessWidget {
         ],
       ),
     );
+  });
   }
 
   Widget _buildTagFilterDropdown(TagsController tagsController, RxList<String> selectedTags) {
@@ -192,7 +193,7 @@ class EmployeeManagementPage extends StatelessWidget {
           ),
           title: Text(
             '${employee.firstName} ${employee.lastName}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColors.textColor1,
@@ -206,7 +207,7 @@ class EmployeeManagementPage extends StatelessWidget {
 
   Widget _buildEmployeeTags(List<String> tags) {
     if (tags.isEmpty) {
-      return const Text(
+      return Text(
         'Brak tagów',
         style: TextStyle(fontSize: 14, color: AppColors.textColor2),
       );
@@ -221,7 +222,7 @@ class EmployeeManagementPage extends StatelessWidget {
                 (tag) => RawChip(
                   label: Text(
                     tag,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Roboto',
                       fontWeight: FontWeight.w600,
                       fontSize: 12,

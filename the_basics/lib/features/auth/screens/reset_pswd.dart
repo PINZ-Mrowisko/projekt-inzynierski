@@ -13,6 +13,7 @@ class ResetPswd extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Center(
@@ -21,7 +22,7 @@ class ResetPswd extends StatelessWidget {
             width: 400,
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: const [
                 BoxShadow(
@@ -39,7 +40,9 @@ class ResetPswd extends StatelessWidget {
                 // logo
                 Center(
                   child: SvgPicture.asset(
-                    'assets/mrowisko_logo_blue.svg',
+                    Get.isDarkMode 
+                      ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                      : 'assets/mrowisko_logo_blue.svg',
                     height: 48,
                   ),
                 ),
@@ -83,5 +86,6 @@ class ResetPswd extends StatelessWidget {
         ),
       ),
     );
+    });
   }
 }

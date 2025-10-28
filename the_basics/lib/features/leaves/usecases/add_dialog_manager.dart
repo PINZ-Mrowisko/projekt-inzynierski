@@ -33,7 +33,7 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
       padding: const EdgeInsets.only(bottom: 22.0),
       child: Text(
         statusMap[type] ?? '',
-        style: const TextStyle(color: AppColors.logo, fontSize: 14),
+        style: TextStyle(color: AppColors.logo, fontSize: 14),
       ),
     );
   });
