@@ -59,7 +59,7 @@ void showWorkCodeRulesDialog(BuildContext context, Function(List<String>) onRule
                           Expanded(
                             child: Text(
                               'Wybierz, które zasady kodeksu pracy zastosować przy generowaniu grafiku',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w400,
                                 fontFamily: 'Roboto',

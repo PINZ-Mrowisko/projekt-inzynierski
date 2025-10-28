@@ -156,7 +156,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, size: 28, color: AppColors.logo),
+                          icon: Icon(Icons.arrow_back, size: 28, color: AppColors.logo),
                           onPressed: () {
                             showLeaveConfirmationDialog(() {
                                     Navigator.of(context).pop();
@@ -164,7 +164,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
                           },
                         ),
                         const SizedBox(width: 16),
-                        const Text(
+                        Text(
                           'Edycja grafiku',
                           style: TextStyle(
                             fontSize: 32,
@@ -219,10 +219,10 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
                             view: CalendarView.timelineWeek,
                             showDatePickerButton: false,
                             showNavigationArrow: true,
-                            headerStyle: const CalendarHeaderStyle(
+                            headerStyle: CalendarHeaderStyle(
                               backgroundColor: AppColors.pageBackground,
                               textAlign: TextAlign.left,
-                              textStyle: TextStyle(
+                              textStyle: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
