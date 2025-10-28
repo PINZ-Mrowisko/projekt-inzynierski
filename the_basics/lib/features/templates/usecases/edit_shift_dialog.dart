@@ -49,7 +49,7 @@ void showEditShiftDialog(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Edytuj zmianę',
             style: TextStyle(
               fontSize: 32,
@@ -60,7 +60,7 @@ void showEditShiftDialog(
           const SizedBox(height: 24),
 
           // tag
-          const Text(
+          Text(
             'Tag',
             style: TextStyle(
               fontSize: 18,
@@ -101,7 +101,7 @@ void showEditShiftDialog(
           const SizedBox(height: 16),
 
           // liczba osób
-          const Text(
+          Text(
             'Liczba osób',
             style: TextStyle(
               fontSize: 18,
@@ -134,7 +134,7 @@ void showEditShiftDialog(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Start zmiany',
                       style: TextStyle(
                         fontSize: 18,
@@ -175,7 +175,7 @@ void showEditShiftDialog(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Koniec zmiany',
                       style: TextStyle(
                         fontSize: 18,
@@ -245,7 +245,7 @@ void showEditShiftDialog(
                       borderRadius: BorderRadius.circular(100),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Usuń',
                     style: TextStyle(
                       fontSize: 14,
@@ -269,7 +269,7 @@ void showEditShiftDialog(
                       borderRadius: BorderRadius.circular(100),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Anuluj',
                     style: TextStyle(
                       fontSize: 14,
@@ -329,7 +329,7 @@ void showEditShiftDialog(
                       borderRadius: BorderRadius.circular(100),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Zapisz',
                     style: TextStyle(
                       fontSize: 14,

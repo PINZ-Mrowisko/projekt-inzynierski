@@ -15,6 +15,7 @@ class SignUpPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(SignUpController());
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Center(
@@ -23,7 +24,7 @@ class SignUpPage extends StatelessWidget {
             width: 400,
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -43,7 +44,9 @@ class SignUpPage extends StatelessWidget {
                     child: Column(
                       children: [
                         SvgPicture.asset(
-                          'assets/mrowisko_logo_blue.svg',
+                            Get.isDarkMode 
+                              ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                              : 'assets/mrowisko_logo_blue.svg',
                           height: 48,
                         ),
 
@@ -177,9 +180,9 @@ class SignUpPage extends StatelessWidget {
                           MaterialPageRoute(builder: (context) => LoginPage()),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         "Zaloguj się",
-                        style: TextStyle(color: Colors.blue),
+                        style: TextStyle(color: AppColors.logo),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -191,5 +194,6 @@ class SignUpPage extends StatelessWidget {
         ),
       ),
     );
+    });
   }
 }

@@ -130,7 +130,8 @@ class _MainCalendarState extends State<MainCalendar> {
     
     return PopScope(
     canPop: false,
-      child: Scaffold(
+      child: Obx(() {
+      return Scaffold(
         backgroundColor: AppColors.pageBackground,
         body: Row(
           children: [
@@ -149,7 +150,7 @@ class _MainCalendarState extends State<MainCalendar> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'Grafik ogólny',
                             style: TextStyle(
                               fontSize: 32,
@@ -214,10 +215,10 @@ class _MainCalendarState extends State<MainCalendar> {
                               view: CalendarView.timelineWeek,
                               showDatePickerButton: false,
                               showNavigationArrow: true,
-                              headerStyle: const CalendarHeaderStyle(
+                              headerStyle: CalendarHeaderStyle(
                                 backgroundColor: AppColors.pageBackground,
                                 textAlign: TextAlign.left,
-                                textStyle: TextStyle(
+                                textStyle: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -263,7 +264,8 @@ class _MainCalendarState extends State<MainCalendar> {
             ),
           ],
         ),
-      ),
+      );
+      }),
     );
   }
 
@@ -321,7 +323,7 @@ class _MainCalendarState extends State<MainCalendar> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 32),
-            const Text(
+            Text(
               "Wybierz opcję eksportu grafiku.",
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -339,8 +341,8 @@ class _MainCalendarState extends State<MainCalendar> {
                   height: 56,
                   child: ElevatedButton.icon(
                     onPressed: () {},
-                    icon: const Icon(Icons.print, color: AppColors.textColor2),
-                    label: const Text(
+                    icon: Icon(Icons.print, color: AppColors.textColor2),
+                    label: Text(
                       "Drukuj",
                       style: TextStyle(
                         fontSize: 14,
@@ -368,8 +370,8 @@ class _MainCalendarState extends State<MainCalendar> {
                         "Grafik został pomyślnie zapisany.",
                       );
                     },
-                    icon: const Icon(Icons.download, color: AppColors.textColor2),
-                    label: const Text(
+                    icon: Icon(Icons.download, color: AppColors.textColor2),
+                    label: Text(
                       "Zapisz jako PDF",
                       style: TextStyle(
                         fontSize: 14,

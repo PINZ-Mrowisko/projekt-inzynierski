@@ -40,7 +40,7 @@ class CustomSearchBar extends StatelessWidget {
             filled: true,
             fillColor: AppColors.white,
             hoverColor: AppColors.transparent,
-            prefixIcon: const Icon(Icons.search, color: AppColors.textColor2),
+            prefixIcon: Icon(Icons.search, color: AppColors.textColor2),
             hintText: hintText,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(28),

@@ -6,23 +6,45 @@ import '/utils/app_colors.dart';
 
 class SideMenuController extends GetxController {
   final RxBool _isExpanded = true.obs;
-  final RxBool _darkMode = false.obs;
+
+  late RxBool isDarkMode;
+
+  final RxString currentRoute = ''.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final Brightness systemBrightness = WidgetsBinding.instance.window.platformBrightness;
+    isDarkMode = RxBool(systemBrightness == Brightness.dark);
+
+    Get.changeThemeMode(isDarkMode.value ? ThemeMode.dark : ThemeMode.light);
+    //to make sure routing doesnt mess up after changing theme
+    currentRoute.value = Get.currentRoute;
+  }
+
 
   bool get isExpanded => _isExpanded.value;
-  bool get darkMode => _darkMode.value;
 
   void toggleExpanded() => _isExpanded.toggle();
-  void toggleDarkMode() => _darkMode.toggle();
+  
+  void toggleDarkMode() {
+    isDarkMode.value = !isDarkMode.value;
+    Get.changeThemeMode(isDarkMode.value ? ThemeMode.dark : ThemeMode.light);
+}
 
   void setExpanded(bool value) => _isExpanded.value = value;
-  void setDarkMode(bool value) => _darkMode.value = value;
+
+  void setDarkMode(bool value) {
+    isDarkMode.value = value;
+    Get.changeThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+  }
 }
 
 class SideMenu extends StatelessWidget {
   SideMenu({Key? key}) : super(key: key);
 
   final userController = Get.find<UserController>();
-  final menuController = Get.put(SideMenuController());
+  final menuController = Get.find<SideMenuController>();
 
   double get _scaleFactor {
     final screenWidth = MediaQuery.of(Get.context!).size.width;
@@ -79,7 +101,9 @@ class SideMenu extends StatelessWidget {
                     constraints: BoxConstraints(
                         maxWidth: menuController.isExpanded ? 250 * _scaleFactor : 60 * _scaleFactor),
                     child: SvgPicture.asset(
-                      'assets/mrowisko_logo_blue.svg',
+                      menuController.isDarkMode.value 
+                        ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                        : 'assets/mrowisko_logo_blue.svg',
                       height: 50 * _scaleFactor,
                       semanticsLabel: 'Mrowisko Logo',
                     ),
@@ -224,7 +248,7 @@ class SideMenu extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.symmetric(horizontal: menuController.isExpanded ? 8 * _scaleFactor : 0),
-          child: const Divider(color: AppColors.divider),
+          child: Divider(color: AppColors.divider),
         ),
         Padding(
           padding: EdgeInsets.symmetric(
@@ -254,69 +278,75 @@ class SideMenu extends StatelessWidget {
   }
 
   Widget _buildDarkModeSwitch() {
-    return SizedBox(
-      height: 56 * _scaleFactor,
-      child: InkWell(
-        onTap: menuController.toggleDarkMode,
-        borderRadius: BorderRadius.circular(15 * _scaleFactor),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8 * _scaleFactor),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              menuController.isExpanded
-                  ? SizedBox(
-                      width: 56 * _scaleFactor,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Obx(() => Switch(
-                          value: menuController.darkMode,
-                          onChanged: (value) => menuController.setDarkMode(value),
-                          activeColor: AppColors.logo,
-                        )),
+  return GetBuilder<SideMenuController>(
+    builder: (controller) {
+      return SizedBox(
+        height: 56 * _scaleFactor,
+        child: InkWell(
+          onTap: controller.toggleDarkMode,
+          borderRadius: BorderRadius.circular(15 * _scaleFactor),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8 * _scaleFactor),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                controller.isExpanded
+                    ? SizedBox(
+                        width: 56 * _scaleFactor,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Switch(
+                            value: menuController.isDarkMode.value,
+                            onChanged: (value) => menuController.setDarkMode(value),
+                            activeColor: AppColors.logo,
+                          ),
+                        ),
+                      )
+                    : Expanded(
+                        child: Center(
+                          child: Switch(
+                            value: menuController.isDarkMode.value,
+                            onChanged: (value) => menuController.setDarkMode(value),
+                            activeColor: AppColors.logo,
+                          ),
+                        ),
                       ),
-                    )
-                  : Expanded(
-                      child: Center(
-                        child: Obx(() => Switch(
-                          value: menuController.darkMode,
-                          onChanged: (value) => menuController.setDarkMode(value),
-                          activeColor: AppColors.logo,
-                        )),
+                if (controller.isExpanded) ...[
+                  SizedBox(width: 12 * _scaleFactor),
+                  Expanded(
+                    child: AnimatedOpacity(
+                      opacity: controller.isExpanded ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Text(
+                        'Tryb ciemny',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 28 * _scaleFactor,
+                          color: AppColors.textColor2,
+                        ),
+                        overflow: TextOverflow.fade,
+                        softWrap: false,
                       ),
-                    ),
-              if (menuController.isExpanded) ...[
-                SizedBox(width: 12 * _scaleFactor),
-                Expanded(
-                  child: AnimatedOpacity(
-                    opacity: menuController.isExpanded ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Text(
-                      'Tryb ciemny',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 28 * _scaleFactor,
-                        color: AppColors.textColor2,
-                      ),
-                      overflow: TextOverflow.fade,
-                      softWrap: false,
                     ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  );
+}
 
   Widget _buildMenuItem({
     required IconData icon,
     required String text,
     required String route,
   }) {
-    final isActive = Get.currentRoute == route;
+
+    return Obx(() {
+    final isActive = menuController.currentRoute.value == route;
     
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: menuController.isExpanded ? 0 : 8 * _scaleFactor),
@@ -395,11 +425,15 @@ class SideMenu extends StatelessWidget {
         ),
       ),
     );
+    });
   }
 
   void _navigateTo(String route) {
     if (Get.currentRoute != route) {
-      Get.toNamed(route);
+      menuController.currentRoute.value = route;
+      Get.toNamed(route)?.then((_) {
+        menuController.currentRoute.value = Get.currentRoute;
+      });
     }
   }
 }

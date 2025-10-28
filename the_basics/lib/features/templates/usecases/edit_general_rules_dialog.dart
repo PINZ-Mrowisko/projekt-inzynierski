@@ -15,7 +15,7 @@ Future<int?> showNumberInputDialog(BuildContext context, String label, int curre
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w400,
               color: AppColors.textColor2,
@@ -25,7 +25,7 @@ Future<int?> showNumberInputDialog(BuildContext context, String label, int curre
           TextField(
             controller: controller,
             keyboardType: TextInputType.number,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w500,
               color: AppColors.textColor2,
@@ -39,7 +39,7 @@ Future<int?> showNumberInputDialog(BuildContext context, String label, int curre
                 borderSide: BorderSide.none,
               ),
               hintText: 'Wpisz wartość...',
-              hintStyle: const TextStyle(color: AppColors.textColor2),
+              hintStyle: TextStyle(color: AppColors.textColor2),
             ),
           ),
           const SizedBox(height: 32),
@@ -57,7 +57,7 @@ Future<int?> showNumberInputDialog(BuildContext context, String label, int curre
                       borderRadius: BorderRadius.circular(100),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Anuluj',
                     style: TextStyle(
                       fontSize: 14,
@@ -76,7 +76,7 @@ Future<int?> showNumberInputDialog(BuildContext context, String label, int curre
                     final value = int.tryParse(controller.text);
                     if (value != null) Get.back(result: value);
                   },
-                  label: const Text(
+                  label: Text(
                     'Zapisz',
                     style: TextStyle(
                       fontSize: 14,

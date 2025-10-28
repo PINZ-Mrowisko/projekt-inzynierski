@@ -15,6 +15,7 @@ class SchedulePage extends StatelessWidget {
       scheduleController.loadSchedule(); // wywołanie tylko raz po starcie
     });
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -51,6 +52,7 @@ class SchedulePage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   Widget _buildScheduleList(ScheduleController controller) {
@@ -93,7 +95,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: const [
+      children: [
         Text(
           'Grafik',
           style: TextStyle(

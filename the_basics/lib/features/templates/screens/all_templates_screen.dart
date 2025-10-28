@@ -24,6 +24,7 @@ class TemplatesPage extends StatelessWidget {
       templateController.resetFilters();
     });
 
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -43,7 +44,7 @@ class TemplatesPage extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Szablony',
                           style: TextStyle(
                             fontSize: 32,
@@ -103,6 +104,7 @@ class TemplatesPage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   Widget _buildAddTemplateButton(BuildContext context, TemplateController controller) {
@@ -113,7 +115,7 @@ class TemplatesPage extends StatelessWidget {
       // navigate to new create controller page
       onPressed: () => (
           controller.clearController(),
-          Get.to(() => NewTemplatePage(isViewMode: false))
+          Get.toNamed('/szablony/nowy-szablon', arguments: {'isViewMode': false})
           //make sure the page isnt set to viewing
       //     Navigator.pushReplacement(
       //   context,
@@ -158,30 +160,34 @@ class TemplatesPage extends StatelessWidget {
           (
           // clear the controller of the changes from last screen
           controller.clearController(),
-          Get.to(() => NewTemplatePage(template: template, isViewMode: true))
+          Get.toNamed('/szablony/edytuj-szablon', arguments: {
+            'template': template, 
+            'isViewMode': true
+          })
       ),
       itemBuilder: (context, template) {
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 12,
-          ),
-          title: Text(
-            template.templateName,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textColor1,
             ),
-          ),
-          subtitle: Text(
-            "${template.insertedAt.day}.${template.insertedAt.month}.${template.insertedAt.year}",
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textColor2,
-            ),
-          ),
-          leading: template.isDataMissing == true
+              title: Text(
+                template.templateName,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textColor1,
+                ),
+              ),
+              subtitle: Text(
+                "${template.insertedAt.day}.${template.insertedAt
+                    .month}.${template.insertedAt.year}",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textColor2,
+                ),
+              ),
+              leading: template.isDataMissing == true
                   ? Icon(Icons.warning_amber, color: Colors.redAccent)
                   : null,
           // trailing delete button
@@ -190,7 +196,7 @@ class TemplatesPage extends StatelessWidget {
               onPressed: () async {
                 confirmDeleteTemplate(template, template.marketId);
               },
-              icon: const Icon(Icons.delete, color: AppColors.warning),
+              icon: Icon(Icons.delete, color: AppColors.warning),
               ),
             );
           },
