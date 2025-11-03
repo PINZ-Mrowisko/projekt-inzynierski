@@ -10,7 +10,6 @@ import '../controllers/leave_controller.dart';
 import '../models/holiday_model.dart';
 
 void showAddEmployeeLeaveDialog(BuildContext context) {
-  final leaveType = RxnString();
   final selectedRange = Rx<PickerDateRange?>(null);
   final userController = Get.find<UserController>();
   final employee = userController.employee.value;
@@ -21,22 +20,6 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
   final holidayMessage = RxString('');
   final overlapMessage = RxString('');
   final numOfHolidays = RxInt(0);
-
-  // final leaveStatusText = Obx(() {
-  //   // final type = leaveType.value;
-  //   // if (type == null) return const SizedBox.shrink();
-  //   // final statusMap = {
-  //   //   'Urlop wypoczynkowy': 'Pozostało dni urlopu wypoczynkowego: ${employee.vacationDays}/20',
-  //   //   'Urlop na żądanie': 'Pozostało dni urlopu na żądanie: ${employee.onDemandDays}/4',
-  //   // };
-  //   return Padding(
-  //     padding: const EdgeInsets.only(bottom: 22.0),
-  //     child: Text(
-  //       statusMap[type] ?? '',
-  //       style: const TextStyle(color: AppColors.logo, fontSize: 14),
-  //     ),
-  //   );
-  // });
 
   final errorText = Obx(() {
     if (errorMessage.value.isEmpty) return const SizedBox.shrink();
@@ -71,12 +54,12 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     );
   });
 
-  void validateDates(PickerDateRange? range) {
+  bool validateDates(PickerDateRange? range) {
     errorMessage.value = '';
     holidayMessage.value = '';
     overlapMessage.value = '';
 
-    if (range == null || range.startDate == null || leaveType.value == null) return;
+    if (range == null || range.startDate == null) return false;
 
     final startDate = range.startDate!;
     final endDate = range.endDate ?? startDate;
@@ -115,57 +98,22 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
       final formatDate = (date) => '${date.day}.${date.month}.${date.year}';
       overlapMessage.value = 'Masz już zaakceptowany urlop w terminie '
           '${formatDate(overlappingLeave.startDate)}-${formatDate(overlappingLeave.endDate)}';
-      return;
+      return false;
     }
 
-    // // Vacation leave validation
-    // if (!isOnDemand) {
-    //   if (startDate.isBefore(today)) {
-    //     errorMessage.value = 'Urlop wypoczynkowy nie może być w przeszłości';
-    //     return;
-    //   }
-    // }
+
 
     if (startDate.isBefore(today)) {
           errorMessage.value = 'Nieobecność nie może być w przeszłości';
-          return;
+          return false;
         }
 
-    // Days availability validation
-    // if (isOnDemand) {
-    //   if (requestedDays > employee.onDemandDays) {
-    //     errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu na żądanie';
-    //     return;
-    //   }
-    //   if (requestedDays > 1) {
-    //     errorMessage.value = 'Urlop na żądanie może trwać maksymalnie 1 dzień';
-    //     return;
-    //   }
-    // } else {
-    //   if (requestedDays > employee.vacationDays) {
-    //     errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu wypoczynkowego';
-    //     return;
-    //   }
-    // }
-    // }
+  return true;
   }
 
   final fields = [
     holidayText,
     overlapText,
-    // DropdownDialogField(
-    //     label: 'Typ urlopu',
-    //     hintText: 'Wybierz typ urlopu',
-    //     items: [
-    //       DropdownItem(value: 'Urlop wypoczynkowy', label: 'Urlop wypoczynkowy'),
-    //       DropdownItem(value: 'Urlop na żądanie', label: 'Urlop na żądanie'),
-    //     ],
-    //     onChanged: (value) {
-    //       leaveType.value = value;
-    //       validateDates(selectedRange.value);
-    //     }
-    // ),
-    // leaveStatusText,
     DatePickerDialogField(
       label: 'Wybierz zakres dat nieobecności',
       selectedRange: selectedRange,
@@ -189,18 +137,15 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     DialogActionButton(
       label: 'Zatwierdź',
       onPressed: () async {
-        if (selectedRange.value == null) {
-          showCustomSnackbar(context, 'Wybierz zakres dat');
-          return;
-        }
-
-        if (errorMessage.value.isNotEmpty) {
-          showCustomSnackbar(context, 'Popraw błędy przed zatwierdzeniem');
-          return;
-        }
-
-        if (overlapMessage.value.isNotEmpty) {
-          showCustomSnackbar(context, 'Masz już urlop w tym terminie.');
+        if (!validateDates(selectedRange.value)) {
+          // Validation failed - show appropriate message
+          if (selectedRange.value == null) {
+            showCustomSnackbar(context, 'Wybierz zakres dat');
+          } else if (errorMessage.value.isNotEmpty) {
+            showCustomSnackbar(context, errorMessage.value);
+          } else if (overlapMessage.value.isNotEmpty) {
+            showCustomSnackbar(context, overlapMessage.value);
+          }
           return;
         }
 
