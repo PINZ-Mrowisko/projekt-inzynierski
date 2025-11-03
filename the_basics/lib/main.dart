@@ -9,6 +9,7 @@ import 'package:the_basics/features/auth/screens/login_page.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
 import 'package:the_basics/features/leaves/screens/employee_leaves_management.dart';
 import 'package:the_basics/features/leaves/screens/manager_leaves_management.dart';
+import 'package:the_basics/features/schedules/screens/after_login/main_calendar_edit.dart';
 import 'package:the_basics/features/schedules/screens/after_login/placeholder_page.dart';
 import 'package:the_basics/features/settings/screens/settings.dart';
 import 'package:the_basics/features/templates/screens/algoritm_screen.dart';
@@ -78,6 +79,7 @@ class MyApp extends StatelessWidget {
                 child: const MainCalendar(),
               ),
         ),
+        GetPage(name: '/grafik-ogolny/edytuj-grafik', page: () => MainCalendarEdit()),
         GetPage(name: '/grafik-indywidualny', page: () => PlaceholderPage()),
         GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => EmployeeLeavesManagementPage()),
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => ManagerLeavesManagementPage()),

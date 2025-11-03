@@ -65,7 +65,7 @@ class TemplatesPage extends StatelessWidget {
                               Flexible(
                                 child: _buildAddTemplateButton(context, templateController),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: 10),
                               Flexible(
                                 child: _buildSortButton(context, templateController),
                               ),
