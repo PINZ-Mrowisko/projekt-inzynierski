@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Import function triggers from their respective submodules:
  *
@@ -30,7 +31,6 @@ exports.createAuthUser = onCall(async (request) => {
     // DEBUGOWANIE - sprawdź co dociera
 //    console.log("=== DEBUG START ===");
 //    console.log("request:", request.data);
-//
 //    console.log("=== DEBUG END ===");
 
   const data = request.data;
@@ -71,3 +71,111 @@ exports.createAuthUser = onCall(async (request) => {
         }
     });
 
+/// SECOND FUNCTION : sending notifs after creating new schedule to all included users
+
+exports.sendScheduleNotification = onCall(async (request) =>
+{
+  const data = request.data;
+  const marketId = data.marketId;
+  const scheduleName = data.scheduleName || "Nowy grafik";
+
+  if (!marketId) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "marketId is required"
+    );
+  }
+
+  try {
+    const title = "Nowy grafik opublikowany";
+    const body = "Kierownik opublikował nowy grafik";
+
+    // Step 1: we fetch all active tokens for all members
+    const membersSnapshot = await admin
+      .firestore()
+      .collection("Markets")
+      .doc(marketId)
+      .collection("members")
+      .get();
+
+    let tokens = [];
+
+    for (const memberDoc of membersSnapshot.docs) {
+      const tokensSnapshot = await memberDoc.ref
+        .collection("FCMTokens")
+        .where("isActive", "==", true)
+        .get();
+
+      tokensSnapshot.forEach((t) => tokens.push(t.data().token));
+    }
+
+    if (tokens.length === 0)
+    {console.log(`No active tokens found for market ${marketId}`);
+      return { success: false, message: "No active tokens found" };}
+
+    // Step 2: Create the notif payload
+    const payload = {
+      notification: {
+        title,
+        body,
+      },
+      data: {
+        type: "NEW_SCHEDULE",
+        marketId,
+      },
+    };
+
+    // Step 3: send notification
+    const response = await admin.messaging().sendEachForMulticast({
+      tokens,
+      notification: payload.notification,
+      data: payload.data,
+    });
+
+    console.log(`Notifications sent: ${response.successCount}`);
+
+    // Step 4: clean up invalid tokens
+    const invalidTokens = [];
+    response.responses.forEach((res, idx) => {
+      if (!res.success) {
+        const error = res.error;
+        if (
+          error.code === "messaging/invalid-registration-token" ||
+          error.code === "messaging/registration-token-not-registered"
+        ) {
+          invalidTokens.push(tokens[idx]);
+        }
+      }
+    });
+
+    // and at the end delete invalid tokens from Firestore
+    for (const invalidToken of invalidTokens) {
+      const memberDocs = await admin
+        .firestore()
+        .collection("Markets")
+        .doc(marketId)
+        .collection("members")
+        .get();
+
+      for (const memberDoc of memberDocs.docs) {
+        const tokenDoc = await memberDoc.ref
+          .collection("FCMTokens")
+          .doc(invalidToken)
+          .get();
+
+        if (tokenDoc.exists) {
+          await tokenDoc.ref.delete();
+          console.log(`Deleted invalid token: ${invalidToken}`);
+        }
+      }
+    }
+
+    return { success: true, sent: response.successCount };
+  } catch (error) {
+    console.error("Error sending notifications:", error);
+    throw new functions.https.HttpsError(
+      "internal",
+      "Error sending notifications: " + error.message
+    );
+  }
+});

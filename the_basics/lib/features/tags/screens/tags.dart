@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/features/notifs/controllers/notif_controller.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../../utils/common_widgets/custom_button.dart';
@@ -101,11 +102,15 @@ class TagsPage extends StatelessWidget {
   }
 
   Widget _buildAddTagButton(BuildContext context, TagsController controller) {
+    final tagsController = Get.find<NotificationController>();
+
+
     return CustomButton(
       text: 'Dodaj Tag',
       icon: Icons.add,
       width: 130,
-      onPressed: () => showAddTagDialog(context, controller),
+      //onPressed: () => showAddTagDialog(context, controller),
+      onPressed: tagsController.testSendScheduleNotification,
     );
   }
 

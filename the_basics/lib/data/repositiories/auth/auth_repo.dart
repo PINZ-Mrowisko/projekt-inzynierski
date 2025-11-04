@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
+import 'package:the_basics/features/notifs/controllers/notif_controller.dart';
 import 'package:the_basics/features/templates/controllers/template_controller.dart';
 import '../../../features/auth/screens/verify_email.dart';
 import '../../../features/schedules/screens/after_login/main_calendar.dart';
@@ -140,6 +141,9 @@ class AuthRepo extends GetxController {
 
       final templateController = Get.find<TemplateController>();
       await templateController.initialize();
+
+      final notifController = Get.find<NotificationController>();
+      await notifController.initializeFCM();
 
     } catch (e) {
       throw(e.toString());
