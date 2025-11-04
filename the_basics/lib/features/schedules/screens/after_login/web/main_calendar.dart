@@ -5,6 +5,7 @@ import 'package:the_basics/features/schedules/usecases/choose_existing_schedule.
 import 'package:the_basics/features/schedules/usecases/choose_schedule_generation_type.dart';
 import 'package:the_basics/features/schedules/usecases/choose_template.dart';
 import 'package:the_basics/features/schedules/usecases/choose_work_code_rules_dialog.dart';
+import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
@@ -271,7 +272,7 @@ String _generateNewSchedule(String sourceId, String sourceType) {
                                 const SizedBox(width: 10),
                                 Flexible(
                                   child: CustomButton(
-                                    onPressed: () => _showExportDialog(context),
+                                    onPressed: () => showExportDialog(context),
                                     text: "Eksportuj",
                                     width: 125,
                                     icon: Icons.download,
@@ -399,88 +400,6 @@ String _generateNewSchedule(String sourceId, String sourceType) {
     );
   }
 
-  void _showExportDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => BaseDialog(
-        width: 551,
-        showCloseButton: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 32),
-            Text(
-              "Wybierz opcję eksportu grafiku.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w400,
-                color: AppColors.textColor2,
-              ),
-            ),
-            const SizedBox(height: 48),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 160,
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: Icon(Icons.print, color: AppColors.textColor2),
-                    label: Text(
-                      "Drukuj",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textColor2,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.lightBlue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 32),
-                SizedBox(
-                  width: 160,
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      showCustomSnackbar(
-                        context,
-                        "Grafik został pomyślnie zapisany.",
-                      );
-                    },
-                    icon: Icon(Icons.download, color: AppColors.textColor2),
-                    label: Text(
-                      "Zapisz jako PDF",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textColor2,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildTagFilterDropdown(TagsController tagsController) {
     return Obx(() {

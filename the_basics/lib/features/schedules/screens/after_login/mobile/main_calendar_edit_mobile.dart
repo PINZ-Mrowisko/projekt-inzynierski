@@ -5,39 +5,42 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/schedules/usecases/show_employee_search_dialog_mobile.dart';
-import 'package:the_basics/features/schedules/usecases/show_export_dialog_mobile.dart';
+import 'package:the_basics/features/schedules/usecases/show_leave_confirmation_dialog_mobile.dart';
+import 'package:the_basics/features/schedules/usecases/show_schedule_publish_confirmation_dialog_mobile.dart';
 import 'package:the_basics/features/schedules/usecases/show_tags_filtering_dialog_mobile.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/base_dialog.dart';
+import 'package:the_basics/utils/common_widgets/confirmation_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/mobile_bottom_menu.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
 
-class MainCalendarMobile extends StatefulWidget {
-  const MainCalendarMobile({super.key});
+class MainCalendarEditMobile extends StatefulWidget {
+  const MainCalendarEditMobile({super.key});
 
   @override
-  State<MainCalendarMobile> createState() => _MainCalendarMobileState();
+  State<MainCalendarEditMobile> createState() => _MainCalendarEditMobileState();
 }
 
-class _MainCalendarMobileState extends State<MainCalendarMobile> {
+class _MainCalendarEditMobileState extends State<MainCalendarEditMobile> {
+  late DateTime initialDate;
   final RxInt _currentMenuIndex = 0.obs;
   final RxList<String> _selectedTags = <String>[].obs;
   DateTime? _lastBackPressTime;
 
   DateTime _visibleStartDate = DateTime.now();
   final int _visibleDays = 3;
-  
+
   final CalendarController _calendarController = CalendarController();
 
   @override
   void initState() {
     super.initState();
-    _calendarController.displayDate =
-        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 8);
+    initialDate = Get.arguments?['initialDate'] ?? DateTime.now();
+    _calendarController.displayDate = initialDate;
 
     final userController = Get.find<UserController>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -54,11 +57,11 @@ class _MainCalendarMobileState extends State<MainCalendarMobile> {
         now.difference(_lastBackPressTime!) > const Duration(seconds: 2);
     if (mustWait) {
       _lastBackPressTime = now;
-      Get.snackbar(
-        'Naciśnij ponownie, aby wyjść',
-        'Naciśnij jeszcze raz, aby zamknąć aplikację',
-        duration: const Duration(seconds: 2),
-      );
+      // Get.snackbar(
+      //   'Naciśnij ponownie, aby wyjść',
+      //   'Naciśnij jeszcze raz, aby zamknąć aplikację',
+      //   duration: const Duration(seconds: 2),
+      // );
       return false;
     }
     return true;
@@ -69,7 +72,7 @@ class _MainCalendarMobileState extends State<MainCalendarMobile> {
     setState(() {
       _visibleStartDate =
           _visibleStartDate.subtract(Duration(days: _visibleDays));
-      _calendarController.displayDate =
+        _calendarController.displayDate =
         DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 8);
     });
   }
@@ -80,6 +83,15 @@ class _MainCalendarMobileState extends State<MainCalendarMobile> {
     _calendarController.displayDate =
         DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 8);
     });
+  }
+
+  // PLACEHOLDER to be implemented
+  void _handlePublishSchedule() {
+    print('Publishing schedule - placeholder');
+
+    Get.back(result: _calendarController.displayDate);
+    
+    showCustomSnackbar(context, 'Grafik został pomyślnie opublikowany');
   }
 
   List<Appointment> _getAppointments(List<UserModel> filteredEmployees) {
@@ -259,16 +271,18 @@ class _MainCalendarMobileState extends State<MainCalendarMobile> {
                           children: [
                             IconButton(
                               onPressed: () {
-                                showTagsFilterDialog(context, _selectedTags);
+                                showLeaveConfirmationDialogMobile(() {
+                                  Navigator.of(context).pop();
+                                });
                               },
-                              icon: const Icon(Icons.filter_alt_outlined, size: 30),
+                              icon: const Icon(Icons.arrow_back_ios, size: 30),
                               color: AppColors.logo,
                             ),
                             IconButton(
                               onPressed: () {
-                                showEmployeeSearchDialog(context, _selectedTags);
+                                showTagsFilterDialog(context, _selectedTags);
                               },
-                              icon: const Icon(Icons.search_outlined, size: 30),
+                              icon: const Icon(Icons.filter_alt_outlined, size: 30),
                               color: AppColors.logo,
                             ),
                           ],
@@ -279,19 +293,18 @@ class _MainCalendarMobileState extends State<MainCalendarMobile> {
                         right: 0,
                         child: Row(
                           children: [
-                            SizedBox(width: 4),
                             IconButton(
                               onPressed: () {
-                                Get.toNamed('/grafik-ogolny/edytuj-grafik', arguments: {'initialDate': _calendarController.displayDate});
+                                showEmployeeSearchDialog(context, _selectedTags);
                               },
-                              icon: const Icon(Icons.edit_outlined, size: 30),
+                              icon: const Icon(Icons.search_outlined, size: 30),
                               color: AppColors.logo,
                             ),
                             IconButton(
                               onPressed: () {
-                                showExportDialogMobile(context);
+                                showPublishConfirmationDialogMobile(_handlePublishSchedule);
                               },
-                              icon: const Icon(Icons.download_outlined, size: 30),
+                              icon: const Icon(Icons.upload_outlined, size: 30),
                               color: AppColors.logo,
                             ),
                           ],
@@ -363,9 +376,13 @@ class _MainCalendarMobileState extends State<MainCalendarMobile> {
             itemCount: employees.length,
             itemBuilder: (context, index) =>
                 _buildEmployeeCalendar(employees[index], employees),
-          );
+           );
         }),
-        bottomNavigationBar: MobileBottomMenu(currentIndex: _currentMenuIndex),
+        bottomNavigationBar: MobileBottomMenu(currentIndex: _currentMenuIndex, onNavigation: (route) {
+              showLeaveConfirmationDialogMobile(() {
+              Get.toNamed(route);
+          });
+        },),
       ),
     );
   }

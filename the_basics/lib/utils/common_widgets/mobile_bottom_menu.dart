@@ -4,10 +4,12 @@ import 'package:the_basics/utils/app_colors.dart';
 
 class MobileBottomMenu extends StatelessWidget {
   final RxInt currentIndex;
+  final Function(String route)? onNavigation;
 
   const MobileBottomMenu({
     super.key,
     required this.currentIndex,
+    this.onNavigation
   });
 
   @override
@@ -73,7 +75,7 @@ class MobileBottomMenu extends StatelessWidget {
     switch (index) {
       case 0:
         if (ModalRoute.of(context)?.settings.name != '/grafik-ogolny') {
-          Get.offAllNamed('/grafik-ogolny');
+          _navigateTo('/grafik-ogolny');
         }
         break;
       case 1:
@@ -94,4 +96,15 @@ class MobileBottomMenu extends StatelessWidget {
       duration: const Duration(seconds: 2),
     );
   }
+
+  void _navigateTo(String route) {
+    if (Get.currentRoute != route) {
+      if (onNavigation != null) {
+        onNavigation!(route);
+      } else {
+        Get.toNamed(route);
+      }
+    }
+  }
 }
+
