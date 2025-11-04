@@ -16,14 +16,14 @@ import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
 
-class MainCalendarMobile extends StatefulWidget {
-  const MainCalendarMobile({super.key});
+class ManagerMainCalendarMobile extends StatefulWidget {
+  const ManagerMainCalendarMobile({super.key});
 
   @override
-  State<MainCalendarMobile> createState() => _MainCalendarMobileState();
+  State<ManagerMainCalendarMobile> createState() => _ManagerMainCalendarMobileState();
 }
 
-class _MainCalendarMobileState extends State<MainCalendarMobile> {
+class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
   final RxInt _currentMenuIndex = 0.obs;
   final RxList<String> _selectedTags = <String>[].obs;
   DateTime? _lastBackPressTime;
@@ -282,7 +282,7 @@ class _MainCalendarMobileState extends State<MainCalendarMobile> {
                             SizedBox(width: 4),
                             IconButton(
                               onPressed: () {
-                                Get.toNamed('/grafik-ogolny/edytuj-grafik', arguments: {'initialDate': _calendarController.displayDate});
+                                Get.toNamed('/grafik-ogolny-kierownik/edytuj-grafik', arguments: {'initialDate': _calendarController.displayDate});
                               },
                               icon: const Icon(Icons.edit_outlined, size: 30),
                               color: AppColors.logo,

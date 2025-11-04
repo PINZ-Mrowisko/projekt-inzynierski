@@ -6,11 +6,14 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/features/auth/screens/login_page.dart';
+import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
 import 'package:the_basics/features/leaves/screens/employee_leaves_management.dart';
 import 'package:the_basics/features/leaves/screens/manager_leaves_management.dart';
+import 'package:the_basics/features/schedules/screens/after_login/mobile/employee_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/main_calendar_edit_mobile.dart';
-import 'package:the_basics/features/schedules/screens/after_login/mobile/main_calendar_mobile.dart';
+import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/employee_main_calendar.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar_edit.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/placeholder_page.dart';
 import 'package:the_basics/features/settings/screens/settings.dart';
@@ -25,7 +28,7 @@ import 'package:the_basics/utils/common_widgets/side_menu.dart';
 import 'package:the_basics/utils/platform_wrapper.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
-import 'features/schedules/screens/after_login/web/main_calendar.dart';
+import 'features/schedules/screens/after_login/web/manager_main_calendar.dart';
 import 'features/tags/screens/tags.dart';
 import 'features/schedules/screens/before_login/about_page.dart';
 import 'features/schedules/screens/before_login/features_page.dart';
@@ -77,14 +80,22 @@ class MyApp extends StatelessWidget {
 
         GetPage(name: '/dashboard', page: () => PlaceholderPage()),
         GetPage(
-          name: '/grafik-ogolny',
+          name: '/grafik-ogolny-kierownik',
           page:
               () => PopScope(
                 canPop: false,
-                child: PlatformWrapper(mobile: MainCalendarMobile(), web: MainCalendar())
+                child: PlatformWrapper(mobile: ManagerMainCalendarMobile(), web: ManagerMainCalendar())
               ),
         ),
-        GetPage(name: '/grafik-ogolny/edytuj-grafik', page: () => PlatformWrapper(mobile: MainCalendarEditMobile(), web: MainCalendarEdit())),
+        GetPage(
+          name: '/grafik-ogolny-pracownicy',
+          page:
+              () => PopScope(
+                canPop: false,
+                child: PlatformWrapper(mobile: EmployeeMainCalendarMobile(), web: EmployeeMainCalendar())
+              ),
+        ),
+        GetPage(name: '/grafik-ogolny-kierownik/edytuj-grafik', page: () => PlatformWrapper(mobile: MainCalendarEditMobile(), web: MainCalendarEdit())),
         GetPage(name: '/grafik-indywidualny', page: () => PlaceholderPage()),
         GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => EmployeeLeavesManagementPage()),
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => ManagerLeavesManagementPage()),
@@ -164,9 +175,21 @@ class AuthWrapper extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           } else {
-            return PlatformWrapper(mobile: MainCalendarMobile(), web: MainCalendar());
-          }
-        }
+            final userController = Get.find<UserController>();
+
+                if (userController.isAdmin.value) {
+                  return PlatformWrapper(
+                    mobile: ManagerMainCalendarMobile(), 
+                    web: ManagerMainCalendar(),
+                  );
+                } else {
+                  return PlatformWrapper(
+                    mobile: EmployeeMainCalendarMobile(), 
+                    web: EmployeeMainCalendar(),
+                  );
+                }
+              }
+            }
         // user is not logged in, show login page
         return LoginPage();
       },

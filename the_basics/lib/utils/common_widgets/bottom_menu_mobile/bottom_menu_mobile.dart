@@ -75,31 +75,32 @@ class MobileBottomMenu extends StatelessWidget {
   }
 
   void _navigateToPage(int index, BuildContext context) {
+    final isAdmin = userController.isAdmin.value;
+
     switch (index) {
       case 0:
-        if (ModalRoute.of(context)?.settings.name != '/grafik-ogolny') {
-          _navigateTo('/grafik-ogolny');
+        final route = isAdmin ? '/grafik-ogolny-kierownik' : '/grafik-ogolny-pracownicy';
+        if (ModalRoute.of(context)?.settings.name != route) {
+          _navigateTo(route);
         }
         break;
+
       case 1:
-        _showPlaceholderSnackbar('Grafik indywidualny - w budowie');
+        if (ModalRoute.of(context)?.settings.name != '/grafik-indywidualny') {
+          _navigateTo('/grafik-indywidualny');
+        }
         break;
+
       case 2:
-        final isAdmin = userController.isAdmin.value;
         final route = isAdmin ? '/wiecej-kierownik' : '/wiecej-pracownicy';
-        _navigateTo(route);
+        if (ModalRoute.of(context)?.settings.name != route) {
+          _navigateTo(route);
+        }
+        break;
+
+      default:
         break;
     }
-  }
-
-  void _showPlaceholderSnackbar(String message) {
-    Get.snackbar(
-      'Informacja',
-      message,
-      backgroundColor: AppColors.lightBlue,
-      colorText: AppColors.white,
-      duration: const Duration(seconds: 2),
-    );
   }
 
   void _navigateTo(String route) {
