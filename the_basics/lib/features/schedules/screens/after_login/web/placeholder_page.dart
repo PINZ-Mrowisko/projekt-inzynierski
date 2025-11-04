@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/utils/app_colors.dart';
-import '../../../../utils/common_widgets/side_menu.dart';
-import '../../../employees/controllers/user_controller.dart';
+import '../../../../../utils/common_widgets/side_menu.dart';
+import '../../../../employees/controllers/user_controller.dart';
 
 class PlaceholderPage extends StatelessWidget {
   const PlaceholderPage({super.key});

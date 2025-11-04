@@ -9,8 +9,9 @@ import 'package:the_basics/features/auth/screens/login_page.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
 import 'package:the_basics/features/leaves/screens/employee_leaves_management.dart';
 import 'package:the_basics/features/leaves/screens/manager_leaves_management.dart';
-import 'package:the_basics/features/schedules/screens/after_login/main_calendar_edit.dart';
-import 'package:the_basics/features/schedules/screens/after_login/placeholder_page.dart';
+import 'package:the_basics/features/schedules/screens/after_login/mobile/main_calendar_mobile.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar_edit.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/placeholder_page.dart';
 import 'package:the_basics/features/settings/screens/settings.dart';
 import 'package:the_basics/features/templates/screens/algoritm_screen.dart';
 import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
@@ -18,9 +19,10 @@ import 'package:the_basics/features/templates/screens/new_tempalte_screen.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
+import 'package:the_basics/utils/platform_wrapper.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
-import 'features/schedules/screens/after_login/main_calendar.dart';
+import 'features/schedules/screens/after_login/web/main_calendar.dart';
 import 'features/tags/screens/tags.dart';
 import 'features/schedules/screens/before_login/about_page.dart';
 import 'features/schedules/screens/before_login/features_page.dart';
@@ -76,7 +78,7 @@ class MyApp extends StatelessWidget {
           page:
               () => PopScope(
                 canPop: false,
-                child: const MainCalendar(),
+                child: PlatformWrapper(mobile: MainCalendarMobile(), web: MainCalendar())
               ),
         ),
         GetPage(name: '/grafik-ogolny/edytuj-grafik', page: () => MainCalendarEdit()),
@@ -157,7 +159,7 @@ class AuthWrapper extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           } else {
-            return MainCalendar();
+            return PlatformWrapper(mobile: MainCalendarMobile(), web: MainCalendar());
           }
         }
         // user is not logged in, show login page

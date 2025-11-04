@@ -8,11 +8,11 @@ import 'package:the_basics/features/schedules/usecases/choose_work_code_rules_di
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
-import '../../../../utils/common_widgets/side_menu.dart';
-import '../../../../utils/platform_controller.dart';
-import '../../../employees/controllers/user_controller.dart';
-import '../../../../utils/app_colors.dart';
-import '../../../tags/controllers/tags_controller.dart';
+import '../../../../../utils/common_widgets/side_menu.dart';
+import '../../../../../utils/platform_controller.dart';
+import '../../../../employees/controllers/user_controller.dart';
+import '../../../../../utils/app_colors.dart';
+import '../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
@@ -466,7 +466,7 @@ String _generateNewSchedule(String sourceId, String sourceType) {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.lightBlue,
+                      backgroundColor: AppColors.blue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(100),
                       ),
