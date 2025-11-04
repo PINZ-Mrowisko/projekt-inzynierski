@@ -19,6 +19,8 @@ import 'package:the_basics/features/templates/screens/all_templates_screen.dart'
 import 'package:the_basics/features/templates/screens/new_tempalte_screen.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
+import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/employee_more_page_mobile.dart';
+import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/manager_more_page_mobile.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
 import 'package:the_basics/utils/platform_wrapper.dart';
 import 'package:the_basics/utils/route_observer.dart';
@@ -97,6 +99,8 @@ class MyApp extends StatelessWidget {
 
         GetPage(name: '/ustawienia', page: () => SettingsScreen()),
         GetPage(name: '/login', page: () => LoginPage()),
+        GetPage(name: '/wiecej-pracownicy', page: () => EmployeeMorePageMobile()),
+        GetPage(name: '/wiecej-kierownik', page: () => ManagerMorePageMobile()),
       ],
       title: 'Mrowisko',
       //navigatorKey: navigatorKey,

@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/utils/app_colors.dart';
+import 'package:the_basics/features/employees/controllers/user_controller.dart';
 
 class MobileBottomMenu extends StatelessWidget {
   final RxInt currentIndex;
   final Function(String route)? onNavigation;
 
-  const MobileBottomMenu({
+  MobileBottomMenu({
     super.key,
     required this.currentIndex,
-    this.onNavigation
+    this.onNavigation,
   });
+
+  final userController = Get.find<UserController>();
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +85,9 @@ class MobileBottomMenu extends StatelessWidget {
         _showPlaceholderSnackbar('Grafik indywidualny - w budowie');
         break;
       case 2:
-        _showPlaceholderSnackbar('Menu więcej - w budowie');
+        final isAdmin = userController.isAdmin.value;
+        final route = isAdmin ? '/wiecej-kierownik' : '/wiecej-pracownicy';
+        _navigateTo(route);
         break;
     }
   }
@@ -107,4 +112,3 @@ class MobileBottomMenu extends StatelessWidget {
     }
   }
 }
-

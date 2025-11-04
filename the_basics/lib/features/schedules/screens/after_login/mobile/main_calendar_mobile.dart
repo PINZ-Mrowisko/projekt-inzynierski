@@ -11,7 +11,7 @@ import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
-import 'package:the_basics/utils/common_widgets/mobile_bottom_menu.dart';
+import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/bottom_menu_mobile.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
@@ -226,7 +226,7 @@ class _MainCalendarMobileState extends State<MainCalendarMobile> {
     return PopScope(
       canPop: false,
       onPopInvoked: (_) => _onWillPop(),
-      child: Scaffold(
+      child: Obx(() => Scaffold(
         backgroundColor: AppColors.pageBackground,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(140),
@@ -367,6 +367,7 @@ class _MainCalendarMobileState extends State<MainCalendarMobile> {
         }),
         bottomNavigationBar: MobileBottomMenu(currentIndex: _currentMenuIndex),
       ),
+      )
     );
   }
 }
