@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
+import 'package:the_basics/features/notifs/controllers/notif_controller.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
@@ -305,6 +306,10 @@ class ManagerLeavesManagementPage extends StatelessWidget {
               final newLeave = leave.copyWith(status: "odrzucony");
               controller.updateLeave(newLeave);
 
+              /// notify employee about status change : send notif
+              Get.find<NotificationController>().leaveStatusChangeNotification(leave.userId, "denied");
+
+
               showCustomSnackbar(context,'Wniosek odrzucony');
 
             } catch (e) {
@@ -323,6 +328,11 @@ class ManagerLeavesManagementPage extends StatelessWidget {
             controller.updateLeave(newLeave);
 
             /// CHNAGE STATUS TO ZAAKCEPTOWANY
+
+            /// send notif to user about leave status change
+            print(leave.userId);
+            Get.find<NotificationController>().leaveStatusChangeNotification(leave.userId, "accepted");
+
             showCustomSnackbar(context,'Wniosek zaakceptowany');
           },
         ),

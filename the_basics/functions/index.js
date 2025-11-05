@@ -179,3 +179,106 @@ exports.sendScheduleNotification = onCall(async (request) =>
     );
   }
 });
+
+
+// third function : notify user when their leave request status changes
+
+exports.sendLeaveStatusNotification = onCall(async (request) => {
+  const data = request.data;
+  const marketId = data.marketId;
+  const userId = data.userId;
+  const decision = data.decision;
+
+  if (!marketId || !userId || !decision) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "marketId, userId, and decision are required"
+    );
+  }
+
+  try {
+
+    const title = "Status prośby o nieobecność";
+    const body =
+      decision === "accepted"
+        ? "Twoja prośba o nieobecność została zaakceptowana"
+        : "Twoja prośba o nieobecność została odrzucona";
+
+    const tokensSnapshot = await admin
+      .firestore()
+      .collection("Markets")
+      .doc(marketId)
+      .collection("members")
+      .doc(userId)
+      .collection("FCMTokens")
+      .where("isActive", "==", true)
+      .get();
+
+    if (tokensSnapshot.empty) {
+      console.log(`No active tokens for user ${userId} in market ${marketId}`);
+      return { success: false, message: "No active tokens found" };
+    }
+
+    const tokens = tokensSnapshot.docs.map((doc) => doc.data().token);
+
+    const payload = {
+      notification: {
+        title,
+        body,
+      },
+      data: {
+        type: "LEAVE_STATUS_CHANGE",
+        decision,
+        marketId,
+        userId,
+      },
+    };
+
+    const response = await admin.messaging().sendEachForMulticast({
+      tokens,
+      notification: payload.notification,
+      data: payload.data,
+    });
+
+    console.log(`Leave status notifications sent: ${response.successCount}`);
+
+    // clean up invalid tokens
+    const invalidTokens = [];
+    response.responses.forEach((res, idx) => {
+      if (!res.success) {
+        const error = res.error;
+        if (
+          error.code === "messaging/invalid-registration-token" ||
+          error.code === "messaging/registration-token-not-registered"
+        ) {
+          invalidTokens.push(tokens[idx]);
+        }
+      }
+    });
+
+    for (const invalidToken of invalidTokens) {
+      const tokenDocs = await admin
+        .firestore()
+        .collection("Markets")
+        .doc(marketId)
+        .collection("members")
+        .doc(userId)
+        .collection("FCMTokens")
+        .where("token", "==", invalidToken)
+        .get();
+
+      for (const doc of tokenDocs.docs) {
+        await doc.ref.delete();
+        console.log(`Deleted invalid token for user ${userId}: ${invalidToken}`);
+      }
+    }
+
+    return { success: true, sent: response.successCount };
+  } catch (error) {
+    console.error("Error sending leave status notification:", error);
+    throw new functions.https.HttpsError(
+      "internal",
+      "Error sending leave status notification: " + error.message
+    );
+  }
+});
