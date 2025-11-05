@@ -201,4 +201,23 @@ class UserRepo extends GetxController {
     }
     throw 'Nie mam go';
   }
+
+  Future<UserModel?> getManager(String marketId) async {
+    final query = await _db
+        .collection("Markets")
+        .doc(marketId)
+        .collection("members")
+        .where("role", isEqualTo: "admin")
+        .limit(1)
+        .get();
+
+    if (query.docs.isNotEmpty) {
+      final doc = query.docs.first;
+      return UserModel.fromMap(doc);
+    }
+
+    return null; // No manager found
+  }
+
+
 }

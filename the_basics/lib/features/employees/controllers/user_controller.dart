@@ -251,6 +251,16 @@ class UserController extends GetxController {
     }
   }
 
+  Future<String?> getManagerId(String marketId) async {
+    try {
+      final UserModel? user= await userRepo.getManager(marketId);
+      return user?.id;
+    } catch (e) {
+      Get.snackbar('Error', 'Nie udało się wyłowić pracownika: ${e.toString()}');
+      return null;
+    }
+  }
+
   void filterEmployeesByTags(List<String> selectedTags) {
     if (selectedTags.isEmpty) {
       filteredEmployees.assignAll(allEmployees);

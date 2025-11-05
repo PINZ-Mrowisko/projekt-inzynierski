@@ -148,6 +148,8 @@ class LeaveController extends GetxController {
           .doc()
           .id;
 
+      final String? manID = await userController.getManagerId(marketId);
+
       final newLeave = LeaveModel(
         id: leaveId,
         name: '${userController.employee.value.firstName} ${userController.employee.value.lastName}',
@@ -160,6 +162,7 @@ class LeaveController extends GetxController {
         insertedAt: DateTime.now(),
         updatedAt: DateTime.now(),
         leaveType: leaveType,
+        managerId: manID
       );
 
       await _leaveRepo.saveLeave(newLeave);

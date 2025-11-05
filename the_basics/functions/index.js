@@ -14,6 +14,8 @@ const {onCall} = require("firebase-functions/v2/https");
 const functions = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const {setGlobalOptions} = require("firebase-functions/v2");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { getFirestore } = require("firebase-admin/firestore");
 // const {initializeApp} = require("firebase-admin/app");
 
 // const {getAuth} = require("firebase-admin/auth");
@@ -282,3 +284,59 @@ exports.sendLeaveStatusNotification = onCall(async (request) => {
     );
   }
 });
+
+// this will trigger automatically when user creates a new leave, manager will get notifed
+exports.notifyNewLeaveRequest = onDocumentCreated(
+  "Markets/{marketId}/LeaveReq/{leaveId}",
+  async (event) => {
+    const snap = event.data;
+    if (!snap) return;
+
+    const newLeave = snap.data();
+    const marketId = event.params.marketId;
+    const managerId = newLeave.managerId;
+
+    if (!managerId) {
+      console.log("No managerId found in leave request.");
+      return;
+    }
+
+    // Fetch manager tokens
+    const tokensSnapshot = await admin
+      .firestore()
+      .collection("Markets")
+      .doc(marketId)
+      .collection("members")
+      .doc(managerId)
+      .collection("FCMTokens")
+      .where("isActive", "==", true)
+      .get();
+
+    const tokens = tokensSnapshot.docs.map((doc) => doc.data().token);
+    if (tokens.length === 0) {
+      console.log(`No active tokens for manager ${managerId}`);
+      return;
+    }
+
+    // Send FCM notification
+    const payload = {
+      notification: {
+        title: "Nowa prośba o nieobecność",
+        body: "Jeden z pracowników wysłał nową prośbę o nieobecność.",
+      },
+      data: {
+        type: "NEW_LEAVE_REQUEST",
+        marketId,
+        leaveId: event.params.leaveId,
+      },
+    };
+
+    const response = await admin.messaging().sendEachForMulticast({
+      tokens,
+      notification: payload.notification,
+      data: payload.data,
+    });
+
+    console.log(`Leave request notification sent: ${response.successCount}`);
+  }
+);
