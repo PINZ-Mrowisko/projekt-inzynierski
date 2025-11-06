@@ -3,6 +3,7 @@ import 'package:the_basics/data/repositiories/other/leave_repo.dart';
 import 'package:the_basics/data/repositiories/other/notifs/token_repo.dart';
 import 'package:the_basics/data/repositiories/other/template_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
+import 'package:the_basics/data/repositiories/user/user_settings_repo.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/notifs/controllers/notif_controller.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
@@ -23,6 +24,7 @@ class AppBindings implements Bindings {
     Get.put(LeaveRepo());
     Get.put(TemplateRepo());
     Get.put(TokenRepo());
+    Get.put(SettingsRepo());
     // Get.lazyPut(() => AuthRepo(), fenix: true);
     // Get.lazyPut(() => UserRepo(), fenix: true);
     // Get.lazyPut(() => TagsRepo(), fenix: true);

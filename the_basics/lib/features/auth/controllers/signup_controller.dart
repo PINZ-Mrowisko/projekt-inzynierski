@@ -4,10 +4,12 @@ import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/data/repositiories/other/tags_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
+import 'package:the_basics/data/repositiories/user/user_settings_repo.dart';
 import 'package:the_basics/features/auth/screens/verify_email.dart';
 import 'package:the_basics/features/tags/models/tags_model.dart';
 
 import '../../../data/repositiories/other/market_repo.dart';
+import '../../employees/models/user_settings_model.dart';
 import '../models/market_model.dart';
 import '../models/user_model.dart';
 
@@ -103,6 +105,22 @@ class SignUpController extends GetxController {
       /// this saves the User in the User collection, for now lets leave it
       final userRepo = Get.put(UserRepo());
       userRepo.saveUser(newUserTemp);
+
+
+      /// presave settings for manager
+      final settings = SettingsModel(
+          userId: userCredential.user!.uid,
+          insertedAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          newSchedule: true,
+          leaveRequests: false,
+          leaveStatus: true
+      );
+
+      final settingsRepo = Get.put(SettingsRepo());
+      await settingsRepo.saveSettings(settings, marketId);
+
+
 
       final newMarket = MarketModel(
         id: marketId,

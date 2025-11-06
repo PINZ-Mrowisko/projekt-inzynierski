@@ -11,55 +11,104 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final UserController userController = Get.find();
+    userController.loadSettings();
 
     return Obx(() {
-    return Scaffold(
-      backgroundColor: AppColors.pageBackground,
-      appBar: AppBar(title: const Text('Settings')),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Users who haven’t logged in:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      final settings = userController.settings.value;
+
+      if (settings == null) {
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      return Scaffold(
+        backgroundColor: AppColors.pageBackground,
+        appBar: AppBar(title: const Text('Ustawienia')),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Notification settings section
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Ustawienia powiadomień',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildSwitchTile(
+                    title: 'Powiadom mnie o nowych grafikach, których jestem częscią',
+                    value: settings.newSchedule,
+                    onChanged: (val) {
+                      userController.updateSettings(
+                          field: 'newSchedule', value: val);
+                    },
+                  ),
+                  _buildSwitchTile(
+                    title: 'Powiadom mnie o zmianach statusu moich wniosków o nieobecność',
+                    value: settings.leaveStatus,
+                    onChanged: (val) {
+                      userController.updateSettings(
+                          field: 'leaveStatus', value: val);
+                    },
+                  ),
+                  _buildSwitchTile(
+                    title: 'Powiadom mnie o nowych wnioskach o nieobecność wymagających zatwierdzenia',
+                    value: settings.leaveRequests,
+                    onChanged: (val) {
+                      userController.updateSettings(
+                          field: 'leaveRequests', value: val);
+                    },
+                  ),
+
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: Obx(() {
-              final users = userController.allEmployees
-                  .where((user) => user.hasLoggedIn == false)
-                  .toList();
+            const Divider(),
+            // Users who haven’t logged in section
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Użytkownicy, którzy jeszcze nie zalogowali się do aplikacji:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Expanded(
+              child: Obx(() {
+                final users = userController.allEmployees
+                    .where((user) => user.hasLoggedIn == false)
+                    .toList();
 
-              if (users.isEmpty) {
-                return const Center(child: Text('All users have logged in! 🎉'));
-              }
+                if (users.isEmpty) {
+                  return const Center(child: Text('All users have logged in! 🎉'));
+                }
 
-              return ListView.builder(
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  final user = users[index];
-                  return ListTile(
-                    title: Text('${user.firstName} ${user.lastName}'),
-                    subtitle: Text(user.email),
-                    trailing: IconButton(
-                      icon: Icon(Icons.lock_reset),
-                      onPressed: () => _sendResetEmail(user),
-                    ),
-                  );
-                },
-              );
-            }),
-          ),
-        ],
-      ),
-    );
+                return ListView.builder(
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    return ListTile(
+                      title: Text('${user.firstName} ${user.lastName}'),
+                      subtitle: Text(user.email),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.lock_reset),
+                        onPressed: () => _sendResetEmail(user),
+                      ),
+                    );
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
+      );
     });
   }
 
   void _sendResetEmail(UserModel employee) async {
-    //final now = DateTime.now();
     try {
       Get.put(ForgetPswdController());
       await ForgetPswdController.instance.resendPswdResetEmail(employee.email);
@@ -67,5 +116,18 @@ class SettingsScreen extends StatelessWidget {
     } catch (e) {
       Get.snackbar("Błąd", "Nie udało się wysłać e-maila: ${e.toString()}");
     }
+  }
+
+  Widget _buildSwitchTile({
+    required String title,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return SwitchListTile(
+      title: Text(title),
+      value: value,
+      onChanged: onChanged,
+      activeColor: AppColors.lightBlue,
+    );
   }
 }

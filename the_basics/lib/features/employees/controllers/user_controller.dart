@@ -6,18 +6,22 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
+import '../../../data/repositiories/user/user_settings_repo.dart';
 import '../../../utils/common_widgets/notification_snackbar.dart';
+import '../models/user_settings_model.dart';
 
 class UserController extends GetxController {
   static UserController get instance => Get.find();
 
   Rx<UserModel> employee = UserModel.empty().obs;
+  final Rx<SettingsModel?> settings = Rx<SettingsModel?>(null);
 
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
 
   //final userRepo = Get.put(UserRepo());
   final UserRepo userRepo = Get.find();
+  final SettingsRepo _settingsRepo = Get.find();
 
   final localStorage = GetStorage();
 
@@ -35,6 +39,7 @@ class UserController extends GetxController {
     try {
       isLoading(true);
       final user = await fetchCurrentUserRecord();
+      loadSettings();
 
       await fetchAllEmployees();
         } catch (e) {
@@ -260,6 +265,53 @@ class UserController extends GetxController {
       return null;
     }
   }
+
+
+  /// //////////////////////// ///
+  ///    SETTINGS CONTROL    /////
+  /// /////////////////////// ///
+
+  /// Load settings from repo
+  Future<void> loadSettings() async {
+    if (employee.value.id.isEmpty) return;
+    try {
+      print("here trying");
+      final fetchedSettings = await _settingsRepo.getSettings(
+        employee.value.id,
+        employee.value.marketId,
+      );
+      print("oura");
+      settings.value = fetchedSettings;
+    } catch (e) {
+      print('Error loading settings: $e');
+    }
+  }
+
+  Future<void> updateSettings({
+    required String field,
+    required bool value,
+  }) async {
+    if (settings.value == null) return;
+
+    // create new settings with updated field
+    SettingsModel updated = settings.value!;
+
+    if (field == "newSchedule") {
+      updated = settings.value!.copyWith(newSchedule: value);
+    } else if (field == "leaveStatus") {
+      updated = settings.value!.copyWith(leaveStatus: value);
+    } else if (field == "leaveRequests") {
+      updated = settings.value!.copyWith(leaveRequests: value);
+    }
+    try {
+      await _settingsRepo.updateSettings(updated, employee.value.marketId);
+      settings.value = updated; // update local state
+    } catch (e) {
+      print('Error updating $field: $e');
+    }
+  }
+
+
 
   void filterEmployeesByTags(List<String> selectedTags) {
     if (selectedTags.isEmpty) {

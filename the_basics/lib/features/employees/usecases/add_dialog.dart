@@ -94,6 +94,7 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
               .doc(userController.employee.value.marketId)
               .collection('members')
               .where('email', isEqualTo: email)
+              .where('isDeleted', isEqualTo: false)
               .limit(1)
               .get();
 

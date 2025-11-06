@@ -13,7 +13,7 @@ class VerifyEmailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final verifyController = Get.put(VerifyEmailController());
 
-    return Obx(() {
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -85,6 +85,6 @@ class VerifyEmailScreen extends StatelessWidget {
         ],
       ),
     );
-    });
+
   }
 }
