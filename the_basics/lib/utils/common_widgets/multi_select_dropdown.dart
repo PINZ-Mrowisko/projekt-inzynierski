@@ -125,7 +125,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                                     title: Text(
                                       item,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontFamily: 'Inter',
                                         fontWeight: FontWeight.w400,
@@ -152,7 +152,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                                 borderRadius: BorderRadius.circular(100),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Zapisz',
                               style: TextStyle(
                                 color: AppColors.textColor2,
@@ -207,7 +207,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
             hoverColor: AppColors.transparent,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(
+              borderSide: BorderSide(
                 color: AppColors.textColor2,
                 width: 1,
               ),
@@ -238,7 +238,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Icon(Icons.arrow_drop_down, color: AppColors.textColor2),
+                Icon(Icons.arrow_drop_down, color: AppColors.textColor2),
               ],
             ),
           ),

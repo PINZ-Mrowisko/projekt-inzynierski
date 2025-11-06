@@ -30,7 +30,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
       leaveController.resetFilters();
     });
 
-
+    return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
@@ -50,7 +50,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Wnioski urlopowe',
                           style: TextStyle(
                             fontSize: 32,
@@ -107,6 +107,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   Widget _buildAddLeaveButton(BuildContext context, LeaveController controller) {
@@ -192,7 +193,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
             (item.comment == "Brak komentarza" || item.comment == '')
                 ? item.name
                 : '${item.name} - ${item.comment}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColors.textColor1,
@@ -200,7 +201,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           ),
           subtitle: Text(
             formattedDate,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               color: AppColors.textColor2,
             ),
@@ -250,7 +251,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             fixStatus,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Roboto',
               fontWeight: FontWeight.w600,
               fontSize: 12,
@@ -346,7 +347,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Roboto',
               fontWeight: FontWeight.w600,
               fontSize: 12,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/utils/app_colors.dart';
 import '../../auth/controllers/forget_pswd_controller.dart';
 import '../../auth/models/user_model.dart';
 import '../../employees/controllers/user_controller.dart';
@@ -11,7 +12,9 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final UserController userController = Get.find();
 
+    return Obx(() {
     return Scaffold(
+      backgroundColor: AppColors.pageBackground,
       appBar: AppBar(title: const Text('Settings')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,6 +55,7 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   void _sendResetEmail(UserModel employee) async {

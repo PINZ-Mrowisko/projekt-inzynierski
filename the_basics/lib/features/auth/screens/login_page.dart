@@ -21,14 +21,15 @@ class LoginPage extends StatelessWidget {
       onPopInvoked: (bool didPop) async{
         if (didPop) {controller.clearControllers();}
       },
-      child: Scaffold(
+      child: Obx(() {
+      return Scaffold(
         backgroundColor: AppColors.pageBackground,
         body: Center(
           child: Container(
             width: 400,
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(color: Colors.black12, blurRadius: 12, spreadRadius: 2),
@@ -47,7 +48,9 @@ class LoginPage extends StatelessWidget {
                       child: Column(
                         children: [
                         SvgPicture.asset(
-                          'assets/mrowisko_logo_blue.svg',
+                          Get.isDarkMode 
+                            ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                            : 'assets/mrowisko_logo_blue.svg',
                           height: 48,
                         ),
 
@@ -119,7 +122,7 @@ class LoginPage extends StatelessWidget {
                     onPressed: () => Get.to(() => ForgetPswd()),
                       child: Text('Zapomniałeś hasła?',
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: AppColors.logo,
                               ),
                         overflow: TextOverflow.ellipsis,
                             ),
@@ -167,7 +170,7 @@ class LoginPage extends StatelessWidget {
                         },
                         child: Text("Zarejestruj się",
                           style: TextStyle(
-                            color: Colors.blue),
+                            color: AppColors.logo),
                           overflow: TextOverflow.ellipsis,
                         )
                     ),
@@ -178,7 +181,8 @@ class LoginPage extends StatelessWidget {
               ),
           ),
           ),
-        ),
+        );
+      }),
     );
   }
 }

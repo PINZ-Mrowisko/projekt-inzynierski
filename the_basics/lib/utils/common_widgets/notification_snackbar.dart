@@ -40,12 +40,12 @@ void showCustomSnackbar(BuildContext context, String message) {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Icon(Icons.info_outline, color: AppColors.textColor2, size: 28),
+                  Icon(Icons.info_outline, color: AppColors.textColor2, size: 28),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       message,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textColor2,

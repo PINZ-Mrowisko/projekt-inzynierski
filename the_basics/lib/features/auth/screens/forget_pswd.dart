@@ -15,6 +15,7 @@ class ForgetPswd extends StatelessWidget {
       ForgetPswdController(),
     ); //create the instance here
 
+  return Obx(() {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Center(
@@ -23,7 +24,7 @@ class ForgetPswd extends StatelessWidget {
             width: 400,
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -41,7 +42,9 @@ class ForgetPswd extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Center(
                     child: SvgPicture.asset(
-                      'assets/mrowisko_logo_blue.svg',
+                      Get.isDarkMode 
+                        ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                        : 'assets/mrowisko_logo_blue.svg',
                       height: 48,
                     ),
                   ),
@@ -83,5 +86,6 @@ class ForgetPswd extends StatelessWidget {
         ),
       ),
     );
+  });
   }
 }

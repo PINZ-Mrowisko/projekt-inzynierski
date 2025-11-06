@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
+import 'package:the_basics/features/schedules/usecases/choose_existing_schedule.dart';
+import 'package:the_basics/features/schedules/usecases/choose_schedule_generation_type.dart';
+import 'package:the_basics/features/schedules/usecases/choose_template.dart';
+import 'package:the_basics/features/schedules/usecases/choose_work_code_rules_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
@@ -41,6 +45,76 @@ class _MainCalendarState extends State<MainCalendar> {
       userController.filterEmployees(tags);
     });
   }
+
+  // PLACEHOLDER to be implemented
+void _handleRulesSelected(List<String> selectedRules) {
+  print('Selected rules: $selectedRules');
+  showGenerationMethodDialog(context, _handleMethodSelected); 
+}
+
+// PLACEHOLDER to be implemented
+void _handleMethodSelected(String? selectedMethod) {
+  print('Selected method: $selectedMethod');
+  
+  if (selectedMethod != null) {
+    if (selectedMethod == 'template') {
+      showChooseTemplateDialog(context, _handleTemplateSelected);
+    } else if (selectedMethod == 'existing_schedule') {
+      showChooseExistingScheduleDialog(context, _handleScheduleSelected);
+    }
+  }
+}
+
+// PLACEHOLDER to be implemented
+void _handleTemplateSelected(String? selectedTemplate) {
+  print('Selected template: $selectedTemplate');
+  if (selectedTemplate != null) {
+    _generateAndNavigateToEdit(selectedTemplate, 'template');
+  }
+}
+
+// PLACEHOLDER to be implemented
+void _handleScheduleSelected(String? selectedSchedule) {
+  print('Selected schedule: $selectedSchedule');
+  if (selectedSchedule != null) {
+    _generateAndNavigateToEdit(selectedSchedule, 'existing_schedule');
+  }
+}
+
+// PLACEHOLDER to be implemented
+void _generateAndNavigateToEdit(String sourceId, String sourceType) {
+  try {
+    final newScheduleId = _generateNewSchedule(sourceId, sourceType);
+    
+    Get.toNamed('/grafik-ogolny/edytuj-grafik', arguments: {
+      'scheduleId': newScheduleId,
+      'sourceType': sourceType,
+      'initialDate': _calendarController.displayDate
+    });
+    
+    // Show success message
+    showCustomSnackbar(
+      context,
+      sourceType == 'template' 
+        ? "Wygenerowano nowy grafik z szablonu" 
+        : "Wygenerowano nowy grafik z istniejącego grafiku",
+    );
+    
+  } catch (e) {
+    // Show error message if generation fails
+    showCustomSnackbar(
+      context,
+      "Błąd podczas generowania grafiku: $e",
+    );
+  }
+}
+
+// PLACEHOLDER to be implemented
+String _generateNewSchedule(String sourceId, String sourceType) {
+  print('Generating new schedule from $sourceType: $sourceId');
+  
+  return 'generated_${DateTime.now().millisecondsSinceEpoch}';
+}
 
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
@@ -130,12 +204,13 @@ class _MainCalendarState extends State<MainCalendar> {
     
     return PopScope(
     canPop: false,
-      child: Scaffold(
+      child: Obx(() {
+      return Scaffold(
         backgroundColor: AppColors.pageBackground,
         body: Row(
           children: [
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
               child: SideMenu(),
             ),
             Expanded(
@@ -149,7 +224,7 @@ class _MainCalendarState extends State<MainCalendar> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'Grafik ogólny',
                             style: TextStyle(
                               fontSize: 32,
@@ -176,8 +251,19 @@ class _MainCalendarState extends State<MainCalendar> {
                                 const SizedBox(width: 16),
                                 Flexible(
                                   child: CustomButton(
-                                    onPressed: () {},
+                                    onPressed: () => showWorkCodeRulesDialog(context, _handleRulesSelected),
                                     text: "Generuj grafik",
+                                    width: 155,
+                                    icon: Icons.add,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Flexible(
+                                  child: CustomButton(
+                                    onPressed: () {
+                                      Get.toNamed('/grafik-ogolny/edytuj-grafik', arguments: {'initialDate': _calendarController.displayDate});
+                                    },
+                                    text: "Edytuj grafik",
                                     width: 155,
                                     icon: Icons.edit,
                                   ),
@@ -189,6 +275,7 @@ class _MainCalendarState extends State<MainCalendar> {
                                     text: "Eksportuj",
                                     width: 125,
                                     icon: Icons.download,
+                                    backgroundColor: AppColors.lightBlue,
                                   ),
                                 ),
                               ],
@@ -214,10 +301,10 @@ class _MainCalendarState extends State<MainCalendar> {
                               view: CalendarView.timelineWeek,
                               showDatePickerButton: false,
                               showNavigationArrow: true,
-                              headerStyle: const CalendarHeaderStyle(
+                              headerStyle: CalendarHeaderStyle(
                                 backgroundColor: AppColors.pageBackground,
                                 textAlign: TextAlign.left,
-                                textStyle: TextStyle(
+                                textStyle: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -263,7 +350,8 @@ class _MainCalendarState extends State<MainCalendar> {
             ),
           ],
         ),
-      ),
+      );
+      }),
     );
   }
 
@@ -321,7 +409,7 @@ class _MainCalendarState extends State<MainCalendar> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 32),
-            const Text(
+            Text(
               "Wybierz opcję eksportu grafiku.",
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -339,8 +427,8 @@ class _MainCalendarState extends State<MainCalendar> {
                   height: 56,
                   child: ElevatedButton.icon(
                     onPressed: () {},
-                    icon: const Icon(Icons.print, color: AppColors.textColor2),
-                    label: const Text(
+                    icon: Icon(Icons.print, color: AppColors.textColor2),
+                    label: Text(
                       "Drukuj",
                       style: TextStyle(
                         fontSize: 14,
@@ -368,8 +456,8 @@ class _MainCalendarState extends State<MainCalendar> {
                         "Grafik został pomyślnie zapisany.",
                       );
                     },
-                    icon: const Icon(Icons.download, color: AppColors.textColor2),
-                    label: const Text(
+                    icon: Icon(Icons.download, color: AppColors.textColor2),
+                    label: Text(
                       "Zapisz jako PDF",
                       style: TextStyle(
                         fontSize: 14,

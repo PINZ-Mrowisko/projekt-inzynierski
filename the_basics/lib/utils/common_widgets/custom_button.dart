@@ -5,8 +5,8 @@ class CustomButton extends StatelessWidget {
   final String text;
   final IconData? icon;
   final VoidCallback onPressed;
-  final Color backgroundColor;
-  final Color textColor;
+  final Color? backgroundColor;
+  final Color? textColor;
   final double width;
   final double height;
 
@@ -15,8 +15,8 @@ class CustomButton extends StatelessWidget {
     required this.text,
     this.icon,
     required this.onPressed,
-    this.backgroundColor = AppColors.blue,
-    this.textColor = AppColors.textColor2,
+    this.backgroundColor,
+    this.textColor,
     this.width = 127,
     this.height = 56,
   });
@@ -29,7 +29,7 @@ class CustomButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
+          backgroundColor: backgroundColor ?? AppColors.blue,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(100),
           ),
@@ -40,7 +40,7 @@ class CustomButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 18, color: textColor),
+              Icon(icon, size: 18, color: textColor ?? AppColors.textColor2),
               const SizedBox(width: 8),
             ],
             Flexible(
@@ -48,7 +48,7 @@ class CustomButton extends StatelessWidget {
                 text,
                 style: TextStyle(
                   fontSize: 14,
-                  color: textColor,
+                  color: textColor ?? AppColors.textColor2,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

@@ -44,7 +44,7 @@ void showAddShiftDialog(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Dodaj zmianę',
             style: TextStyle(
               fontSize: 32,
@@ -55,7 +55,7 @@ void showAddShiftDialog(
           const SizedBox(height: 24),
 
           // wybierz tag
-          const Text(
+          Text(
             'Tag',
             style: TextStyle(
               fontSize: 18,
@@ -94,7 +94,7 @@ void showAddShiftDialog(
           const SizedBox(height: 16),
 
           // liczba osób
-          const Text(
+          Text(
             'Liczba osób',
             style: TextStyle(
               fontSize: 18,
@@ -127,7 +127,7 @@ void showAddShiftDialog(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Start zmiany',
                       style: TextStyle(
                         fontSize: 18,
@@ -168,7 +168,7 @@ void showAddShiftDialog(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Koniec zmiany',
                       style: TextStyle(
                         fontSize: 18,
@@ -230,7 +230,7 @@ void showAddShiftDialog(
                       borderRadius: BorderRadius.circular(100),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Anuluj',
                     style: TextStyle(
                       fontSize: 14,
@@ -284,7 +284,7 @@ void showAddShiftDialog(
                       borderRadius: BorderRadius.circular(100),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Dodaj zmianę',
                     style: TextStyle(
                       fontSize: 14,

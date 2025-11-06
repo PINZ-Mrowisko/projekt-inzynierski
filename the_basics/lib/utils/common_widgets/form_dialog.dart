@@ -138,7 +138,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
                                                 hasChanges.value = false;
                                               },
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor: action.backgroundColor,
+                                                backgroundColor: action.backgroundColor ?? AppColors.blue,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(100),
@@ -148,7 +148,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
                                                 action.label,
                                                 style: TextStyle(
                                                   fontSize: 14,
-                                                  color: action.textColor,
+                                                  color: action.textColor ?? AppColors.textColor2,
                                                 ),
                                               ),
                                             ),
@@ -194,7 +194,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
       children: [
         Text(
           field.label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             color: AppColors.textColor1,
           ),
@@ -235,7 +235,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
       children: [
         Text(
           field.label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             color: AppColors.textColor1,
           ),
@@ -247,7 +247,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
             value: field.selectedValue,
             hint: Text(
               field.hintText,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textColor2,
                 fontSize: 16,
               ),
@@ -259,7 +259,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           item.label,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             color: AppColors.textColor1,
                           ),
@@ -284,13 +284,13 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
                 horizontal: 16,
               ),
             ),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               height: 1.0,
               color: AppColors.textColor1,
             ),
             isExpanded: true,
-            icon: const Icon(Icons.arrow_drop_down, color: AppColors.textColor2),
+            icon: Icon(Icons.arrow_drop_down, color: AppColors.textColor2),
             dropdownColor: AppColors.white,
             borderRadius: BorderRadius.circular(15),
             elevation: 4,
@@ -322,7 +322,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
       children: [
         Text(
           field.label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             color: AppColors.textColor1,
           ),
@@ -368,7 +368,7 @@ Widget _buildDatePickerField(DatePickerDialogField field) {
     children: [
       Text(
         field.label, 
-        style: const TextStyle(fontSize: 16, color: AppColors.textColor1)
+        style: TextStyle(fontSize: 16, color: AppColors.textColor1)
       ),
       const SizedBox(height: 8),
       Container(
@@ -403,10 +403,10 @@ Widget _buildDatePickerField(DatePickerDialogField field) {
               ),
               firstDayOfWeek: 1,
             ),
-            headerStyle: const DateRangePickerHeaderStyle(
+            headerStyle: DateRangePickerHeaderStyle(
               backgroundColor: AppColors.lightBlue,
               textAlign: TextAlign.center,
-              textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             todayHighlightColor: AppColors.logo,
             selectionColor: AppColors.logo.withValues(alpha: 0.5),
@@ -468,14 +468,14 @@ class DropdownItem {
 class DialogActionButton {
   final String label;
   final VoidCallback onPressed;
-  final Color backgroundColor;
-  final Color textColor;
+  final Color? backgroundColor;
+  final Color? textColor;
 
   DialogActionButton({
     required this.label,
     required this.onPressed,
-    this.backgroundColor = AppColors.blue,
-    this.textColor = AppColors.textColor2,
+    this.backgroundColor,
+    this.textColor,
   });
 }
 
