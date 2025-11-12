@@ -4,7 +4,7 @@ from backend.models.Template import Template
 from backend.models.Shift import Shift
 
 def map_tag(tag_data):
-    if tag_data.get("isDeleted", "false") == "true":
+    if tag_data.get("isDeleted", False) == True:
         print("Tag is deleted, skipping mapping.")
         return None
     else:
@@ -50,7 +50,7 @@ def work_time_preference_mapping(preference):
         return 0  # Default or unknown preference
 
 def map_worker(worker_data, tags_list):
-    if worker_data.get("isDeleted", "false") == "true":
+    if worker_data.get("isDeleted", False) == True:
         print("Worker is deleted, skipping mapping.")
         return None
     else:
@@ -84,7 +84,7 @@ def map_worker(worker_data, tags_list):
         return worker
 
 def map_shift(shift_data):
-    if shift_data.get("isDeleted", "false") == "true":
+    if shift_data.get("isDeleted", False) == True:
         print("Shift is deleted, skipping mapping.")
         return None
     else:
@@ -109,10 +109,10 @@ def map_shift(shift_data):
 
 def map_template(template_data):
 
-    if template_data.get("isDeleted", "false") == "true":
+    if template_data.get("isDeleted", False) == True:
         print("Template is deleted, skipping mapping.")
         return None
-    elif template_data.get("isDataMissing", "false") == "true":
+    elif template_data.get("isDataMissing", False) == True:
         print("Template data is missing, skipping mapping.")
         return None
 
