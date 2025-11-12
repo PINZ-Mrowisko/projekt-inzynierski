@@ -118,7 +118,9 @@ class EmployeeLeavesManagementPage extends StatelessWidget {
             vertical: 12,
           ),
           title: Text(
-            "placeholder",
+            (item.comment == "Brak komentarza" || item.comment == '')
+                ? "Nieobecność"
+                : 'Nieobecność - ${item.comment}',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
