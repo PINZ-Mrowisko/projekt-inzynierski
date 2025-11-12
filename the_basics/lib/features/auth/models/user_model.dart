@@ -15,8 +15,9 @@ class UserModel {
   final bool isDeleted;
   final DateTime insertedAt;
   final DateTime updatedAt;
-  final int vacationDays;
-  final int onDemandDays;
+  final int numberOfLeaves;
+  //final int vacationDays;
+  //final int onDemandDays;
   final bool hasLoggedIn;
 
   UserModel({
@@ -34,8 +35,9 @@ class UserModel {
     this.isDeleted = false,
     required this.insertedAt,
     required this.updatedAt,
-    this.vacationDays = 20,
-    this.onDemandDays = 4,
+    this.numberOfLeaves = 0,
+    // this.vacationDays = 20,
+    // this.onDemandDays = 4,
     this.hasLoggedIn = false
   });
 
@@ -49,8 +51,9 @@ class UserModel {
     role: 'employee',
     insertedAt: DateTime.now(),
     updatedAt: DateTime.now(),
-    vacationDays: 20,
-    onDemandDays: 4,
+    // vacationDays: 20,
+    // onDemandDays: 4,
+      numberOfLeaves: 0,
     hasLoggedIn: false
   );
 
@@ -70,8 +73,9 @@ class UserModel {
       'isDeleted': isDeleted,
       'insertedAt': Timestamp.fromDate(insertedAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
-      'vacationDays': vacationDays,
-      'onDemandDays': onDemandDays,
+      // 'vacationDays': vacationDays,
+      // 'onDemandDays': onDemandDays,
+      'numberOfLeaves': numberOfLeaves,
       'hasLoggedIn': hasLoggedIn
     };
   }
@@ -94,8 +98,9 @@ class UserModel {
         insertedAt: (map['insertedAt']).toDate(),
         updatedAt: (map['updatedAt']).toDate(),
         marketId: map['marketId'] ?? '',
-        onDemandDays: map['onDemandDays'] ?? '',
-        vacationDays: map['vacationDays'] ?? '',
+        // onDemandDays: map['onDemandDays'] ?? '',
+        // vacationDays: map['vacationDays'] ?? '',
+          numberOfLeaves: map['numberOfLeaves'] ?? 0,
         hasLoggedIn: map['hasLoggedIn'] ?? false
       );
     } else {
@@ -122,8 +127,9 @@ class UserModel {
       insertedAt: (data['insertedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       marketId: data['marketId']?.toString() ?? '',
-        onDemandDays: data['onDemandDays'] ?? '',
-        vacationDays: data['vacationDays'] ?? '',
+        // onDemandDays: data['onDemandDays'] ?? '',
+        // vacationDays: data['vacationDays'] ?? '',
+        numberOfLeaves: data['numberOfLeaves'] ?? 0,
       hasLoggedIn: data['hasLoggedIn'] ?? false
     );
   }
@@ -145,9 +151,10 @@ class UserModel {
     String? shiftPreference,
     List<String>? tags,
     bool? isDeleted,
-    int? vacationDays,
-    int? onDemandDays,
-    bool? hasLoggedIn
+    // int? vacationDays,
+    // int? onDemandDays,
+    bool? hasLoggedIn,
+    int? numberOfLeaves
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -164,8 +171,9 @@ class UserModel {
       isDeleted: isDeleted ?? this.isDeleted,
       insertedAt: insertedAt,
       updatedAt: DateTime.now(),
-      vacationDays: vacationDays ?? this.vacationDays,
-      onDemandDays: onDemandDays ?? this.onDemandDays,
+      // vacationDays: vacationDays ?? this.vacationDays,
+      // onDemandDays: onDemandDays ?? this.onDemandDays,
+        numberOfLeaves: numberOfLeaves ?? this.numberOfLeaves,
       hasLoggedIn: hasLoggedIn ?? this.hasLoggedIn
     );
   }

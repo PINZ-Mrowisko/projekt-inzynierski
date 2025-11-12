@@ -190,7 +190,9 @@ class ManagerLeavesManagementPage extends StatelessWidget {
             vertical: 12,
           ),
           title: Text(
-            '${item.name} - ${item.leaveType}',
+            (item.comment == "Brak komentarza" || item.comment == '')
+                ? item.name
+                : '${item.name} - ${item.comment}',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -292,18 +294,15 @@ class ManagerLeavesManagementPage extends StatelessWidget {
               }
               // add back the holdiay days to the employee
               final duration = leave.totalDays;
+              print(duration);
               final updatedEmployee = employee.copyWith(
-                vacationDays: leave.leaveType == 'Urlop wypoczynkowy'
-                    ? employee.vacationDays + duration
-                    : employee.vacationDays,
-                onDemandDays: leave.leaveType == 'Urlop na żądanie'
-                    ? employee.onDemandDays + duration
-                    : employee.onDemandDays,
+                numberOfLeaves: employee.numberOfLeaves - leave.totalDays
               );
 
               // update the leave request
               final newLeave = leave.copyWith(status: "odrzucony");
               controller.updateLeave(newLeave);
+              userController.updateEmployee(updatedEmployee);
 
               showCustomSnackbar(context,'Wniosek odrzucony');
 
