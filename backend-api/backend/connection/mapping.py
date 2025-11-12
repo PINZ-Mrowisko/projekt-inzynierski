@@ -1,6 +1,7 @@
 from backend.models.Worker import Worker
 from backend.models.Tags import Tags
 from backend.models.Template import Template
+from backend.models.Shift import Shift
 
 def map_tag(tag_data):
     if tag_data.get("isDeleted", "false") == "true":
@@ -94,14 +95,14 @@ def map_shift(shift_data):
         tagId = shift_data.get("tagId", "")
         count = shift_data.get("count", 0)
 
-        shift = {
-            "id": id,
-            "day": day,
-            "start": start,
-            "end": end,
-            "tagId": tagId,
-            "count": count
-        }
+        shift = Shift(
+            id=id,
+            day=day,
+            start=start,
+            end=end,
+            tagId=tagId,
+            count=count
+        )
 
         return shift
 
