@@ -129,9 +129,11 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
                                 children: widget.actions
                                     .map((action) => Padding(
                                           padding: const EdgeInsets.only(left: 16.0),
-                                          child: SizedBox(
-                                            width: 109,
-                                            height: 40,
+                                          child: Container(
+                                            constraints: BoxConstraints(
+                                              minWidth: 120,
+                                              minHeight: 50,
+                                            ),
                                             child: ElevatedButton(
                                               onPressed: () {
                                                 action.onPressed();

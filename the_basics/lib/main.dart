@@ -8,8 +8,9 @@ import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/features/auth/screens/login_page.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
-import 'package:the_basics/features/leaves/screens/employee_leaves_management.dart';
-import 'package:the_basics/features/leaves/screens/manager_leaves_management.dart';
+import 'package:the_basics/features/leaves/screens/mobile/employee_leaves_management_mobile.dart';
+import 'package:the_basics/features/leaves/screens/web/employee_leaves_management.dart';
+import 'package:the_basics/features/leaves/screens/web/manager_leaves_management.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/employee_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/main_calendar_edit_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
@@ -19,7 +20,7 @@ import 'package:the_basics/features/schedules/screens/after_login/web/placeholde
 import 'package:the_basics/features/settings/screens/settings.dart';
 import 'package:the_basics/features/templates/screens/algoritm_screen.dart';
 import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
-import 'package:the_basics/features/templates/screens/new_tempalte_screen.dart';
+import 'package:the_basics/features/templates/screens/new_template_screen.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/employee_more_page_mobile.dart';
@@ -97,7 +98,7 @@ class MyApp extends StatelessWidget {
         ),
         GetPage(name: '/grafik-ogolny-kierownik/edytuj-grafik', page: () => PlatformWrapper(mobile: MainCalendarEditMobile(), web: MainCalendarEdit())),
         GetPage(name: '/grafik-indywidualny', page: () => PlaceholderPage()),
-        GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => EmployeeLeavesManagementPage()),
+        GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => PlatformWrapper(mobile:EmployeeLeavesManagementMobilePage(), web: EmployeeLeavesManagementPage())),
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => ManagerLeavesManagementPage()),
         GetPage(name: '/gielda', page: () => PlaceholderPage()),
         GetPage(name: '/twoj-profil', page: () => PlaceholderPage()),
