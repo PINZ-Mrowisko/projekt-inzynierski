@@ -20,7 +20,8 @@ def get_workers(user_id: str, tags_list, db):
             worker_data = member_doc.to_dict()
             try:
                 worker = map_worker(worker_data, tags_list)
-                workers.append(worker)
+                if worker is not None:
+                    workers.append(worker)
             except Exception as e:
                 print(f"Error creating Worker from member {worker_data}: {e}")
 
@@ -49,7 +50,8 @@ def get_tags(user_id: str, db):
             tag_data = tag_doc.to_dict()
             try:
                 tag = map_tag(tag_data)
-                tags.append(tag)
+                if tag is not None:
+                    tags.append(tag)
             except Exception as e:
                 print(f"Error creating Tag from tag data {tag_data}: {e}")
 

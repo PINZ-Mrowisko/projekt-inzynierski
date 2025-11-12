@@ -44,7 +44,9 @@ def run_algorithm(authorization: str = Header(...)):
         raise HTTPException(status_code=403, detail="Nieprawidłowy token")
 
     tags = get_tags(user_id, db)
+    print(tags)
     workers = get_workers(user_id, tags, db)
+    print(workers)
     constraints = Constraints()
     result = main(workers, constraints, tags)
     return result

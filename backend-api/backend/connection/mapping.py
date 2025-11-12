@@ -126,7 +126,7 @@ def map_template(template_data):
         minWomen = template_data.get("minWomen", "")
 
         shifts_docs = template_data.get("Shifts", template_data.get("shifts_docs", []))
-        shifts = [map_shift(s) for s in shifts_docs]
+        shifts = [map_shift(s) for s in shifts_docs if map_shift(s) is not None]
 
         template = Template(
             id=id,
