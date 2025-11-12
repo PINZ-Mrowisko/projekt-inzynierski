@@ -9,10 +9,12 @@ def map_tag(tag_data):
     else:
         name = tag_data.get("tagName", "")
         description = tag_data.get("description", "")
+        id = tag_data.get("id", "")
 
         tag = Tags(
             name=name,
-            description=description
+            description=description,
+            id = id
         )
 
         return tag
@@ -80,6 +82,30 @@ def map_worker(worker_data, tags_list):
 
         return worker
 
+def map_shift(shift_data):
+    if shift_data.get("isDeleted", "false") == "true":
+        print("Shift is deleted, skipping mapping.")
+        return None
+    else:
+        id = shift_data.get("id", "")
+        day = shift_data.get("day", "")
+        start = shift_data.get("start", "")
+        end = shift_data.get("end", "")
+        tagId = shift_data.get("tagId", "")
+        count = shift_data.get("count", 0)
+
+        shift = {
+            "id": id,
+            "day": day,
+            "start": start,
+            "end": end,
+            "tagId": tagId,
+            "count": count
+        }
+
+        return shift
+
+
 def map_template(template_data):
 
     if template_data.get("isDeleted", "false") == "true":
@@ -98,13 +124,17 @@ def map_template(template_data):
         minMen = template_data.get("minMen", "")
         minWomen = template_data.get("minWomen", "")
 
+        shifts_docs = template_data.get("Shifts", template_data.get("shifts_docs", []))
+        shifts = [map_shift(s) for s in shifts_docs]
+
         template = Template(
             id=id,
             description=description,
             maxMen=maxMen,
             maxWomen=maxWomen,
             minMen=minMen,
-            minWomen=minWomen
+            minWomen=minWomen,
+            shifts=shifts
         )
 
 

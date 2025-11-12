@@ -3,7 +3,7 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
-from backend.connection.database_queries import get_tags, get_workers
+from backend.connection.database_queries import get_tags, get_workers, get_templates
 from backend.algorithm.algorithm import main
 from backend.models.Constraints import Constraints
 
@@ -48,3 +48,22 @@ def run_algorithm(authorization: str = Header(...)):
     constraints = Constraints()
     result = main(workers, constraints, tags)
     return result
+
+@app.get("/test")
+def test_new(authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=403, detail="Brak tokenu")
+
+    id_token = authorization.split(" ")[1]
+
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        user_id = decoded_token["uid"]
+    except Exception as e:
+        print("Błąd weryfikacji tokenu:", e)
+        raise HTTPException(status_code=403, detail="Nieprawidłowy token")
+
+    tags = get_tags(user_id, db)
+    print(tags[0])
+    templates = get_templates(user_id, db)
+    return templates
