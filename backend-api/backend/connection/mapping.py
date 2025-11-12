@@ -1,5 +1,6 @@
 from backend.models.Worker import Worker
 from backend.models.Tags import Tags
+from backend.models.Template import Template
 
 def map_tag(tag_data):
     if tag_data.get("isDeleted", "false") == "true":
@@ -78,6 +79,36 @@ def map_worker(worker_data, tags_list):
         worker.tags = tags if len(tags)>0 else tags_list[-1:]  # Default tag if no tags match
 
         return worker
+
+def map_template(template_data):
+
+    if template_data.get("isDeleted", "false") == "true":
+        print("Template is deleted, skipping mapping.")
+        return None
+    elif template_data.get("isDataMissing", "false") == "true":
+        print("Template data is missing, skipping mapping.")
+        return None
+
+    else:
+
+        id = template_data.get("id", "")
+        description = template_data.get("description", "")
+        maxMen = template_data.get("maxMen", "")
+        maxWomen = template_data.get("maxWomen", "")
+        minMen = template_data.get("minMen", "")
+        minWomen = template_data.get("minWomen", "")
+
+        template = Template(
+            id=id,
+            description=description,
+            maxMen=maxMen,
+            maxWomen=maxWomen,
+            minMen=minMen,
+            minWomen=minWomen
+        )
+
+
+        return template
 
 
 

@@ -61,13 +61,33 @@ def get_tags(user_id: str, db):
         print(f"An error occurred while fetching tags: {e}")
         return []
 
-# if __name__ == "__main__":
-#     cred = credentials.Certificate("../ServiceAccountKey.json")
-#     app = firebase_admin.initialize_app(cred)
-#
-#     db = firestore.client(app)
-#     user_id = "HvVnzo4Z4pafStpPbzMsmoPSa7t1"
-#     workers_list = get_workers(user_id)
-#     print(f"Retrieved {len(workers_list)} workers.")
-#     tags_list = get_tags(user_id)
-#     print(f"Retrieved {len(tags_list)} tags.")
+def get_templates(user_id: str, db):
+    try:
+        docs = db.collection("Markets").where(filter=FieldFilter("createdBy", "==", user_id)).limit(1).get()
+
+        if not docs:
+            print("No Market found for this user.")
+            return []
+
+        market_doc = docs[0]
+        market_id = market_doc.id
+
+        template_docs = db.collection("Markets").document(market_id).collection("Templates").get()
+
+        templates = []
+        for template_doc in template_docs:
+            template_data = template_doc.to_dict()
+            try:
+                template = map_template(template_data)
+                if template is not None:
+                    templates.append(template)
+            except Exception as e:
+                print(f"Error creating Template from template data {template_data}: {e}")
+
+        return templates
+
+    except Exception as e:
+        print(f"An error occurred while fetching templates: {e}")
+        return []
+
+
