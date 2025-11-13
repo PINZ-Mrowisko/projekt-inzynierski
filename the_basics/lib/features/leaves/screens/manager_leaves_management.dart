@@ -294,10 +294,12 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                 return;
               }
               // add back the holdiay days to the employee
-              final duration = leave.totalDays;
-              print(duration);
+              // convert to int so doesnt throw error
+              final currentLeaves = int.tryParse(employee.numberOfLeaves.toString()) ?? 0;
+              final totalDays = int.tryParse(leave.totalDays.toString()) ?? 0;
+
               final updatedEmployee = employee.copyWith(
-                numberOfLeaves: employee.numberOfLeaves - leave.totalDays
+                numberOfLeaves: currentLeaves - totalDays
               );
 
               // update the leave request

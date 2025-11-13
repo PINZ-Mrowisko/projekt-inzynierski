@@ -200,6 +200,30 @@ exports.sendLeaveStatusNotification = onCall(async (request) => {
 
   try {
 
+        // check if user allows notifs
+         const userDoc = await admin
+              .firestore()
+              .collection("Markets")
+              .doc(marketId)
+              .collection("members")
+              .doc(userId)
+              .get();
+
+                      if (!userDoc.exists) {
+                        console.log("no user data to be found:x", managerId);
+                        return { success: false, message: "Notifications disabled" };
+                      }
+
+                  const userData = userDoc.data();
+
+                  if (!userData.leaveNotifs) {
+                         console.log(
+                           `user has notifs disabled !!!`
+                         );
+                         return { success: false, message: "Notifications disabled" };
+                       }
+
+
     const title = "Status prośby o nieobecność";
     const body =
       decision === "accepted"
@@ -300,6 +324,31 @@ exports.notifyNewLeaveRequest = onDocumentCreated(
       console.log("No managerId found in leave request.");
       return;
     }
+
+    // we will load the manager to see if they allow notifs
+
+    const managerDoc = await admin
+          .firestore()
+          .collection("Markets")
+          .doc(marketId)
+          .collection("members")
+          .doc(managerId)
+          .get();
+
+        if (!managerDoc.exists) {
+          console.log("Manager doc not found:", managerId);
+          return;
+        }
+
+    const managerData = managerDoc.data();
+
+    if (!managerData.leaveNotifs) {
+           console.log(
+             `manager ${managerId} has leave notifications disabled !!!`
+           );
+           return;
+         }
+
 
     // Fetch manager tokens
     const tokensSnapshot = await admin

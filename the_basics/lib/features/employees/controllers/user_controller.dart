@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -8,7 +9,7 @@ import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import '../../../data/repositiories/user/user_settings_repo.dart';
 import '../../../utils/common_widgets/notification_snackbar.dart';
-import '../models/user_settings_model.dart';
+import '../../settings/models/user_settings_model.dart';
 
 class UserController extends GetxController {
   static UserController get instance => Get.find();
@@ -21,7 +22,7 @@ class UserController extends GetxController {
 
   //final userRepo = Get.put(UserRepo());
   final UserRepo userRepo = Get.find();
-  final SettingsRepo _settingsRepo = Get.find();
+  //final SettingsRepo _settingsRepo = Get.find();
 
   final localStorage = GetStorage();
 
@@ -39,7 +40,7 @@ class UserController extends GetxController {
     try {
       isLoading(true);
       final user = await fetchCurrentUserRecord();
-      loadSettings();
+      //loadSettings();
 
       await fetchAllEmployees();
         } catch (e) {
@@ -273,44 +274,52 @@ class UserController extends GetxController {
   /// /////////////////////// ///
 
   /// Load settings from repo
-  Future<void> loadSettings() async {
-    if (employee.value.id.isEmpty) return;
+  // Future<void> loadSettings() async {
+  //   if (employee.value.id.isEmpty) return;
+  //   try {
+  //     print("here trying");
+  //     final fetchedSettings = await _settingsRepo.getSettings(
+  //       employee.value.id,
+  //       employee.value.marketId,
+  //     );
+  //     print("oura");
+  //     settings.value = fetchedSettings;
+  //   } catch (e) {
+  //     print('Error loading settings: $e');
+  //   }
+  // }
+  //
+  Future<void> updateSettings(String field, bool value) async {
+    final user = employee.value;
+    if (user == null) return;
+
+    UserModel updated;
+
+    if (field == "scheduleNotifs") {
+      updated = user.copyWith(scheduleNotifs: value);
+    } else if (field == "leaveNotifs") {
+      updated = user.copyWith(leaveNotifs: value);
+    } else {
+      return;
+    }
+
     try {
-      print("here trying");
-      final fetchedSettings = await _settingsRepo.getSettings(
-        employee.value.id,
-        employee.value.marketId,
-      );
-      print("oura");
-      settings.value = fetchedSettings;
+      await FirebaseFirestore.instance
+          .collection("Markets")
+          .doc(user.marketId)
+          .collection("members")
+          .doc(user.id)
+          .update({
+        field: value,
+        "updatedAt": DateTime.now(),
+      });
+
+      employee.value = updated; // also assign the new status to emp locally
     } catch (e) {
-      print('Error loading settings: $e');
+      print("Error updating settings: $e");
     }
   }
 
-  Future<void> updateSettings({
-    required String field,
-    required bool value,
-  }) async {
-    if (settings.value == null) return;
-
-    // create new settings with updated field
-    SettingsModel updated = settings.value!;
-
-    if (field == "newSchedule") {
-      updated = settings.value!.copyWith(newSchedule: value);
-    } else if (field == "leaveStatus") {
-      updated = settings.value!.copyWith(leaveStatus: value);
-    } else if (field == "leaveRequests") {
-      updated = settings.value!.copyWith(leaveRequests: value);
-    }
-    try {
-      await _settingsRepo.updateSettings(updated, employee.value.marketId);
-      settings.value = updated; // update local state
-    } catch (e) {
-      print('Error updating $field: $e');
-    }
-  }
 
 
 

@@ -121,6 +121,8 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
             isDeleted: false,
             insertedAt: DateTime.now(),
             updatedAt: DateTime.now(),
+              scheduleNotifs: true,
+              leaveNotifs: true
           );
 
           try {

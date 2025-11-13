@@ -9,7 +9,7 @@ import 'package:the_basics/features/auth/screens/verify_email.dart';
 import 'package:the_basics/features/tags/models/tags_model.dart';
 
 import '../../../data/repositiories/other/market_repo.dart';
-import '../../employees/models/user_settings_model.dart';
+import '../../settings/models/user_settings_model.dart';
 import '../models/market_model.dart';
 import '../models/user_model.dart';
 
@@ -87,7 +87,9 @@ class SignUpController extends GetxController {
           role: 'admin',
           insertedAt: DateTime.now(),
           updatedAt: DateTime.now(),
-          hasLoggedIn: true
+          hasLoggedIn: true,
+        scheduleNotifs: true,
+        leaveNotifs: true
       );
 
       final newUserTemp = UserModel(
@@ -107,18 +109,18 @@ class SignUpController extends GetxController {
       userRepo.saveUser(newUserTemp);
 
 
-      /// presave settings for manager
-      final settings = SettingsModel(
-          userId: userCredential.user!.uid,
-          insertedAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          newSchedule: true,
-          leaveRequests: false,
-          leaveStatus: true
-      );
-
-      final settingsRepo = Get.put(SettingsRepo());
-      await settingsRepo.saveSettings(settings, marketId);
+      // /// presave settings for manager
+      // final settings = SettingsModel(
+      //     userId: userCredential.user!.uid,
+      //     insertedAt: DateTime.now(),
+      //     updatedAt: DateTime.now(),
+      //     newSchedule: true,
+      //     leaveRequests: false,
+      //     leaveStatus: true
+      // );
+      //
+      // final settingsRepo = Get.put(SettingsRepo());
+      // await settingsRepo.saveSettings(settings, marketId);
 
 
 

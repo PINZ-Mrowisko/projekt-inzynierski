@@ -11,12 +11,10 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final UserController userController = Get.find();
-    userController.loadSettings();
 
     return Obx(() {
-      final settings = userController.settings.value;
-
-      if (settings == null) {
+      final user = userController.employee.value;
+      if (user == null) {
         return const Scaffold(
           body: Center(child: CircularProgressIndicator()),
         );
@@ -40,29 +38,30 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   _buildSwitchTile(
-                    title: 'Powiadom mnie o nowych grafikach, których jestem częscią',
-                    value: settings.newSchedule,
+                    title: 'Powiadom mnie o nowych grafikach',
+                    value: user.scheduleNotifs,
                     onChanged: (val) {
-                      userController.updateSettings(
-                          field: 'newSchedule', value: val);
+                      userController.updateSettings("scheduleNotifs", val);
                     },
                   ),
-                  _buildSwitchTile(
-                    title: 'Powiadom mnie o zmianach statusu moich wniosków o nieobecność',
-                    value: settings.leaveStatus,
-                    onChanged: (val) {
-                      userController.updateSettings(
-                          field: 'leaveStatus', value: val);
-                    },
-                  ),
-                  _buildSwitchTile(
-                    title: 'Powiadom mnie o nowych wnioskach o nieobecność wymagających zatwierdzenia',
-                    value: settings.leaveRequests,
-                    onChanged: (val) {
-                      userController.updateSettings(
-                          field: 'leaveRequests', value: val);
-                    },
-                  ),
+
+                  if (user.role == "admin")
+                  // dla adminow wyswietlamy inny tekst ale w sumie kontroluje to tą samą funkcjonalność
+                    _buildSwitchTile(
+                      title: 'Powiadom mnie o nowych wnioskach o nieobecność wymagających zatwierdzenia',
+                      value: user.leaveNotifs,
+                      onChanged: (val) {
+                        userController.updateSettings("leaveNotifs", val);
+                      },
+                    )
+                  else
+                    _buildSwitchTile(
+                      title: 'Powiadom mnie o zmianach statusu moich wniosków',
+                      value: user.leaveNotifs,
+                      onChanged: (val) {
+                        userController.updateSettings("leaveNotifs", val);
+                      },
+                    ),
 
                 ],
               ),

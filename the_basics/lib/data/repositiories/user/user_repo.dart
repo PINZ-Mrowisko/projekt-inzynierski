@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 
 import '../../../features/auth/models/user_model.dart';
-import '../../../features/employees/models/user_settings_model.dart';
+import '../../../features/settings/models/user_settings_model.dart';
 import '../exceptions.dart';
 
 class UserRepo extends GetxController {

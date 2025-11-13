@@ -24,7 +24,7 @@ class AppBindings implements Bindings {
     Get.put(LeaveRepo());
     Get.put(TemplateRepo());
     Get.put(TokenRepo());
-    Get.put(SettingsRepo());
+    //Get.put(SettingsRepo());
     // Get.lazyPut(() => AuthRepo(), fenix: true);
     // Get.lazyPut(() => UserRepo(), fenix: true);
     // Get.lazyPut(() => TagsRepo(), fenix: true);
