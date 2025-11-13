@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
+import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
@@ -30,7 +31,10 @@ class SideInfoPanel extends StatelessWidget {
     return Container(
       width: 300,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      color: AppColors.white,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(15),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -166,12 +170,12 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
 
     // urlopy zaakceptowane
     for (final leave in leaves) {
-      if (leave.status.toLowerCase() == 'zaakceptowany') {
+      if (leave.status.toLowerCase() == 'zaakceptowany' || leave.status.toLowerCase() == 'mój urlop') {
         repeatedAppointments.add(
           Appointment(
             startTime: leave.startDate,
             endTime: leave.endDate.add(const Duration(hours: 23)),
-            subject: "Urlop: ${leave}",
+            subject: "Urlop: ${leave.comment}",
             color: Colors.orangeAccent,
           ),
         );
@@ -187,44 +191,45 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
     final leaveController = Get.find<LeaveController>();
     final tagsController = Get.find<TagsController>();
 
-    final employee = userController.employee.value;
-// pobierz wszystkie urlopy zalogowanego użytkownika (pracownika lub kierownika)
-final allLeaves = leaveController.allLeaveRequests;
-final userLeaves = allLeaves.where((l) =>
-    l.userId == employee.id &&
-    (l.status.toLowerCase() == 'zaakceptowany' ||
-     l.status.toLowerCase() == 'mój urlop')
-).toList();
+    return Obx(() {
+      final employee = userController.employee.value;
 
-final appointments = _getAppointments([employee], userLeaves);
+      final allLeaves = leaveController.allLeaveRequests;
+      final userLeaves = allLeaves.where((l) =>
+          l.userId == employee.id &&
+          (l.status.toLowerCase() == 'zaakceptowany' ||
+          l.status.toLowerCase() == 'mój urlop')
+      ).toList();
 
-final now = DateTime.now();
-final today = DateTime(now.year, now.month, now.day);
-final tomorrow = today.add(const Duration(days: 1));
+      final appointments = _getAppointments([employee], userLeaves);
 
-Appointment? todayShift;
-Appointment? tomorrowShift;
-LeaveModel? nextVacation;
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final tomorrow = today.add(const Duration(days: 1));
 
-for (final a in appointments) {
-  if (a.subject.toLowerCase().contains('zmiana')) {
-    final date = DateTime(a.startTime.year, a.startTime.month, a.startTime.day);
-    if (date == today) todayShift = a;
-    if (date == tomorrow) tomorrowShift = a;
-  }
-}
+      Appointment? todayShift;
+      Appointment? tomorrowShift;
+      LeaveModel? nextVacation;
 
-// znajdź najbliższy urlop
-final upcomingVacations = userLeaves
-    .where((l) => l.startDate.isAfter(DateTime.now()))
-    .toList()
-  ..sort((a, b) => a.startDate.compareTo(b.startDate));
+      for (final a in appointments) {
+        if (a.subject.toLowerCase().contains('zmiana')) {
+          final date = DateTime(a.startTime.year, a.startTime.month, a.startTime.day);
+          if (date == today) todayShift = a;
+          if (date == tomorrow) tomorrowShift = a;
+        }
+      }
 
-if (upcomingVacations.isNotEmpty) {
-  nextVacation = upcomingVacations.first;
-}
+      // znajdź najbliższy urlop
+      final upcomingVacations = userLeaves
+          .where((l) => l.startDate.isAfter(DateTime.now()))
+          .toList()
+        ..sort((a, b) => a.startDate.compareTo(b.startDate));
 
-    return Scaffold(
+      if (upcomingVacations.isNotEmpty) {
+        nextVacation = upcomingVacations.first;
+      }
+
+    return Obx(() => Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,7 +283,7 @@ if (upcomingVacations.isNotEmpty) {
                       children: [
                         const Spacer(),
                         CustomButton(
-                          onPressed: () => _showExportDialog(context),
+                          onPressed: () => showExportDialog(context),
                           text: "Eksportuj",
                           width: 125,
                           icon: Icons.download,
@@ -310,7 +315,9 @@ if (upcomingVacations.isNotEmpty) {
           ),
         ],
       ),
+    )
     );
+    });
   }
 
 Widget _buildAppointmentWidget(
@@ -369,48 +376,6 @@ Widget _buildAppointmentWidget(
     ),
   );
 }
-
-
-
-
-
-  void _showExportDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => BaseDialog(
-        width: 551,
-        showCloseButton: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 32),
-            Text(
-              "Wybierz opcję eksportu grafiku.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w400,
-                color: AppColors.textColor2,
-              ),
-            ),
-            const SizedBox(height: 48),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildExportButton(Icons.print, "Drukuj", () {}),
-                const SizedBox(width: 32),
-                _buildExportButton(Icons.download, "Zapisz jako PDF", () {
-                  Navigator.of(context).pop();
-                  showCustomSnackbar(context, "Grafik został pomyślnie zapisany.");
-                }),
-              ],
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildExportButton(
       IconData icon, String text, VoidCallback onPressed) {
