@@ -55,6 +55,35 @@ class LeaveRepo extends GetxController {
     }
   }
 
+  /// get all non-deleted leave requests for a given market from the last 30 days and all future ones
+  Future<List<LeaveModel>> getRecentLeaveRequests(String marketId) async {
+    try {
+      final now = DateTime.now();
+      final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+
+      final snapshot = await _db
+          .collection("Markets")
+          .doc(marketId)
+          .collection("LeaveReq")
+          .where("isDeleted", isEqualTo: false)
+          .where("endDate", isGreaterThanOrEqualTo: Timestamp.fromDate(thirtyDaysAgo))
+          .get();
+
+      if (snapshot.docs.isEmpty) return [];
+
+      return snapshot.docs.map((e) => LeaveModel.fromSnapshot(e)).toList();
+    } on FirebaseException catch (e) {
+      throw MyFirebaseException(e.code).message;
+    } on FormatException {
+      throw const MyFormatException();
+    } on PlatformException catch (e) {
+      throw MyPlatformException(e.code).message;
+    } catch (_) {
+      throw 'Coś poszło nie tak :(';
+    }
+  }
+
+
   /// update an existing leave request
   Future<void> updateLeave(LeaveModel leave) async {
     try {

@@ -86,11 +86,6 @@ class TagsController extends GetxController {
       return matchingTags.isNotEmpty;
     }else {
       // this is the check in creation
-      print("Im here");
-      tagExistanceMessage.value = snapshot.docs.isNotEmpty
-          ? 'Tag o tej nazwie już istnieje'
-          : 'here1';
-      if(snapshot.docs.isNotEmpty) print("found something");
       return snapshot.docs.isNotEmpty;
     }
 

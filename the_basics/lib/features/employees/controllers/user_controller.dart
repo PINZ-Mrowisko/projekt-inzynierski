@@ -172,6 +172,7 @@ class UserController extends GetxController {
       }
 
       // this is responisble for creating a new auth account for the emp
+      // we call the cloud function to handle the creation
       String authUid = await createNewEmployeeAccount(employee.email);
 
       final newUserTemp = UserModel(

@@ -105,6 +105,7 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
 
 
           final userId = FirebaseFirestore.instance.collection('Users').doc().id;
+
           final newEmployee = UserModel(
             id: userId,
             firstName: firstNameController.text,
@@ -116,6 +117,7 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
             maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
             shiftPreference: shiftPreference.value ?? 'Brak preferencji',
             tags: selectedTags.toList(),
+            numberOfLeaves: 0,
             isDeleted: false,
             insertedAt: DateTime.now(),
             updatedAt: DateTime.now(),
