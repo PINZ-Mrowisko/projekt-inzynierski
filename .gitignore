@@ -250,3 +250,5 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/flutter,python,firebase
 
+# FVM
+.fvm/
