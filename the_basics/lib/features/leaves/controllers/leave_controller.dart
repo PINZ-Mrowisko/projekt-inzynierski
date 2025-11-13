@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/data/repositiories/other/leave_repo.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 
@@ -50,6 +51,19 @@ class LeaveController extends GetxController {
     }
   }
 
+  // will use during sorting
+  int _statusPriority(String status) {
+    switch (status) {
+      case 'Oczekujący':
+        return 0;
+      case 'Zaakceptowany':
+      case 'Mój urlop':
+        return 1;
+      default:
+        return 2;
+    }
+  }
+
   /// fetch all non-deleted leave requests
   Future<void> fetchLeaves() async {
     try {
@@ -68,8 +82,52 @@ class LeaveController extends GetxController {
       // get only the leaves of emps that arent deleted
       final validLeaves = leaves.where((leave) => nonDeletedEmpIds.contains(leave.userId)).toList();
 
-      allLeaveRequests.assignAll(leaves);
-      filteredLeaves.assignAll(leaves);
+      // new sorting logic - show leaves that are closest to now() at top, descending further in the future
+      // at the bottom show leaves that are from the past - maybe we can mark them somehow
+      // for example pull leaves from only last past month + future to minimize the num stored in controller
+      validLeaves.sort((a, b) {
+        final now = DateTime.now();
+
+        // Status priority first
+        final statusCompare = _statusPriority(a.status).compareTo(_statusPriority(b.status));
+        if (statusCompare != 0) return statusCompare;
+
+        // check if leave is current - started but not ended
+        final aIsActive = a.startDate.isBefore(now) && a.endDate.isAfter(now);
+        final bIsActive = b.startDate.isBefore(now) && b.endDate.isAfter(now);
+
+        // check if leave is future
+        final aIsFuture = a.startDate.isAfter(now);
+        final bIsFuture = b.startDate.isAfter(now);
+
+        // check if leave is past
+        final aIsPast = a.endDate.isBefore(now);
+        final bIsPast = b.endDate.isBefore(now);
+
+        //  active leaves > future leaves > past leaves
+        if (aIsActive && !bIsActive) return -1;
+        if (!aIsActive && bIsActive) return 1;
+
+        if (aIsFuture && bIsPast) return -1;
+        if (aIsPast && bIsFuture) return 1;
+
+        if (aIsFuture && bIsFuture) {
+          return a.startDate.compareTo(b.startDate); // future: earlier dates first
+        } else if (aIsPast && bIsPast) {
+          return b.startDate.compareTo(a.startDate); // past: more recent first
+        } else {
+          return a.startDate.compareTo(b.startDate); // active: earlier starts first
+        }
+      });
+
+
+      allLeaveRequests.assignAll(validLeaves);
+      filteredLeaves.assignAll(validLeaves);
+
+      acceptedRequests.assignAll(
+      allLeaveRequests.where((r) => r.status == 'Zaakceptowany' || r.status == 'Mój urlop').toList().obs);
+
+
     } catch (e) {
       errorMessage(e.toString());
       Get.snackbar('Błąd', 'Nie udało się pobrać wniosków: $e');
@@ -79,7 +137,7 @@ class LeaveController extends GetxController {
   }
 
   /// Save a new leave request - KIEROWNIK
-  Future<void> saveLeave(DateTime startDate, DateTime endDate, String leaveType, String status, int requestedDays) async {
+  Future<void> saveLeave(DateTime startDate, DateTime endDate, String status, int requestedDays, String? comment) async {
     try {
       // maybe add looking for overlap here as well
 
@@ -103,27 +161,24 @@ class LeaveController extends GetxController {
         status: status,
         insertedAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        leaveType: leaveType,
+        comment: comment
       );
 
       await _leaveRepo.saveLeave(newLeave);
       await fetchLeaves();
 
-      // jako że kierownik nie potrzebuje zatwierdzania - odejmujemy mu od razu dni od licznika
+      // bedziemy liczyc liczbe dni nieobecnosci, zaczynajac od 0 - mozna resetowac np na poczatku roku
+
+      // if status = urlop kierownika
       if (status == 'Mój urlop') {
-        if (leaveType == 'Urlop na żądanie') {
-            userController.updateEmployee(
-              userController.employee.value.copyWith(
-                onDemandDays: userController.employee.value.onDemandDays - requestedDays,
-              ),
-            );
-          } else {
-            userController.updateEmployee(
-              userController.employee.value.copyWith(
-                vacationDays: userController.employee.value.vacationDays - requestedDays,
-              ),
-            );
-          }
+
+        // teraz nie rozrozniamy typow urlopow po prostu dodajemy liczbe requested days do liczby nieobecnosci
+        userController.updateEmployee(
+          userController.employee.value.copyWith(
+            numberOfLeaves: userController.employee.value.numberOfLeaves + requestedDays
+          )
+        );
+
       }
 
     } catch (e) {
@@ -136,7 +191,7 @@ class LeaveController extends GetxController {
 
 
   /// FOR EMPLOYEEEES
-  Future<void> saveEmpLeave(DateTime startDate, DateTime endDate, String leaveType, String status, int requestedDays) async {
+  Future<void> saveEmpLeave(DateTime startDate, DateTime endDate, String status, int requestedDays, String? comment) async {
     try {
       final marketId = userController.employee.value.marketId;
       final requestedDays = endDate.difference(startDate).inDays + 1;
@@ -153,13 +208,13 @@ class LeaveController extends GetxController {
         name: '${userController.employee.value.firstName} ${userController.employee.value.lastName}',
         marketId: marketId,
         userId: userController.employee.value.id,
-        totalDays: 0,
+        totalDays: requestedDays,
         startDate: startDate,
         endDate: endDate,
         status: status,
         insertedAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        leaveType: leaveType,
+        comment: comment
       );
 
       await _leaveRepo.saveLeave(newLeave);
@@ -170,19 +225,13 @@ class LeaveController extends GetxController {
       /// or maybe its better to substract now, and then add them back if the request is denied ?????
       /// vote today for your favorite option
       ///
-      if (leaveType == 'Urlop na żądanie') {
-        userController.updateEmployee(
-          userController.employee.value.copyWith(
-            onDemandDays: userController.employee.value.onDemandDays - requestedDays,
-          ),
-        );
-      } else {
-        userController.updateEmployee(
-          userController.employee.value.copyWith(
-            vacationDays: userController.employee.value.vacationDays - requestedDays,
-          ),
-        );
-      }
+      /// NEW: lets add the leave days now, substract if kierownik denies
+      userController.updateEmployee(
+                 userController.employee.value.copyWith(
+                   numberOfLeaves: userController.employee.value.numberOfLeaves + requestedDays,
+                 )
+               );
+
 
     } catch (e) {
       errorMessage(e.toString());
@@ -235,17 +284,15 @@ class LeaveController extends GetxController {
     final newStart = normalizeDate(startDate);
     final newEnd = normalizeDate(endDate);
 
-    for (final leave in acceptedRequests) {
+    for (final leave in allLeaveRequests) {
       if (leave.userId == userId) {
         final leaveStart = normalizeDate(leave.startDate);
         final leaveEnd = normalizeDate(leave.endDate);
 
         // Sprawdzamy wszystkie możliwe przypadki nakładania się zakresów jakie sobie dacie rade wymyslic
-        if ((newStart.isAtSameMomentAs(leaveStart)) ||
-            (newEnd.isAtSameMomentAs(leaveEnd)) ||
-            (newStart.isAtSameMomentAs(leaveEnd)) ||
-            (newEnd.isAtSameMomentAs(leaveStart)) ||
-            (newStart.isBefore(leaveEnd) && newEnd.isAfter(leaveStart))) {
+        final hasOverlap = !(newEnd.isBefore(leaveStart) || newStart.isAfter(leaveEnd));
+
+        if (hasOverlap) {
           return leave;
         }
       }

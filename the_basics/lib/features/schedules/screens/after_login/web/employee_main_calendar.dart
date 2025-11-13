@@ -1,26 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
+import 'package:the_basics/features/schedules/usecases/choose_existing_schedule.dart';
+import 'package:the_basics/features/schedules/usecases/choose_schedule_generation_type.dart';
+import 'package:the_basics/features/schedules/usecases/choose_template.dart';
+import 'package:the_basics/features/schedules/usecases/choose_work_code_rules_dialog.dart';
+import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
-import '../../../../utils/common_widgets/side_menu.dart';
-import '../../../../utils/platform_controller.dart';
-import '../../../employees/controllers/user_controller.dart';
-import '../../../../utils/app_colors.dart';
-import '../../../tags/controllers/tags_controller.dart';
+import '../../../../../utils/common_widgets/side_menu.dart';
+import '../../../../../utils/platform_controller.dart';
+import '../../../../employees/controllers/user_controller.dart';
+import '../../../../../utils/app_colors.dart';
+import '../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
-class MainCalendar extends StatefulWidget {
-  const MainCalendar({super.key});
+class EmployeeMainCalendar extends StatefulWidget {
+  const EmployeeMainCalendar({super.key});
 
   @override
-  State<MainCalendar> createState() => _MainCalendarState();
+  State<EmployeeMainCalendar> createState() => _EmployeeMainCalendarState();
 }
 
-class _MainCalendarState extends State<MainCalendar> {
+class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
   final CalendarController _calendarController = CalendarController();
 
   final platformController = Get.find<PlatformController>();
@@ -136,7 +141,7 @@ class _MainCalendarState extends State<MainCalendar> {
         body: Row(
           children: [
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
               child: SideMenu(),
             ),
             Expanded(
@@ -177,19 +182,11 @@ class _MainCalendarState extends State<MainCalendar> {
                                 const SizedBox(width: 16),
                                 Flexible(
                                   child: CustomButton(
-                                    onPressed: () {},
-                                    text: "Generuj grafik",
-                                    width: 155,
-                                    icon: Icons.edit,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Flexible(
-                                  child: CustomButton(
-                                    onPressed: () => _showExportDialog(context),
+                                    onPressed: () => showExportDialog(context),
                                     text: "Eksportuj",
                                     width: 125,
                                     icon: Icons.download,
+                                    backgroundColor: AppColors.lightBlue,
                                   ),
                                 ),
                               ],
@@ -313,88 +310,6 @@ class _MainCalendarState extends State<MainCalendar> {
     );
   }
 
-  void _showExportDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => BaseDialog(
-        width: 551,
-        showCloseButton: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 32),
-            Text(
-              "Wybierz opcję eksportu grafiku.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w400,
-                color: AppColors.textColor2,
-              ),
-            ),
-            const SizedBox(height: 48),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 160,
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: Icon(Icons.print, color: AppColors.textColor2),
-                    label: Text(
-                      "Drukuj",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textColor2,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.lightBlue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 32),
-                SizedBox(
-                  width: 160,
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      showCustomSnackbar(
-                        context,
-                        "Grafik został pomyślnie zapisany.",
-                      );
-                    },
-                    icon: Icon(Icons.download, color: AppColors.textColor2),
-                    label: Text(
-                      "Zapisz jako PDF",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textColor2,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.lightBlue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildTagFilterDropdown(TagsController tagsController) {
     return Obx(() {

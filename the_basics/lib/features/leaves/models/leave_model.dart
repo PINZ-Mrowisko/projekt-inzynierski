@@ -8,7 +8,8 @@ class LeaveModel {
   final DateTime startDate;
   final DateTime endDate;
   final int totalDays;
-  final String leaveType;
+  // final String leaveType;
+  final String? comment;
   final String status ;
   final String? managerId;
   final bool isDeleted;
@@ -24,8 +25,9 @@ class LeaveModel {
     required this.startDate,
     required this.endDate,
     required this.totalDays,
-    required this.leaveType,
+    //required this.leaveType,
     this.status = "Oczekujący",
+    this.comment,
     this.managerId,
     this.isDeleted = false,
     required this.insertedAt,
@@ -41,7 +43,8 @@ class LeaveModel {
     startDate: DateTime.now(),
     endDate: DateTime.now(),
     totalDays: 0,
-    leaveType: 'Urlop na żądanie',
+    //leaveType: 'Urlop na żądanie',
+    comment: '',
     status: 'Oczekujący',
     insertedAt: DateTime.now(),
     updatedAt: DateTime.now(),
@@ -56,7 +59,8 @@ class LeaveModel {
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
       'totalDays': totalDays,
-      'leaveType': leaveType,
+      //'leaveType': leaveType,
+      'comment': comment,
       'status': status,
       'managerId': managerId,
       'isDeleted': isDeleted,
@@ -76,7 +80,8 @@ class LeaveModel {
       startDate: DateTime.parse(map['startDate']),
       endDate: DateTime.parse(map['endDate']),
       totalDays: map['totalDays'] ?? 0,
-      leaveType: map['leaveType'] ?? 'Urlop wypoczynkowy',
+      //leaveType: map['leaveType'] ?? 'Urlop wypoczynkowy',
+      comment: map['comment'] ?? '',
       status: map['status'] ?? 'Oczekujący',
       managerId: map['managerId'],
       isDeleted: map['isDeleted'] ?? false,
@@ -94,7 +99,8 @@ class LeaveModel {
     DateTime? startDate,
     DateTime? endDate,
     int? totalDays,
-    String? leaveType,
+    //String? leaveType,
+    String? comment,
     String? status,
     String? managerId,
     bool? isDeleted,
@@ -110,7 +116,8 @@ class LeaveModel {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       totalDays: totalDays ?? this.totalDays,
-      leaveType: leaveType ?? this.leaveType,
+      //leaveType: leaveType ?? this.leaveType,
+      comment: comment ?? this.comment,
       status: status ?? this.status,
       managerId: managerId ?? this.managerId,
       isDeleted: isDeleted ?? this.isDeleted,

@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
-import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
+import '../../../utils/common_widgets/text_area.dart';
 import '../controllers/leave_controller.dart';
 import '../models/holiday_model.dart';
 
-//to implement actual logic prferably with dynamic dropdown items
 void showAddManagerLeaveDialog(BuildContext context, LeaveController controller) {
-  final leaveType = RxnString();
   final selectedRange = Rx<PickerDateRange?>(null);
   final userController = Get.find<UserController>();
   final employee = userController.employee.value;
@@ -19,24 +17,8 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
   final errorMessage = RxString('');
   final holidayMessage = RxString('');
   final overlapMessage = RxString('');
-
+  final comment = RxString('');
   final numOfHolidays = RxInt(0);
-
-  final leaveStatusText = Obx(() {
-    final type = leaveType.value;
-    if (type == null) return const SizedBox.shrink();
-    final statusMap = {
-      'Urlop wypoczynkowy': 'Pozostało dni urlopu wypoczynkowego: ${employee.vacationDays}/20',
-      'Urlop na żądanie': 'pozostało : ${employee.onDemandDays}/4',
-    };
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 22.0),
-      child: Text(
-        statusMap[type] ?? '',
-        style: TextStyle(color: AppColors.logo, fontSize: 14),
-      ),
-    );
-  });
 
   final errorText = Obx(() {
     if (errorMessage.value.isEmpty) return const SizedBox.shrink();
@@ -72,12 +54,12 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
   });
 
   // funkcja walidująca wybrane daty - tutaj do zmiany jesli logika biznesowa wyglada inaczej
-  void validateDates(PickerDateRange? range, LeaveController controller) {
+  bool validateDates(PickerDateRange? range, LeaveController controller) {
     errorMessage.value = '';
     holidayMessage.value ='';
     overlapMessage.value = '';
 
-    if (range == null || range.startDate == null || leaveType.value == null) return;
+    if (range == null || range.startDate == null ) return false;
 
     final startDate = range.startDate!;
     final endDate = range.endDate ?? startDate;
@@ -87,13 +69,13 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
     final endOnly = normalizeDate(endDate);
 
 
-    final isOnDemand = leaveType.value == 'Urlop na żądanie';
     //for now set it like that, we need to substract the holidays
     var requestedDays = endDate.difference(startDate).inDays + 1;
 
     final List<Holiday> holidays = controller.holidays;
 
-    // // finds holidays that happen in time of leave
+
+    // finds holidays that happen in time of leave
     final holidaysInRange = holidays.where((holiday) {
       final holidayDate = normalizeDate(holiday.date);
       return (holidayDate.isAtSameMomentAs(startOnly) ||
@@ -114,70 +96,28 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
     else {holidayMessage.value = '';}
 
 
-
     /// Check for overlap with already accepted leave requests
     final overlappingLeave = controller.getOverlappingLeave(startDate, endDate, employee.id);
     if (overlappingLeave != null) {
-      //print("IVe got some!~~~~~~~~~~");
       final formatDate = (date) => '${date.day}.${date.month}.${date.year}';
       overlapMessage.value = 'Masz już zaakceptowany urlop w terminie '
           '${formatDate(overlappingLeave.startDate)}-${formatDate(overlappingLeave.endDate)}';
-      return;
+      return false;
     }
 
-
-    // Walidacja urlopu wypoczynkowego
-    if (!isOnDemand) {
-      if (startDate.isBefore(today)) {
-        errorMessage.value = 'Urlop wypoczynkowy nie może być w przeszłości';
-        return;
-      }
+    if (startDate.isBefore(today)) {
+      errorMessage.value = 'Nieobecność nie może być w przeszłości';
+      return false;
     }
-    final dateMinusOne = today.subtract(const Duration(days: 1));
-    if (isOnDemand) {
-      if (startDate.isBefore(dateMinusOne)) {
-        errorMessage.value = "Urlop na żądanie nie może być w przeszłości (ale dziś może).";
-        return;
-      }
 
-    }
-    //print(requestedDays);
-
-    // Walidacja dostępnych dni
-    if (isOnDemand) {
-      if (requestedDays > employee.onDemandDays) {
-        errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu na żądanie';
-        return;
-      }
-      if (requestedDays > 1) {
-        errorMessage.value = 'Urlop na żądanie może trwać maksymalnie 1 dzień';
-        return;
-      }
-    } else {
-      if (requestedDays > employee.vacationDays) {
-        errorMessage.value = 'Nie masz wystarczającej liczby dni urlopu wypoczynkowego';
-        return;
-      }
-    }
+    return true;
   }
 
 
   final fields = [
     holidayText,
     overlapText,
-    DropdownDialogField(
-      label: 'Typ urlopu',
-      hintText: 'Wybierz typ urlopu',
-      items: [
-        DropdownItem(value: 'Urlop wypoczynkowy', label: 'Urlop wypoczynkowy'),
-        DropdownItem(value: 'Urlop na żądanie', label: 'Urlop na żądanie'),
-      ],
-      onChanged: (value) {
-        leaveType.value = value;
-        validateDates(selectedRange.value, controller);
-      }
-    ),
-    leaveStatusText,
+
     DatePickerDialogField(
       label: 'Wybierz zakres dat urlopu',
       selectedRange: selectedRange,
@@ -185,6 +125,16 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
         selectedRange.value = range;
         validateDates(range, controller);
       },
+    ),
+    // add field for comment
+    TextAreaDialogField(
+      label: 'Komentarz (opcjonalnie)',
+      hintText: 'Wpisz komentarz do swojego urlopu...',
+      onChanged: (value) {
+        // Store the comment value
+        comment.value = value;
+      },
+      maxLines: 5, // Allows multiline input
     ),
     errorText,
 
@@ -194,18 +144,15 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
     DialogActionButton(
       label: 'Zatwierdź',
       onPressed: () async {
-        if (leaveType.value == null || selectedRange.value == null) {
-          showCustomSnackbar(context, 'Wybierz typ urlopu i zakres dat');
-          return;
-        }
-
-        if (errorMessage.value.isNotEmpty) {
-          showCustomSnackbar(context, 'Popraw błędy przed zatwierdzeniem');
-          return;
-        }
-
-        if (overlapMessage.value.isNotEmpty) {
-          showCustomSnackbar(context, 'Masz już urlop w tym terminie.');
+        if (!validateDates(selectedRange.value, controller)) {
+          // Validation failed - show appropriate message
+          if (selectedRange.value == null) {
+            showCustomSnackbar(context, 'Wybierz zakres dat');
+          } else if (errorMessage.value.isNotEmpty) {
+            showCustomSnackbar(context, errorMessage.value);
+          } else if (overlapMessage.value.isNotEmpty) {
+            showCustomSnackbar(context, overlapMessage.value);
+          }
           return;
         }
 
@@ -213,15 +160,16 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
         final leaveController = Get.find<LeaveController>();
         final startDate = selectedRange.value!.startDate;
         final endDate = selectedRange.value!.endDate ?? selectedRange.value!.startDate;
-
+        final commentText = comment.value.isEmpty ? "Brak komentarza" : comment.value;
         final requestedDays = endDate!.difference(startDate!).inDays + 1 - numOfHolidays.value;
+
         try {
           await leaveController.saveLeave(
               startDate,
               endDate,
-              leaveType.value!,
               "Mój urlop",
-              requestedDays
+              requestedDays,
+              commentText
           );
           //Get.back();
           await userController.fetchCurrentUserRecord();
