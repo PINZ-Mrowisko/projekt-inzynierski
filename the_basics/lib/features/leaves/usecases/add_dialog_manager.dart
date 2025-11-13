@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -26,7 +27,7 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Text(
         errorMessage.value,
-        style: const TextStyle(color: Colors.red, fontSize: 14),
+        style: TextStyle(color: AppColors.warning, fontSize: 14),
       ),
     );
   });
@@ -37,7 +38,7 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Text(
         holidayMessage.value,
-        style: const TextStyle(color: Colors.blue, fontSize: 14),
+        style: TextStyle(color: AppColors.logo, fontSize: 14),
       ),
     );
   });
@@ -48,7 +49,7 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Text(
         overlapMessage.value,
-        style: const TextStyle(color: Colors.pink, fontSize: 14),
+        style: TextStyle(color: AppColors.warning, fontSize: 14),
       ),
     );
   });
