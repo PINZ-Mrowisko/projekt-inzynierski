@@ -152,47 +152,45 @@ def main(workers, template: Template, tags):
         5: "Sobota",
         6: "Niedziela"
     }
-    # print("in main function")
-    # for worker in workers:
-    #     for day in range(template.days):
-    #         day_name = days_dict[day]
-    #         shifts_that_day = template.shifts_number[day_name] if day_name in template.shifts_number else 0
-    #
-    #         for shift in range(shifts_that_day):
-    #             for role in worker.tags:
-    #                 all_shifts[(worker, day, shift, role)] = model.new_bool_var(f"shift: {worker} | {day} | {shift} | {role}")
-    #                 print(f"shift: {worker} | {day} | {shift} | {role}")
+
+    preference_vars = []
+
 
     for day in range(template.days):
         day_name = days_dict[day]
-        shifts_that_day = template.shifts_number[day_name] if day_name in template.shifts_number else 0
+        shifts_that_day = template.shifts_number.get(day_name, 0)
         shifts_objects = [s for s in template.shifts if s.day == day_name]
-        print(shifts_objects)
 
-        for shift in range(shifts_that_day):
-
-            current_shift = shifts_objects[shift]
+        for shift_index in range(shifts_that_day):
+            current_shift = shifts_objects[shift_index]
             current_role_id = current_shift.tagId
             tag = next((t for t in tags if t.id == current_role_id), None)
 
-            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tag, current_shift.count, current_shift.count)
+            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift_index, tag, current_shift.count,
+                                     current_shift.count)
 
             male_assigned = []
             female_assigned = []
+
+            for worker in workers:
+                if (worker, day, shift_index, tag) in all_shifts:
+                    assigned_var = all_shifts[(worker, day, shift_index, tag)]
+                    if current_shift.type == worker.work_time_preference:
+                        preference_vars.append(assigned_var)
 
             model.Add(sum(male_assigned) >= template.minMen)
             model.Add(sum(female_assigned) >= template.minWomen)
             model.Add(sum(female_assigned) <= template.maxWomen)
             model.Add(sum(male_assigned) <= template.minMen)
 
+    model.Maximize(sum(preference_vars))
+
     solver = cp_model.CpSolver()
     printer = ShiftPrinter(all_shifts, workers, template)
 
     status = solver.Solve(model, printer)
 
-    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        # print('DDDDDDDDDDDDDDDDDDDDDDDD')
-        # printer.on_solution_callback()
+    if status == cp_model.OPTIMAL:
         print("\nFinal Solution:")
         printer.print_best_solution()
         return printer.results_json()

@@ -18,6 +18,7 @@ class ShiftPrinter(cp_model.CpSolverSolutionCallback):
         self._workers = workers
         self._days = template.days
         self._shifts = template.shifts_number
+        self._shift_objects = template.shifts
         self._solution_count = 0
         self._best_solution = None
         self._best_score = -1
@@ -26,22 +27,25 @@ class ShiftPrinter(cp_model.CpSolverSolutionCallback):
         current_score = 0
         current_solution = []
 
-        print(f"\nSolution {self._solution_count + 1}:\n")
+        #print(f"\nSolution {self._solution_count + 1}:\n")
         for day in range(self._days):
-            print(f"Day {day + 1}")
+            #print(f"Day {day + 1}")
 
             day_name = days_dict[day]
             shifts_that_day = self._shifts.get(day_name, 0)
+            shifts_objects_that_day = [s for s in self._shift_objects if s.day == day_name]
 
             for shift in range(shifts_that_day):
-                print(f"  Shift {shift + 1}:")
+                current_shift = shifts_objects_that_day[shift]
+                #print(f"  Shift {shift + 1}:")
                 for worker in self._workers:
                     for role in worker.tags:
                         var = self._all_shifts.get((worker, day, shift, role))
                         if self.BooleanValue(var):
-                            print(f"    {worker.firstname} {worker.lastname} as {role.name}")
-                            if shift + 1 == worker.work_time_preference:
+                            #print(f"    {worker.firstname} {worker.lastname} as {role.name}")
+                            if current_shift.type == worker.work_time_preference:
                                 current_score += 1
+                                #print(f"        {worker.firstname} {worker.work_time_preference} matches shift type {current_shift.type}")
                             current_solution.append((day, shift, worker, role))
 
         if current_score > self._best_score:
@@ -108,6 +112,10 @@ class ShiftPrinter(cp_model.CpSolverSolutionCallback):
             results.append(day_entry)
 
         return results
+
+    @property
+    def solution_count(self):
+        return self._solution_count
 
 
 
