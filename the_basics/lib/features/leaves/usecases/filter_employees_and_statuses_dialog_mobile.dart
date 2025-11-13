@@ -122,7 +122,7 @@ void showEmployeesAndStatusesFilterDialogMobile(
                         children: [
                           SizedBox(
                             width: 140,
-                            height: 50,
+                            height: 54,
                             child: ElevatedButton(
                               onPressed: () {
                                 setState(() {
@@ -142,7 +142,7 @@ void showEmployeesAndStatusesFilterDialogMobile(
                           const SizedBox(width: 24),
                           SizedBox(
                             width: 140,
-                            height: 50,
+                            height: 54,
                             child: ElevatedButton(
                               onPressed: () {
                                 selectedEmployees.assignAll(tempSelectedEmployees);
