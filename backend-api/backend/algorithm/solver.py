@@ -1,13 +1,23 @@
 from ortools.sat.python import cp_model
 
+days_dict = {
+        0: "Poniedziałek",
+        1: "Wtorek",
+        2: "Środa",
+        3: "Czwartek",
+        4: "Piątek",
+        5: "Sobota",
+        6: "Niedziela"
+    }
+
 
 class ShiftPrinter(cp_model.CpSolverSolutionCallback):
-    def __init__(self, all_shifts, workers, constraints):
+    def __init__(self, all_shifts, workers, template):
         cp_model.CpSolverSolutionCallback.__init__(self)
         self._all_shifts = all_shifts
         self._workers = workers
-        self._days = constraints.days
-        self._shifts = constraints.shifts
+        self._days = template.days
+        self._shifts = template.shifts_number
         self._solution_count = 0
         self._best_solution = None
         self._best_score = -1
@@ -19,7 +29,11 @@ class ShiftPrinter(cp_model.CpSolverSolutionCallback):
         print(f"\nSolution {self._solution_count + 1}:\n")
         for day in range(self._days):
             print(f"Day {day + 1}")
-            for shift in range(self._shifts):
+
+            day_name = days_dict[day]
+            shifts_that_day = self._shifts.get(day_name, 0)
+
+            for shift in range(shifts_that_day):
                 print(f"  Shift {shift + 1}:")
                 for worker in self._workers:
                     for role in worker.tags:
@@ -44,7 +58,11 @@ class ShiftPrinter(cp_model.CpSolverSolutionCallback):
 
         for day in range(self._days):
             print(f"Day {day + 1}")
-            for shift in range(self._shifts):
+
+            day_name = days_dict[day]
+            shifts_that_day = self._shifts.get(day_name, 0)
+
+            for shift in range(shifts_that_day):
                 print(f"  Shift {shift + 1}:")
                 for (d, s, worker, role) in self._best_solution:
                     if d == day and s == shift:
@@ -76,7 +94,10 @@ class ShiftPrinter(cp_model.CpSolverSolutionCallback):
                 "shifts": []
             }
 
-            for shift in range(self._shifts):
+            day_name = days_dict[day]
+            shifts_that_day = self._shifts.get(day_name, 0)
+
+            for shift in range(shifts_that_day):
                 assigned_workers = shift_map.get((day, shift), [])
 
                 day_entry["shifts"].append({

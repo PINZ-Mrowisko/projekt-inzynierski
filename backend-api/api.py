@@ -68,4 +68,35 @@ def test_new(authorization: str = Header(...)):
     tags = get_tags(user_id, db)
     print(tags[0])
     templates = get_templates(user_id, db)
+    print(templates[0].shifts[0].start)
     return templates
+
+@app.get("/run-algorithmv2/{template_id}")
+def run_algorithm(authorization: str = Header(...), template_id: str = ""):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=403, detail="Brak tokenu")
+
+    id_token = authorization.split(" ")[1]
+
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        user_id = decoded_token["uid"]
+    except Exception as e:
+        print("Błąd weryfikacji tokenu:", e)
+        raise HTTPException(status_code=403, detail="Nieprawidłowy token")
+
+    tags = get_tags(user_id, db)
+    print(tags)
+    workers = get_workers(user_id, tags, db)
+    print(workers)
+
+    templates = get_templates(user_id, db)
+    template = [template for template in templates if template.id == template_id]
+    try:
+        template = template[0]
+    except:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+
+    result = main(workers, template, tags)
+    return result

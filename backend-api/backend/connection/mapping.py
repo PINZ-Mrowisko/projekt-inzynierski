@@ -83,6 +83,18 @@ def map_worker(worker_data, tags_list):
 
         return worker
 
+def normalize_hour(hour_str):
+    try:
+        parts = hour_str.split(":")
+        hour = int(parts[0])
+        minute = int(parts[1]) if len(parts) > 1 else 0
+
+        return (hour, minute)
+
+    except Exception as e:
+        print(f"Error normalizing hour '{hour_str}': {e}")
+        return hour_str
+
 def map_shift(shift_data):
     if shift_data.get("isDeleted", False) == True:
         print("Shift is deleted, skipping mapping.")
@@ -91,7 +103,11 @@ def map_shift(shift_data):
         id = shift_data.get("id", "")
         day = shift_data.get("day", "")
         start = shift_data.get("start", "")
+
+        start = normalize_hour(start)
         end = shift_data.get("end", "")
+        end = normalize_hour(end)
+
         tagId = shift_data.get("tagId", "")
         count = shift_data.get("count", 0)
 
