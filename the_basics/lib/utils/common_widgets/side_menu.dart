@@ -159,7 +159,7 @@ class SideMenu extends StatelessWidget {
       _buildMenuItem(
         icon: Icons.schedule,
         text: 'Grafik ogólny',
-        route: '/grafik-ogolny',
+        route: '/grafik-ogolny-kierownik',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
@@ -217,7 +217,7 @@ class SideMenu extends StatelessWidget {
       _buildMenuItem(
         icon: Icons.schedule,
         text: 'Grafik ogólny',
-        route: '/grafik-ogolny',
+        route: '/grafik-ogolny-pracownicy',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
@@ -433,10 +433,13 @@ class SideMenu extends StatelessWidget {
 
   void _navigateTo(String route) {
     if (Get.currentRoute != route) {
+      menuController.currentRoute.value = route;
       if (onNavigation != null) {
         onNavigation!(route);
       } else {
-        Get.toNamed(route);
+        Get.toNamed(route)?.then((_) {
+        menuController.currentRoute.value = Get.currentRoute;
+      });
       }
     }
   }

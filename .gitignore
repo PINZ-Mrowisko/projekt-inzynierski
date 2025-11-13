@@ -93,7 +93,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+#lib/
 lib64/
 parts/
 sdist/
@@ -250,3 +250,5 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/flutter,python,firebase
 
+# FVM
+.fvm/
