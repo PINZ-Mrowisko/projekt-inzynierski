@@ -1,5 +1,6 @@
 // flutterfile configure - jesli zmieniacie cos w conf firestora to odswiezcie ustawienia
 
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,19 +9,20 @@ import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/features/auth/screens/login_page.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
-import 'package:the_basics/features/leaves/screens/employee_leaves_management.dart';
-import 'package:the_basics/features/leaves/screens/manager_leaves_management.dart';
+import 'package:the_basics/features/leaves/screens/mobile/employee_leaves_management_mobile.dart';
+import 'package:the_basics/features/leaves/screens/mobile/manager_leaves_management_mobile.dart';
+import 'package:the_basics/features/leaves/screens/web/employee_leaves_management.dart';
+import 'package:the_basics/features/leaves/screens/web/manager_leaves_management.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/employee_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/main_calendar_edit_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/employee_main_calendar.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar_edit.dart';
-import 'package:the_basics/features/schedules/screens/after_login/web/individual_calendar.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/placeholder_page.dart';
 import 'package:the_basics/features/settings/screens/settings.dart';
 import 'package:the_basics/features/templates/screens/algoritm_screen.dart';
 import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
-import 'package:the_basics/features/templates/screens/new_tempalte_screen.dart';
+import 'package:the_basics/features/templates/screens/new_template_screen.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/employee_more_page_mobile.dart';
