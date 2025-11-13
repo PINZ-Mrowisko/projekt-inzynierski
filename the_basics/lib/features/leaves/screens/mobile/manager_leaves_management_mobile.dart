@@ -217,7 +217,7 @@ class ManagerLeavesManagementMobilePage extends StatelessWidget {
       children: [
         _buildDecisionButton(
           text: 'Odrzuć',
-          color: AppColors.logo.withValues(alpha: 0.5),
+          color: AppColors.logolighter,
           icon: Icons.close,
           onPressed: () async {
             try {
