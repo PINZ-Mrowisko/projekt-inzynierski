@@ -44,9 +44,9 @@ class VerifyEmailScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Center(
                     child: SvgPicture.asset(
-                    Get.isDarkMode
-                      ? 'assets/mrowisko_logo_blue_dark_mode.svg'
-                      : 'assets/mrowisko_logo_blue.svg',
+                      Get.isDarkMode
+                          ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                          : 'assets/mrowisko_logo_blue.svg',
                       height: 48,
                     ),
                   ),
@@ -65,26 +65,27 @@ class VerifyEmailScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                SizedBox(
-                  width: 140,
-                  child: CustomButton(
-                    onPressed: () {
-                      verifyController.sendEmailVerification(context);
-                    },
-                    text: 'Wyślij ponownie',
-                  ),
-                ),
+                    SizedBox(
+                      width: 140,
+                      child: CustomButton(
+                        onPressed: () {
+                          verifyController.sendEmailVerification(context);
+                        },
+                        text: 'Wyślij ponownie',
+                      ),
+                    ),
 
                     const SizedBox(width: 20),
-                SizedBox(
-                  width: 140,
-                  child: CustomButton(
-                    onPressed: () {
-                      verifyController.checkEmailVerificationStatus(context);
-                    },
-                    text: 'Kontynuuj',
-                  ),
-                ),
+                    SizedBox(
+                      width: 140,
+                      child: CustomButton(
+                        onPressed: () {
+                          verifyController.checkEmailVerificationStatus(
+                              context);
+                        },
+                        text: 'Kontynuuj',
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -95,6 +96,7 @@ class VerifyEmailScreen extends StatelessWidget {
       ),
     );
   }
+}
 
 
 
