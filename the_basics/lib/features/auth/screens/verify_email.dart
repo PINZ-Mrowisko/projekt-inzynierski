@@ -24,7 +24,7 @@ class VerifyEmailScreen extends StatelessWidget {
             width: 450,
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: const [
                 BoxShadow(
@@ -41,7 +41,9 @@ class VerifyEmailScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Center(
                     child: SvgPicture.asset(
-                      'assets/mrowisko_logo_blue.svg',
+                    Get.isDarkMode 
+                      ? 'assets/mrowisko_logo_blue_dark_mode.svg'
+                      : 'assets/mrowisko_logo_blue.svg',
                       height: 48,
                     ),
                   ),
