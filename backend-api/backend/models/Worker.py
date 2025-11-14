@@ -1,5 +1,5 @@
 class Worker:
-    def __init__(self, firstname, lastname, sex, age, type_of_deal, phone_number, email, max_working_hours = None):
+    def __init__(self, firstname, lastname, sex, age, type_of_deal, phone_number, email, id,max_working_hours = None):
         self.firstname = firstname
         self.lastname = lastname
         self.sex = sex
@@ -11,6 +11,7 @@ class Worker:
         self.max_working_hours = max_working_hours
         self.tags = [] #t0 do
         self.is_deleted = False
+        self.id = id
 
     def __str__(self):
         tags_str = ', '.join([tag.name for tag in self.tags])

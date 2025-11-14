@@ -62,6 +62,7 @@ def map_worker(worker_data, tags_list):
         phone_number = worker_data.get("phoneNumber", "")
         email = worker_data.get("email", "")
         work_time_preference = worker_data.get("shiftPreference", "")
+        id = worker_data.get("id", "")
         max_working_hours = worker_data.get("maxWeeklyHours", 0)
         tags_doc = worker_data.get("tags", [])
 
@@ -73,6 +74,7 @@ def map_worker(worker_data, tags_list):
             type_of_deal=type_of_deal,
             phone_number=phone_number,
             email=email,
+            id=id,
             max_working_hours=max_working_hours
         )
 

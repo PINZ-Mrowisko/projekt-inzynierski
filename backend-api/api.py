@@ -3,7 +3,7 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
-from backend.connection.database_queries import get_tags, get_workers, get_templates
+from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule
 from backend.algorithm.algorithm import main
 from backend.models.Constraints import Constraints
 
@@ -99,4 +99,7 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
 
 
     result = main(workers, template, tags)
+
+    post_schedule(user_id, result, db)
+
     return result

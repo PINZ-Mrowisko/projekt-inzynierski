@@ -86,6 +86,7 @@ class ShiftPrinter(cp_model.CpSolverSolutionCallback):
             if key not in shift_map:
                 shift_map[key] = []
             shift_map[key].append({
+                "id": worker.id,
                 "firstname": worker.firstname,
                 "lastname": worker.lastname,
                 "role": role.name
@@ -95,6 +96,7 @@ class ShiftPrinter(cp_model.CpSolverSolutionCallback):
         for day in range(self._days):
             day_entry = {
                 "day": day + 1,
+                "day_name": days_dict[day],
                 "shifts": []
             }
 

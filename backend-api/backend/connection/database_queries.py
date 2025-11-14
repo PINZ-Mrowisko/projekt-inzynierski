@@ -1,3 +1,5 @@
+from firebase_admin import firestore
+
 from backend.connection.mapping import *
 from google.cloud.firestore_v1 import FieldFilter
 
@@ -108,5 +110,40 @@ def get_templates(user_id: str, db):
     except Exception as e:
         print(f"An error occurred while fetching templates: {e}")
         return []
+
+def post_schedule(user_id: str, schedule_data: dict, db):
+    try:
+        # znajdź Market użytkownika
+        docs = db.collection("Markets").where(filter=FieldFilter("createdBy", "==", user_id)).limit(1).get()
+
+        if not docs:
+            print("No Market found for this user.")
+            return None
+
+        market_doc = docs[0]
+        market_id = market_doc.id
+
+        # dodaj Schedule
+        schedules_ref = db.collection("Markets").document(market_id).collection("Schedules")
+        new_schedule_ref = schedules_ref.document()
+        new_schedule_ref.set(
+            {
+                "createdBy": user_id,
+                "createdAt": firestore.firestore.SERVER_TIMESTAMP,
+            }
+        )
+
+        # dodaj ShiftAssignments
+        assignments_ref = new_schedule_ref.collection("ShiftAssignments")
+        for assignment in schedule_data:
+            assignment_doc = assignments_ref.document()
+            assignment_doc.set(assignment)
+
+        print(f"Schedule added with ID: {new_schedule_ref.id}")
+        return new_schedule_ref.id
+
+    except Exception as e:
+        print(f"An error occurred while posting schedule: {e}")
+        return None
 
 
