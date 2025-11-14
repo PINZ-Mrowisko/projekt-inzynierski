@@ -26,7 +26,7 @@ def generate_all_shifts(model, days, shifts, all_workers):
                 for role in worker.tags:
                     all_shifts[(worker, day, shift, role)] = model.new_bool_var(
                         f"shift: {worker} | {day} | {shift} | {role}")
-                    print(f"shift: {worker} | {day} | {shift} | {role}")
+
     return all_shifts
 
 def create_tag_group(all_workers, tag):
@@ -175,13 +175,19 @@ def main(workers, template: Template, tags):
             for worker in workers:
                 if (worker, day, shift_index, tag) in all_shifts:
                     assigned_var = all_shifts[(worker, day, shift_index, tag)]
+
                     if current_shift.type == worker.work_time_preference:
                         preference_vars.append(assigned_var)
+
+                    if worker.sex == 'male':
+                        male_assigned.append(assigned_var)
+                    else:
+                        female_assigned.append(assigned_var)
 
             model.Add(sum(male_assigned) >= template.minMen)
             model.Add(sum(female_assigned) >= template.minWomen)
             model.Add(sum(female_assigned) <= template.maxWomen)
-            model.Add(sum(male_assigned) <= template.minMen)
+            model.Add(sum(male_assigned) <= template.maxMen)
 
     model.Maximize(sum(preference_vars))
 
