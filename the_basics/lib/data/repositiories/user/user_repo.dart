@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 
 import '../../../features/auth/models/user_model.dart';
-import '../../../features/settings/models/user_settings_model.dart';
 import '../exceptions.dart';
 
 class UserRepo extends GetxController {
@@ -40,35 +39,6 @@ class UserRepo extends GetxController {
           .doc(employee.id)
           .set(employee.toMap());
 
-      // also presave settings for them:
-      // Save default settings in user's subcollection
-
-      final settings = SettingsModel(
-        userId: employee.id,
-        insertedAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        newSchedule: true,
-        leaveRequests: false,
-        leaveStatus: true
-      );
-
-      /// presave the predefined setting for employees while their account gets created
-
-      await _db
-          .collection('Markets')
-          .doc(employee.marketId)
-          .collection('members')
-          .doc(employee.id)
-          .collection('Settings')
-          .doc('settings')
-          .set({
-        'userId': settings.userId,
-        'newSchedule': settings.newSchedule,
-        'leaveStatus': settings.leaveStatus,
-        'leaveRequests': settings.leaveRequests,
-        'insertedAt': settings.insertedAt.toIso8601String(),
-        'updatedAt': settings.updatedAt.toIso8601String(),
-      });
 
     } on FirebaseException catch (e) {
       throw 'Firebase error: ${e.message}';
