@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../utils/common_widgets/navbar.dart';
-import '../controllers/verify_email_controller.dart';
+import '../../../../utils/common_widgets/navbar.dart';
+import '../../controllers/verify_email_controller.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/validators/validation.dart';
 import 'package:the_basics/utils/app_colors.dart';
@@ -35,7 +35,7 @@ class VerifyEmailScreen extends StatelessWidget {
               ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),

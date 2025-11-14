@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:the_basics/features/auth/screens/mobile/login_page_mobile.dart';
+import 'package:the_basics/utils/platform_wrapper.dart';
 
-import '../../features/auth/screens/login_page.dart';
+import '../../features/auth/screens/web/login_page.dart';
 import '../../features/schedules/screens/before_login/about_page.dart';
 import '../../features/schedules/screens/before_login/docs_page.dart';
 import '../../features/schedules/screens/before_login/features_page.dart';
@@ -51,7 +53,7 @@ class NavBar extends StatelessWidget {
           InkWell(
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(builder: (context) => PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
               );
             },
             child: Row(
