@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from firebase_admin import firestore
 
 from backend.connection.mapping import *
@@ -130,6 +132,7 @@ def post_schedule(user_id: str, schedule_data: dict, db):
             {
                 "createdBy": user_id,
                 "createdAt": firestore.firestore.SERVER_TIMESTAMP,
+                "month_of_usage": datetime.now().month + 1 if datetime.now().month < 12 else 1,
             }
         )
 
