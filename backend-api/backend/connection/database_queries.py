@@ -113,40 +113,85 @@ def get_templates(user_id: str, db):
         print(f"An error occurred while fetching templates: {e}")
         return []
 
+from datetime import datetime, timedelta
+import calendar
+from collections import defaultdict
+from google.cloud import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
+
+
+def get_next_month_year():
+    now = datetime.now()
+    year = now.year + (1 if now.month == 12 else 0)
+    month = 1 if now.month == 12 else now.month + 1
+    return year, month
+
+
+def group_schedule_by_day(schedule_data):
+    grouped = defaultdict(list)
+    for entry in schedule_data:
+        grouped[entry["day"]].append(entry)
+    return grouped
+
+
 def post_schedule(user_id: str, schedule_data: dict, db):
     try:
-        # znajdź Market użytkownika
-        docs = db.collection("Markets").where(filter=FieldFilter("createdBy", "==", user_id)).limit(1).get()
+        docs = db.collection("Markets") \
+            .where(filter=FieldFilter("createdBy", "==", user_id)) \
+            .limit(1).get()
 
         if not docs:
             print("No Market found for this user.")
             return None
 
-        market_doc = docs[0]
-        market_id = market_doc.id
+        market_id = docs[0].id
 
-        # dodaj Schedule
+        year, month = get_next_month_year()
+        days_in_month = calendar.monthrange(year, month)[1]
+
         schedules_ref = db.collection("Markets").document(market_id).collection("Schedules")
         new_schedule_ref = schedules_ref.document()
-        new_schedule_ref.set(
-            {
-                "createdBy": user_id,
-                "createdAt": firestore.firestore.SERVER_TIMESTAMP,
-                "month_of_usage": datetime.now().month + 1 if datetime.now().month < 12 else 1,
-            }
-        )
 
-        # dodaj ShiftAssignments
-        assignments_ref = new_schedule_ref.collection("ShiftAssignments")
-        for assignment in schedule_data:
-            assignment_doc = assignments_ref.document()
-            assignment_doc.set(assignment)
+        new_schedule_ref.set({
+            "createdBy": user_id,
+            "createdAt": firestore.SERVER_TIMESTAMP,
+            "month_of_usage": month,
+            "year_of_usage": year,
+            "days_in_month": days_in_month
+        })
 
-        print(f"Schedule added with ID: {new_schedule_ref.id}")
+        grouped = group_schedule_by_day(schedule_data)
+
+        days_ref = new_schedule_ref.collection("DayAssignments")
+
+        for day_number in range(1, days_in_month + 1):
+
+            date = datetime(year, month, day_number)
+
+            day_index = ((day_number - 1) % 7) + 1
+
+            assignments = grouped.get(day_index, [])
+
+            day_doc_ref = days_ref.document()
+            day_doc_ref.set({
+                "date": date,
+                "day": day_number,
+                "weekday": date.isoweekday(),
+                "day_index": day_index
+            })
+
+            shifts_ref = day_doc_ref.collection("ShiftAssignments")
+
+            for assignment in assignments:
+                shifts_ref.document().set(assignment)
+
+        print(f"Schedule created with ID: {new_schedule_ref.id}")
         return new_schedule_ref.id
 
     except Exception as e:
         print(f"An error occurred while posting schedule: {e}")
         return None
+
+
 
 
