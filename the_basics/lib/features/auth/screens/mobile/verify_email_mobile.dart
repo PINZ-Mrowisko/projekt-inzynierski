@@ -35,7 +35,7 @@ class VerifyEmailScreenMobile extends StatelessWidget {
               ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
@@ -68,7 +68,9 @@ class VerifyEmailScreenMobile extends StatelessWidget {
                     onPressed: () {
                       verifyController.sendEmailVerification(context);
                     },
+                    
                     text: 'Wyślij ponownie',
+                    
                   ),
                 ),
 

@@ -28,7 +28,9 @@ class LoginPageMobile extends StatelessWidget {
       return Scaffold(
         backgroundColor: AppColors.pageBackground,
         body: Center(
-          child: Container(
+          child: SingleChildScrollView(
+            child: Center(
+              child: Container(
             width: 400,
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
@@ -184,6 +186,8 @@ class LoginPageMobile extends StatelessWidget {
               ),
           ),
           ),
+          )
+        )
         );
       }),
     );
