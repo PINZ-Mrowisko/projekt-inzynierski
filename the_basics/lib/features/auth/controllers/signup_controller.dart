@@ -4,8 +4,10 @@ import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/data/repositiories/other/tags_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
+import 'package:the_basics/features/auth/screens/mobile/verify_email_mobile.dart';
 import 'package:the_basics/features/auth/screens/web/verify_email.dart';
 import 'package:the_basics/features/tags/models/tags_model.dart';
+import 'package:the_basics/utils/platform_wrapper.dart';
 
 import '../../../data/repositiories/other/market_repo.dart';
 import '../models/market_model.dart';
@@ -139,7 +141,7 @@ class SignUpController extends GetxController {
       await tagRepo.saveTag(newTag);
 
 
-      Get.to(() => VerifyEmailScreen(email: email.text.trim()));
+      Get.to(() => PlatformWrapper(mobile: VerifyEmailScreenMobile(email: email.text.trim()), web: VerifyEmailScreen(email: email.text.trim())));
 
       email.clear();
       firstName.clear();

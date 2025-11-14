@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:the_basics/features/auth/screens/mobile/verify_email_mobile.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/employee_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
@@ -71,7 +72,7 @@ class AuthRepo extends GetxController {
           throw(e.toString());
         }
       } else {
-        Get.offAll(() => const VerifyEmailScreen());
+        Get.offAll(() => const PlatformWrapper(mobile: VerifyEmailScreenMobile(), web: VerifyEmailScreen()));
       }
 
     } else {
