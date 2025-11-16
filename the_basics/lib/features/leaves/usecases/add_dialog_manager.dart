@@ -190,7 +190,7 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
       actions: actions,
       onClose: Get.back,
       width: 500,
-      height: 700,
+      height: 735,
     ),
     barrierDismissible: false,
   );
