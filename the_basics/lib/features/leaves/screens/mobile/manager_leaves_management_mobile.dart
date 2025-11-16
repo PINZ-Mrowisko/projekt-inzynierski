@@ -44,7 +44,7 @@ class ManagerLeavesManagementMobilePage extends StatelessWidget {
                   children: [
                     Center(
                       child: Text(
-                        'Wnioski urlopowe',
+                        'Wnioski',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w500,
@@ -54,7 +54,7 @@ class ManagerLeavesManagementMobilePage extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                      left: -8,
+                      left: 0,
                       child: Row(
                         children: [
                           IconButton(
@@ -69,7 +69,7 @@ class ManagerLeavesManagementMobilePage extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                      right: -8,
+                      right: 0,
                       child: Row(
                         children: [
                           IconButton(
