@@ -97,7 +97,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     final overlappingLeave = leaveController.getOverlappingLeave(startDate, endDate, employee.id);
     if (overlappingLeave != null) {
       final formatDate = (date) => '${date.day}.${date.month}.${date.year}';
-      overlapMessage.value = 'Masz już zaakceptowany urlop w terminie '
+      overlapMessage.value = 'Masz już złożoną nieobecność na ten termin'
           '${formatDate(overlappingLeave.startDate)}-${formatDate(overlappingLeave.endDate)}';
       return false;
     }
@@ -162,7 +162,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
               endDate,
               "Oczekujący",
               requestedDays,
-              commentText
+              commentText,
           );
           //Get.back();
           await userController.fetchCurrentUserRecord();

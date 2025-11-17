@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
+import 'package:the_basics/features/notifs/controllers/notif_controller.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
@@ -293,16 +294,22 @@ class ManagerLeavesManagementPage extends StatelessWidget {
                 return;
               }
               // add back the holdiay days to the employee
-              final duration = leave.totalDays;
-              print(duration);
+              // convert to int so doesnt throw error
+              final currentLeaves = int.tryParse(employee.numberOfLeaves.toString()) ?? 0;
+              final totalDays = int.tryParse(leave.totalDays.toString()) ?? 0;
+
               final updatedEmployee = employee.copyWith(
-                numberOfLeaves: employee.numberOfLeaves - leave.totalDays
+                numberOfLeaves: currentLeaves - totalDays
               );
 
               // update the leave request
               final newLeave = leave.copyWith(status: "odrzucony");
               controller.updateLeave(newLeave);
               userController.updateEmployee(updatedEmployee);
+
+              /// notify employee about status change : send notif
+              Get.find<NotificationController>().leaveStatusChangeNotification(leave.userId, "denied");
+
 
               showCustomSnackbar(context,'Wniosek odrzucony');
 
@@ -322,6 +329,11 @@ class ManagerLeavesManagementPage extends StatelessWidget {
             controller.updateLeave(newLeave);
 
             /// CHNAGE STATUS TO ZAAKCEPTOWANY
+
+            /// send notif to user about leave status change
+            print(leave.userId);
+            Get.find<NotificationController>().leaveStatusChangeNotification(leave.userId, "accepted");
+
             showCustomSnackbar(context,'Wniosek zaakceptowany');
           },
         ),

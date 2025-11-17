@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
-import 'package:the_basics/features/auth/screens/login_page.dart';
+import 'package:the_basics/features/auth/screens/mobile/login_page_mobile.dart';
+import 'package:the_basics/features/auth/screens/web/login_page.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
 import 'package:the_basics/features/leaves/screens/mobile/employee_leaves_management_mobile.dart';
@@ -27,6 +28,7 @@ import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/employee_more_page_mobile.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/manager_more_page_mobile.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
+import 'package:the_basics/utils/platform_controller.dart';
 import 'package:the_basics/utils/platform_wrapper.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
@@ -64,6 +66,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return GetMaterialApp(
       locale: const Locale('pl'),
       supportedLocales: const [Locale('pl'), Locale('en')],
@@ -111,7 +114,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/raporty', page: () => PlaceholderPage()),
 
         GetPage(name: '/ustawienia', page: () => SettingsScreen()),
-        GetPage(name: '/login', page: () => LoginPage()),
+        GetPage(name: '/login', page: () => PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
         GetPage(name: '/wiecej-pracownicy', page: () => EmployeeMorePageMobile()),
         GetPage(name: '/wiecej-kierownik', page: () => ManagerMorePageMobile()),
       ],
@@ -193,7 +196,7 @@ class AuthWrapper extends StatelessWidget {
               }
             }
         // user is not logged in, show login page
-        return LoginPage();
+        return PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage());
       },
     );
   }

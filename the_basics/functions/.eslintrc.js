@@ -17,6 +17,13 @@ module.exports = {
     "indent": "off",
     "coma-dangle": "off",
     "linebreak-style": "off",
+    "max-len": "off",
+    "no-unused-vars": "off",
+    "brace-style": "off",
+    "object-curly-spacing": "off",
+    "comma-dangle": "off",
+    "prefer-const": "off",
+    "spaced-comment": "off"
   },
   overrides: [
     {

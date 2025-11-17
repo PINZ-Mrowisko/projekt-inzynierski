@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:the_basics/features/schedules/screens/before_login/home_page.dart';
 
 import '../../../data/repositiories/auth/auth_repo.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
+import 'package:flutter/material.dart';
 
 class VerifyEmailController extends GetxController {
   static VerifyEmailController get instance => Get.find();
@@ -16,13 +18,25 @@ class VerifyEmailController extends GetxController {
     super.onInit();
   }
 
-  sendEmailVerification() async{
-    try {
-      await AuthRepo.instance.sendEmailVerification();
-    } catch (e) {
-      // print the exception msg in a snackbar or smth
+sendEmailVerification([BuildContext? context]) async {
+  try {
+    await AuthRepo.instance.sendEmailVerification();
+
+    if (context != null) {
+      showCustomSnackbar(
+        context,
+        "Link weryfikacyjny został wysłany ponownie.",
+      );
+    }
+  } catch (e) {
+    if (context != null) {
+      showCustomSnackbar(
+        context,
+        "Nie udało się wysłać wiadomości. Spróbuj ponownie później.",
+      );
     }
   }
+}
 
   setTimerForAutoRedirect() {
     Timer.periodic(
@@ -40,12 +54,19 @@ class VerifyEmailController extends GetxController {
     );
   }
 
-  // manually check if email verified
-  checkEmailVerificationStatus() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null && currentUser.emailVerified)
-      {
-        Get.off(() => HomePage());
-      }
+checkEmailVerificationStatus(BuildContext context) async {
+  await FirebaseAuth.instance.currentUser?.reload();
+  final currentUser = FirebaseAuth.instance.currentUser;
+
+  if (currentUser != null && currentUser.emailVerified) {
+    Get.offAll(() => HomePage());
+  } else {
+    showCustomSnackbar(
+      context,
+      "Sprawdź swoją skrzynkę pocztową i kliknij w link weryfikacyjny.",
+    );
   }
 }
+
+}
+
