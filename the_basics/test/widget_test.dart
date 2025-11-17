@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:the_basics/features/auth/screens/login_page.dart';
-import 'package:the_basics/features/auth/screens/reset_pswd.dart';
-import 'package:the_basics/features/auth/screens/signup.dart';
+import 'package:the_basics/features/auth/screens/web/login_page.dart';
+import 'package:the_basics/features/auth/screens/web/reset_pswd.dart';
+import 'package:the_basics/features/auth/screens/web/signup.dart';
 import 'test_helpers.dart';
 
 void main() {

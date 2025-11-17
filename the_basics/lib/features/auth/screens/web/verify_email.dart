@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import '../../../../utils/common_widgets/navbar.dart';
+import '../../controllers/verify_email_controller.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/common_widgets/navbar.dart';
 import '../controllers/verify_email_controller.dart';
@@ -17,7 +19,6 @@ class VerifyEmailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final verifyController = Get.put(VerifyEmailController());
-
 
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
@@ -38,7 +39,7 @@ class VerifyEmailScreen extends StatelessWidget {
               ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),

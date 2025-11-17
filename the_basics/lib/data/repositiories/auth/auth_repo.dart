@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:the_basics/features/auth/screens/mobile/verify_email_mobile.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/employee_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
@@ -13,6 +14,7 @@ import 'package:the_basics/features/templates/controllers/template_controller.da
 import 'package:the_basics/utils/platform_wrapper.dart';
 import '../../../features/auth/screens/verify_email.dart';
 import '../../../features/notifs/controllers/notif_controller.dart';
+import '../../../features/auth/screens/web/verify_email.dart';
 import '../../../features/schedules/screens/after_login/web/manager_main_calendar.dart';
 import '../../../features/tags/controllers/tags_controller.dart';
 import '../../../features/employees/controllers/user_controller.dart';
@@ -72,7 +74,7 @@ class AuthRepo extends GetxController {
           throw(e.toString());
         }
       } else {
-        Get.offAll(() => const VerifyEmailScreen());
+        Get.offAll(() => const PlatformWrapper(mobile: VerifyEmailScreenMobile(), web: VerifyEmailScreen()));
       }
 
     } else {
