@@ -120,8 +120,7 @@ from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
 
-def get_next_month_year():
-    now = datetime.now()
+def get_next_month_year(now = datetime.now()):
     year = now.year + (1 if now.month == 12 else 0)
     month = 1 if now.month == 12 else now.month + 1
     return year, month
@@ -157,7 +156,8 @@ def post_schedule(user_id: str, schedule_data: dict, db):
             "createdAt": firestore.SERVER_TIMESTAMP,
             "month_of_usage": month,
             "year_of_usage": year,
-            "days_in_month": days_in_month
+            "days_in_month": days_in_month,
+            "generated_schedule": schedule_data
         })
 
         grouped = group_schedule_by_day(schedule_data)
@@ -192,6 +192,33 @@ def post_schedule(user_id: str, schedule_data: dict, db):
         print(f"An error occurred while posting schedule: {e}")
         return None
 
+def get_previous_schedule(user_id, schedule_id, db):
+    try:
+        docs = db.collection("Markets") \
+            .where(filter=FieldFilter("createdBy", "==", user_id)) \
+            .limit(1).get()
 
+        if not docs:
+            print("No Market found for this user.")
+            return []
+
+        market_id = docs[0].id
+
+        schedule_doc = db.collection("Markets") \
+            .document(market_id) \
+            .collection("Schedules") \
+            .document(schedule_id) \
+            .get()
+
+        if not schedule_doc.exists:
+            print("Schedule not found.")
+            return []
+
+        schedule_data = schedule_doc.to_dict().get("generated_schedule", [])
+        return schedule_data
+
+    except Exception as e:
+        print(f"An error occurred while fetching previous schedule: {e}")
+        return []
 
 

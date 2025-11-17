@@ -47,6 +47,11 @@ class LoginController extends GetxController {
       );
       //print("success login");
 
+      // ONLY FOR ALGORITHM TESTING PURPOSES; DELETE BEFORE PRODUCTION
+      // final idToken = await userCredentials.user?.getIdToken();
+      // print('Firebase Token (length: ${idToken?.length ?? 0}):');
+      // print(idToken);
+
       email.clear();
       pswd.clear();
       hidePswd.value = true;

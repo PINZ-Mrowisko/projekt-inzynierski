@@ -3,7 +3,8 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
-from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule
+from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule, \
+    get_previous_schedule
 from backend.algorithm.algorithm import main
 
 # === Inicjalizacja Firebase Admin SDK dla Cloud Run ===
@@ -75,21 +76,9 @@ def generate_from_previous(authorization: str = Header(...), schedule_id: str = 
         print("Błąd weryfikacji tokenu:", e)
         raise HTTPException(status_code=403, detail="Nieprawidłowy token")
 
-    tags = get_tags(user_id, db)
-    print(tags)
-    workers = get_workers(user_id, tags, db)
-    print(workers)
+    schedule = get_previous_schedule(user_id, schedule_id, db)
+    print(schedule)
 
-    templates = get_templates(user_id, db)
-    previous_schedule = [template for template in templates if template.id == schedule_id]
-    try:
-        previous_schedule = previous_schedule[0]
-    except:
-        raise HTTPException(status_code=404, detail="Schedule not found")
+    post_schedule(user_id, schedule, db)
 
-
-    result = main(workers, previous_schedule, tags)
-
-    post_schedule(user_id, result, db)
-
-    return result
+    return "Successfully generated new schedule from previous one."
