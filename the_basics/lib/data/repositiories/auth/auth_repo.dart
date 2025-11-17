@@ -12,7 +12,6 @@ import 'package:the_basics/features/schedules/screens/after_login/mobile/manager
 import 'package:the_basics/features/schedules/screens/after_login/web/employee_main_calendar.dart';
 import 'package:the_basics/features/templates/controllers/template_controller.dart';
 import 'package:the_basics/utils/platform_wrapper.dart';
-import '../../../features/auth/screens/verify_email.dart';
 import '../../../features/notifs/controllers/notif_controller.dart';
 import '../../../features/auth/screens/web/verify_email.dart';
 import '../../../features/schedules/screens/after_login/web/manager_main_calendar.dart';

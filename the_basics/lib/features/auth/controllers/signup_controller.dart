@@ -6,13 +6,9 @@ import 'package:the_basics/data/repositiories/other/tags_repo.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/screens/mobile/verify_email_mobile.dart';
 import 'package:the_basics/features/auth/screens/web/verify_email.dart';
-import 'package:the_basics/data/repositiories/user/user_settings_repo.dart';
-import 'package:the_basics/features/auth/screens/verify_email.dart';
 import 'package:the_basics/features/tags/models/tags_model.dart';
 import 'package:the_basics/utils/platform_wrapper.dart';
-
 import '../../../data/repositiories/other/market_repo.dart';
-import '../../settings/models/user_settings_model.dart';
 import '../models/market_model.dart';
 import '../models/user_model.dart';
 

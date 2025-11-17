@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import '../../../../utils/common_widgets/navbar.dart';
 import '../../controllers/verify_email_controller.dart';
-import '../../../utils/app_colors.dart';
-import '../../../utils/common_widgets/navbar.dart';
-import '../controllers/verify_email_controller.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
-import 'package:the_basics/utils/validators/validation.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
