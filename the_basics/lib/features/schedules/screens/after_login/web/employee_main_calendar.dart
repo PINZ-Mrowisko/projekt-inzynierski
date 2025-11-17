@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
-import 'package:the_basics/features/schedules/usecases/choose_existing_schedule.dart';
-import 'package:the_basics/features/schedules/usecases/choose_schedule_generation_type.dart';
-import 'package:the_basics/features/schedules/usecases/choose_template.dart';
-import 'package:the_basics/features/schedules/usecases/choose_work_code_rules_dialog.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
@@ -15,8 +11,6 @@ import '../../../../employees/controllers/user_controller.dart';
 import '../../../../../utils/app_colors.dart';
 import '../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:the_basics/utils/common_widgets/base_dialog.dart';
-import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 class EmployeeMainCalendar extends StatefulWidget {
   const EmployeeMainCalendar({super.key});
@@ -276,7 +270,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
         color: appointment.color,
         borderRadius: BorderRadius.circular(3),
         border: Border.all(
-          color: Colors.white,
+          color: AppColors.white,
           width: 0.5,
         ),
       ),
@@ -344,7 +338,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
 class _CalendarDataSource extends CalendarDataSource {
   _CalendarDataSource(List<Appointment> appointments, List<UserModel> employees) {
     this.appointments = appointments ?? [];
-    this.resources = employees.map((employee) => CalendarResource(
+    resources = employees.map((employee) => CalendarResource(
       displayName: '${employee.firstName ?? ''} ${employee.lastName ?? ''}'.trim(),
       id: employee.id ?? '',
       color: AppColors.blue,

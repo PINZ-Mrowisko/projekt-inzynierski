@@ -15,7 +15,6 @@ import '../../../../employees/controllers/user_controller.dart';
 import '../../../../../utils/app_colors.dart';
 import '../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 class ManagerMainCalendar extends StatefulWidget {
@@ -366,7 +365,7 @@ String _generateNewSchedule(String sourceId, String sourceType) {
         color: appointment.color,
         borderRadius: BorderRadius.circular(3),
         border: Border.all(
-          color: Colors.white,
+          color: AppColors.white,
           width: 0.5,
         ),
       ),
@@ -434,7 +433,7 @@ String _generateNewSchedule(String sourceId, String sourceType) {
 class _CalendarDataSource extends CalendarDataSource {
   _CalendarDataSource(List<Appointment> appointments, List<UserModel> employees) {
     this.appointments = appointments ?? [];
-    this.resources = employees.map((employee) => CalendarResource(
+    resources = employees.map((employee) => CalendarResource(
       displayName: '${employee.firstName ?? ''} ${employee.lastName ?? ''}'.trim(),
       id: employee.id ?? '',
       color: AppColors.blue,
