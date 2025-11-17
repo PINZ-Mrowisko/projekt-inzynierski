@@ -19,6 +19,8 @@ class UserModel {
   //final int vacationDays;
   //final int onDemandDays;
   final bool hasLoggedIn;
+  final bool leaveNotifs;
+  final bool scheduleNotifs;
 
   UserModel({
     required this.id,
@@ -38,7 +40,9 @@ class UserModel {
     this.numberOfLeaves = 0,
     // this.vacationDays = 20,
     // this.onDemandDays = 4,
-    this.hasLoggedIn = false
+    this.hasLoggedIn = false,
+    this.scheduleNotifs = true,
+    this.leaveNotifs = true
   });
 
   static UserModel empty() => UserModel(
@@ -54,7 +58,9 @@ class UserModel {
     // vacationDays: 20,
     // onDemandDays: 4,
       numberOfLeaves: 0,
-    hasLoggedIn: false
+    hasLoggedIn: false,
+    scheduleNotifs: true,
+    leaveNotifs: true
   );
 
   Map<String, dynamic> toMap() {
@@ -76,7 +82,9 @@ class UserModel {
       // 'vacationDays': vacationDays,
       // 'onDemandDays': onDemandDays,
       'numberOfLeaves': numberOfLeaves,
-      'hasLoggedIn': hasLoggedIn
+      'hasLoggedIn': hasLoggedIn,
+      'scheduleNotifs': scheduleNotifs,
+      'leaveNotifs': leaveNotifs
     };
   }
 
@@ -101,7 +109,9 @@ class UserModel {
         // onDemandDays: map['onDemandDays'] ?? '',
         // vacationDays: map['vacationDays'] ?? '',
           numberOfLeaves: map['numberOfLeaves'] ?? 0,
-        hasLoggedIn: map['hasLoggedIn'] ?? false
+        hasLoggedIn: map['hasLoggedIn'] ?? false,
+        scheduleNotifs: map['scheduleNotifs'] ?? true,
+        leaveNotifs: map['leaveNotifs'] ?? true,
       );
     } else {
       return UserModel.empty();
@@ -130,7 +140,10 @@ class UserModel {
         // onDemandDays: data['onDemandDays'] ?? '',
         // vacationDays: data['vacationDays'] ?? '',
         numberOfLeaves: data['numberOfLeaves'] ?? 0,
-      hasLoggedIn: data['hasLoggedIn'] ?? false
+      hasLoggedIn: data['hasLoggedIn'] ?? false,
+      scheduleNotifs: data['scheduleNotifs'] ?? true,
+      leaveNotifs: data['leaveNotifs'] ?? true,
+
     );
   }
 
@@ -154,7 +167,9 @@ class UserModel {
     // int? vacationDays,
     // int? onDemandDays,
     bool? hasLoggedIn,
-    int? numberOfLeaves
+    int? numberOfLeaves,
+    bool? leaveNotifs,
+    bool? scheduleNotifs
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -174,7 +189,9 @@ class UserModel {
       // vacationDays: vacationDays ?? this.vacationDays,
       // onDemandDays: onDemandDays ?? this.onDemandDays,
         numberOfLeaves: numberOfLeaves ?? this.numberOfLeaves,
-      hasLoggedIn: hasLoggedIn ?? this.hasLoggedIn
+      hasLoggedIn: hasLoggedIn ?? this.hasLoggedIn,
+      scheduleNotifs: scheduleNotifs ?? this.scheduleNotifs,
+      leaveNotifs: leaveNotifs ?? this.leaveNotifs
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -27,7 +28,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Text(
         errorMessage.value,
-        style: const TextStyle(color: Colors.red, fontSize: 14),
+        style: TextStyle(color: AppColors.warning, fontSize: 14),
       ),
     );
   });
@@ -38,7 +39,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Text(
         holidayMessage.value,
-        style: const TextStyle(color: Colors.blue, fontSize: 14),
+        style: TextStyle(color: AppColors.logo, fontSize: 14),
       ),
     );
   });
@@ -49,7 +50,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Text(
         overlapMessage.value,
-        style: const TextStyle(color: Colors.pink, fontSize: 14),
+        style: TextStyle(color: AppColors.warning, fontSize: 14),
       ),
     );
   });
@@ -96,7 +97,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
     final overlappingLeave = leaveController.getOverlappingLeave(startDate, endDate, employee.id);
     if (overlappingLeave != null) {
       final formatDate = (date) => '${date.day}.${date.month}.${date.year}';
-      overlapMessage.value = 'Masz już zaakceptowany urlop w terminie '
+      overlapMessage.value = 'Masz już złożoną nieobecność na ten termin'
           '${formatDate(overlappingLeave.startDate)}-${formatDate(overlappingLeave.endDate)}';
       return false;
     }
@@ -161,7 +162,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
               endDate,
               "Oczekujący",
               requestedDays,
-              commentText
+              commentText,
           );
           //Get.back();
           await userController.fetchCurrentUserRecord();
@@ -181,7 +182,7 @@ void showAddEmployeeLeaveDialog(BuildContext context) {
       actions: actions,
       onClose: Get.back,
       width: 500,
-      height: 700,
+      height: 735,
     ),
     barrierDismissible: false,
   );

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/controllers/forget_pswd_controller.dart';
-import 'package:the_basics/features/auth/screens/login_page.dart';
+import 'package:the_basics/features/auth/screens/mobile/login_page_mobile.dart';
+import 'package:the_basics/features/auth/screens/web/login_page.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
+import 'package:the_basics/utils/platform_wrapper.dart';
 
 class ResetPswd extends StatelessWidget {
   const ResetPswd({super.key, required this.email});
@@ -60,7 +62,7 @@ class ResetPswd extends StatelessWidget {
                     children: [
                       SizedBox(
                         child: CustomButton(
-                          onPressed: () => Get.offAll(() => const LoginPage()),
+                          onPressed: () => Get.offAll(() => const PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
                           text: "Wróć do logowania",
                           width: 170,
                         ),

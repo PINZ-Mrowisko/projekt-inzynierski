@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../../utils/common_widgets/text_area.dart';
+import '../../employees/controllers/user_controller.dart';
 import '../controllers/leave_controller.dart';
 import '../models/holiday_model.dart';
 
-void showAddManagerLeaveDialog(BuildContext context, LeaveController controller) {
+void showAddEmployeeLeaveMobileDialog(BuildContext context) {
   final selectedRange = Rx<PickerDateRange?>(null);
   final userController = Get.find<UserController>();
   final employee = userController.employee.value;
+  final leaveController = Get.find<LeaveController>();
+  final comment = RxString('');
 
   final errorMessage = RxString('');
   final holidayMessage = RxString('');
   final overlapMessage = RxString('');
-  final comment = RxString('');
   final numOfHolidays = RxInt(0);
 
   final errorText = Obx(() {
@@ -54,13 +55,12 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
     );
   });
 
-  // funkcja walidująca wybrane daty - tutaj do zmiany jesli logika biznesowa wyglada inaczej
-  bool validateDates(PickerDateRange? range, LeaveController controller) {
+  bool validateDates(PickerDateRange? range) {
     errorMessage.value = '';
-    holidayMessage.value ='';
+    holidayMessage.value = '';
     overlapMessage.value = '';
 
-    if (range == null || range.startDate == null ) return false;
+    if (range == null || range.startDate == null) return false;
 
     final startDate = range.startDate!;
     final endDate = range.endDate ?? startDate;
@@ -69,14 +69,12 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
     final startOnly = normalizeDate(startDate);
     final endOnly = normalizeDate(endDate);
 
-
-    //for now set it like that, we need to substract the holidays
+    //final isOnDemand = leaveType.value == 'Urlop na żądanie';
     var requestedDays = endDate.difference(startDate).inDays + 1;
 
-    final List<Holiday> holidays = controller.holidays;
+    // Check for holidays
+    final List<Holiday> holidays = leaveController.holidays;
 
-
-    // finds holidays that happen in time of leave
     final holidaysInRange = holidays.where((holiday) {
       final holidayDate = normalizeDate(holiday.date);
       return (holidayDate.isAtSameMomentAs(startOnly) ||
@@ -84,7 +82,6 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
           (holidayDate.isAfter(startOnly) && holidayDate.isBefore(endOnly));
     }).toList();
 
-    // assign number of overlapping holidays so we can substract them later
     numOfHolidays.value = holidaysInRange.length;
     requestedDays = requestedDays - holidaysInRange.length;
 
@@ -92,13 +89,12 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
       final formatted = holidaysInRange
           .map((h) => '${h.date.day.toString().padLeft(2, '0')}.${h.date.month.toString().padLeft(2, '0')}.${h.date.year} (${h.name})')
           .join(', ');
-      holidayMessage.value = 'Uwaga! W wybranym okresie przypadają święta: $formatted. Zostaną one odjęte od dlugości wolnego';
+      holidayMessage.value = 'Uwaga! W wybranym okresie przypadają święta: $formatted. Zostaną one odjęte od długości wolnego.';
     }
     else {holidayMessage.value = '';}
 
-
-    /// Check for overlap with already accepted leave requests
-    final overlappingLeave = controller.getOverlappingLeave(startDate, endDate, employee.id);
+    // Check for overlapping approved leaves
+    final overlappingLeave = leaveController.getOverlappingLeave(startDate, endDate, employee.id);
     if (overlappingLeave != null) {
       final formatDate = (date) => '${date.day}.${date.month}.${date.year}';
       overlapMessage.value = 'Masz już zaakceptowany urlop w terminie '
@@ -106,46 +102,43 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
       return false;
     }
 
+
+
     if (startDate.isBefore(today)) {
-      errorMessage.value = 'Nieobecność nie może być w przeszłości';
-      return false;
-    }
+          errorMessage.value = 'Nieobecność nie może być w przeszłości';
+          return false;
+        }
 
-    return true;
+  return true;
   }
-
 
   final fields = [
     holidayText,
     overlapText,
-
     DatePickerDialogField(
-      label: 'Wybierz zakres dat urlopu',
+      label: 'Wybierz zakres dat nieobecności',
       selectedRange: selectedRange,
       onRangeChanged: (range) {
         selectedRange.value = range;
-        validateDates(range, controller);
+        validateDates(range);
       },
     ),
-    // add field for comment
-    TextAreaDialogField(
+    TextAreaDialogField( // Add comment field here
       label: 'Komentarz (opcjonalnie)',
-      hintText: 'Wpisz komentarz do swojego urlopu...',
+      hintText: 'Wpisz komentarz do swojego wniosku urlopowego...',
       onChanged: (value) {
-        // Store the comment value
         comment.value = value;
       },
-      maxLines: 5, // Allows multiline input
+      maxLines: 5,
     ),
     errorText,
-
   ];
 
   final actions = [
     DialogActionButton(
       label: 'Zatwierdź',
       onPressed: () async {
-        if (!validateDates(selectedRange.value, controller)) {
+        if (!validateDates(selectedRange.value)) {
           // Validation failed - show appropriate message
           if (selectedRange.value == null) {
             showCustomSnackbar(context, 'Wybierz zakres dat');
@@ -157,41 +150,50 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
           return;
         }
 
-        /// HANDLE LEAVE REQUEST LOGIC HERE
-        final leaveController = Get.find<LeaveController>();
-        final startDate = selectedRange.value!.startDate;
-        final endDate = selectedRange.value!.endDate ?? selectedRange.value!.startDate;
-        final commentText = comment.value.isEmpty ? "Brak komentarza" : comment.value;
-        final requestedDays = endDate!.difference(startDate!).inDays + 1 - numOfHolidays.value;
+        final startDate = selectedRange.value!.startDate!;
+        final endDate = selectedRange.value!.endDate ?? startDate;
+        final requestedDays = endDate.difference(startDate).inDays + 1 - numOfHolidays.value;
+        print(requestedDays);
+        final commentText = comment.value.isEmpty ? "Brak komentarza" : comment.value; // Use actual comment
 
         try {
-          await leaveController.saveLeave(
+          await leaveController.saveEmpLeave(
               startDate,
               endDate,
-              "Mój urlop",
+              "Oczekujący",
               requestedDays,
               commentText
           );
           //Get.back();
           await userController.fetchCurrentUserRecord();
           Get.back();
-          showCustomSnackbar(context, 'Urlop został dodany do kalendarza');
+          showCustomSnackbar(context, 'Wniosek urlopowy został złożony');
         } catch (e) {
-          showCustomSnackbar(context, 'Błąd podczas dodawania urlopu: ${e.toString()}');
+          showCustomSnackbar(context, 'Błąd podczas składania wniosku: ${e.toString()}');
         }
-        }
+      },
     )
   ];
 
-  Get.dialog(
-    CustomFormDialog(
-      title: 'Dodaj urlop',
-      fields: fields,
-      actions: actions,
-      onClose: Get.back,
-      width: 500,
-      height: 735,
-    ),
-    barrierDismissible: false,
-  );
+    Get.dialog(
+      Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
+          child: Transform.scale(
+            scale: 0.85,
+            child: CustomFormDialog(
+              title: 'Aplikuj o urlop',
+              fields: fields,
+              actions: actions,
+              onClose: Get.back,
+              width: 500,
+              height: 735,
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
 }
