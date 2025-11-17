@@ -30,7 +30,7 @@ void showExportDialogMobile(BuildContext context) {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  width: 160,
+                  width: 150,
                   height: 56,
                   child: ElevatedButton.icon(
                     onPressed: () {},
@@ -53,7 +53,7 @@ void showExportDialogMobile(BuildContext context) {
                 ),
                 const SizedBox(width: 32),
                 SizedBox(
-                  width: 160,
+                  width: 150,
                   height: 56,
                   child: ElevatedButton.icon(
                     onPressed: () {

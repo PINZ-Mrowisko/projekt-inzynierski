@@ -87,7 +87,7 @@ void showTagsFilterDialog(BuildContext context, RxList<String> selectedTags) {
                         children: [
                           SizedBox(
                             width: 140,
-                            height: 50,
+                            height: 54,
                             child: ElevatedButton(
                               onPressed: () {
                                 setState(() {
@@ -113,7 +113,7 @@ void showTagsFilterDialog(BuildContext context, RxList<String> selectedTags) {
                           const SizedBox(width: 24),
                           SizedBox(
                             width: 140,
-                            height: 50,
+                            height: 54,
                             child: ElevatedButton(
                               onPressed: () {
                                 selectedTags.assignAll(tempSelectedTags);

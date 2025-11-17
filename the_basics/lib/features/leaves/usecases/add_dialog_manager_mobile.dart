@@ -10,7 +10,7 @@ import '../../../utils/common_widgets/text_area.dart';
 import '../controllers/leave_controller.dart';
 import '../models/holiday_model.dart';
 
-void showAddManagerLeaveDialog(BuildContext context, LeaveController controller) {
+void showAddManagerLeaveMobileDialog(BuildContext context, LeaveController controller) {
   final selectedRange = Rx<PickerDateRange?>(null);
   final userController = Get.find<UserController>();
   final employee = userController.employee.value;
@@ -184,13 +184,23 @@ void showAddManagerLeaveDialog(BuildContext context, LeaveController controller)
   ];
 
   Get.dialog(
-    CustomFormDialog(
-      title: 'Dodaj urlop',
-      fields: fields,
-      actions: actions,
-      onClose: Get.back,
-      width: 500,
-      height: 735,
+    Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        child: Transform.scale(
+          scale: 0.85,
+          child: CustomFormDialog(
+            title: 'Dodaj urlop',
+            fields: fields,
+            actions: actions,
+            onClose: Get.back,
+            width: 500,
+            height: 735,
+          ),
+        ),
+      ),
     ),
     barrierDismissible: false,
   );

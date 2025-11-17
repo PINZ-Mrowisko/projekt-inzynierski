@@ -3,14 +3,14 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
 
-import '../../../utils/app_colors.dart';
-import '../../../utils/common_widgets/custom_button.dart';
-import '../../../utils/common_widgets/generic_list.dart';
-import '../../../utils/common_widgets/side_menu.dart';
-import '../../employees/controllers/user_controller.dart';
+import '../../../../utils/app_colors.dart';
+import '../../../../utils/common_widgets/custom_button.dart';
+import '../../../../utils/common_widgets/generic_list.dart';
+import '../../../../utils/common_widgets/side_menu.dart';
+import '../../../employees/controllers/user_controller.dart';
 
-import '../controllers/leave_controller.dart';
-import '../usecases/add_dialog_employee.dart';
+import '../../controllers/leave_controller.dart';
+import '../../usecases/add_dialog_employee.dart';
 
 class EmployeeLeavesManagementPage extends StatelessWidget {
   const EmployeeLeavesManagementPage({super.key});

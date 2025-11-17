@@ -7,14 +7,14 @@ import 'package:the_basics/features/notifs/controllers/notif_controller.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
-import '../../../utils/app_colors.dart';
-import '../../../utils/common_widgets/custom_button.dart';
-import '../../../utils/common_widgets/generic_list.dart';
-import '../../../utils/common_widgets/side_menu.dart';
-import '../../employees/controllers/user_controller.dart';
+import '../../../../utils/app_colors.dart';
+import '../../../../utils/common_widgets/custom_button.dart';
+import '../../../../utils/common_widgets/generic_list.dart';
+import '../../../../utils/common_widgets/side_menu.dart';
+import '../../../employees/controllers/user_controller.dart';
 
 
-import '../usecases/add_dialog_manager.dart';
+import '../../usecases/add_dialog_manager.dart';
 
 class ManagerLeavesManagementPage extends StatelessWidget {
   const ManagerLeavesManagementPage({super.key});
@@ -283,7 +283,7 @@ class ManagerLeavesManagementPage extends StatelessWidget {
       children: [
         _buildDecisionButton(
           text: 'Odrzuć',
-          color: AppColors.logo.withValues(alpha: 0.5),
+          color: AppColors.logolighter,
           icon: Icons.close,
           onPressed: () async {
             try {
