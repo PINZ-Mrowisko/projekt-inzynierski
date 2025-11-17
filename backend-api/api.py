@@ -44,9 +44,7 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
         raise HTTPException(status_code=403, detail="Nieprawidłowy token")
 
     tags = get_tags(user_id, db)
-    print(tags)
     workers = get_workers(user_id, tags, db)
-    print(workers)
 
     templates = get_templates(user_id, db)
     template = [template for template in templates if template.id == template_id]
@@ -77,7 +75,6 @@ def generate_from_previous(authorization: str = Header(...), schedule_id: str = 
         raise HTTPException(status_code=403, detail="Nieprawidłowy token")
 
     schedule = get_previous_schedule(user_id, schedule_id, db)
-    print(schedule)
 
     post_schedule(user_id, schedule, db)
 

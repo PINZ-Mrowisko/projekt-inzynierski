@@ -5,7 +5,6 @@ from backend.models.Shift import Shift
 
 def map_tag(tag_data):
     if tag_data.get("isDeleted", False) == True:
-        print("Tag is deleted, skipping mapping.")
         return None
     else:
         name = tag_data.get("tagName", "")
@@ -51,7 +50,6 @@ def work_time_preference_mapping(preference):
 
 def map_worker(worker_data, tags_list):
     if worker_data.get("isDeleted", False) == True:
-        print("Worker is deleted, skipping mapping.")
         return None
     else:
         firstname = worker_data.get("firstName", "")
@@ -99,7 +97,6 @@ def normalize_hour(hour_str):
 
 def map_shift(shift_data):
     if shift_data.get("isDeleted", False) == True:
-        print("Shift is deleted, skipping mapping.")
         return None
     else:
         id = shift_data.get("id", "")
