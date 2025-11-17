@@ -66,4 +66,5 @@ class DefaultFirebaseOptions {
     projectId: 'p-inz-719da',
     storageBucket: 'p-inz-719da.firebasestorage.app',
   );
+
 }

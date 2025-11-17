@@ -196,6 +196,8 @@ class LeaveController extends GetxController {
       final marketId = userController.employee.value.marketId;
       final requestedDays = endDate.difference(startDate).inDays + 1;
 
+      final managerID = await userController.getManagerId(marketId);
+
       final leaveId = FirebaseFirestore.instance
           .collection('Markets')
           .doc(marketId)
@@ -214,7 +216,8 @@ class LeaveController extends GetxController {
         status: status,
         insertedAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        comment: comment
+        comment: comment,
+        managerId: managerID
       );
 
       await _leaveRepo.saveLeave(newLeave);
