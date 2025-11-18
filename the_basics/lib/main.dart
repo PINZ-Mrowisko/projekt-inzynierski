@@ -16,6 +16,7 @@ import 'package:the_basics/features/leaves/screens/web/manager_leaves_management
 import 'package:the_basics/features/schedules/screens/after_login/mobile/employee_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/main_calendar_edit_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
+import 'package:the_basics/features/schedules/screens/after_login/mobile/individual_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/employee_main_calendar.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar_edit.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/individual_calendar.dart';
@@ -102,7 +103,7 @@ class MyApp extends StatelessWidget {
         ),
         GetPage(name: '/grafik-ogolny-kierownik/edytuj-grafik', page: () => PlatformWrapper(mobile: MainCalendarEditMobile(), web: MainCalendarEdit())),
         
-        GetPage(name: '/grafik-indywidualny', page: () => IndividualCalendar()),
+        GetPage(name: '/grafik-indywidualny', page: () => PlatformWrapper(mobile: IndividualCalendarMobile(), web: IndividualCalendar())),
         GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => PlatformWrapper(mobile:EmployeeLeavesManagementMobilePage(), web: EmployeeLeavesManagementPage())),
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => PlatformWrapper(mobile: ManagerLeavesManagementMobilePage(), web: ManagerLeavesManagementPage())),
         
