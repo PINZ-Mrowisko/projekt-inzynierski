@@ -20,6 +20,22 @@ void showAddShiftDialog(
   String? selectedTagId;
   String? selectedTagName;
 
+  // Polish day names and abbreviations
+  final List<Map<String, String>> days = [
+    {'full': 'Poniedziałek', 'short': 'Pn'},
+    {'full': 'Wtorek', 'short': 'Wt'},
+    {'full': 'Środa', 'short': 'Śr'},
+    {'full': 'Czwartek', 'short': 'Cz'},
+    {'full': 'Piątek', 'short': 'Pt'},
+    {'full': 'Sobota', 'short': 'Sb'},
+    {'full': 'Niedziela', 'short': 'Nd'},
+  ];
+
+  final RxMap<String, bool> selectedDays = <String, bool>{}.obs;
+  for (final dayData in days) {
+    selectedDays[dayData['full']!] = dayData['full'] == day;
+  }
+
   // sprawdzenie formatu godziny HH:MM
   TimeOfDay? _parseTime(String timeText) {
     try {
@@ -80,9 +96,9 @@ void showAddShiftDialog(
               ),
               items: tags
                   .map((tag) => DropdownMenuItem(
-                        value: tag.id,
-                        child: Text(tag.tagName),
-                      ))
+                value: tag.id,
+                child: Text(tag.tagName),
+              ))
                   .toList(),
               onChanged: (value) {
                 final tag = tags.firstWhereOrNull((t) => t.id == value);
@@ -162,7 +178,7 @@ void showAddShiftDialog(
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // koniec zmiany
               Expanded(
                 child: Column(
@@ -213,7 +229,81 @@ void showAddShiftDialog(
               color: AppColors.textColor2.withOpacity(0.6),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+
+          /// NEW FUNCTION : APPLY SHIFT TILE TO MULTIPLE DAYS
+          Text(
+            'Zastosuj do dni:',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textColor2,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Day circles
+          Obx(() {
+            final selectedCount = selectedDays.values.where((isSelected) => isSelected).length;
+            return Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: days.map((dayData) {
+                    final dayName = dayData['full']!;
+                    final dayShort = dayData['short']!;
+                    final isSelected = selectedDays[dayName] ?? false;
+
+                    return GestureDetector(
+                      onTap: () {
+                        selectedDays[dayName] = !isSelected;
+                        selectedDays.refresh();
+                      },
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.blue : AppColors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected ? AppColors.blue : AppColors.lightBlue,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            dayShort,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? AppColors.white : AppColors.textColor2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Wybrano $selectedCount ${_getDayCountText(selectedCount)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textColor2.withOpacity(0.7),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            );
+          }),
+          const SizedBox(height: 24),
 
           // buttons
           Row(
@@ -265,17 +355,30 @@ void showAddShiftDialog(
                       return;
                     }
 
-                    final shift = ShiftModel(
-                      id: UniqueKey().toString(),
-                      tagId: selectedTagId!,
-                      tagName: selectedTagName ?? '',
-                      count: int.parse(countController.text),
-                      start: startTime,
-                      end: endTime,
-                      day: day,
-                    );
+                    /// validate new day stuff
+                    // check if at least one day is selected
+                    final selectedDayCount = selectedDays.values.where((isSelected) => isSelected).length;
+                    if (selectedDayCount == 0) {
+                      showCustomSnackbar(context, 'Wybierz przynajmniej jeden dzień!');
+                      return;
+                    }
 
-                    templateController.addShift(shift);
+                    // create shifts for all selected days
+                    for (final dayEntry in selectedDays.entries) {
+                      if (dayEntry.value) {
+                        final shift = ShiftModel(
+                          id: UniqueKey().toString(),
+                          tagId: selectedTagId!,
+                          tagName: selectedTagName ?? '',
+                          count: int.parse(countController.text),
+                          start: startTime,
+                          end: endTime,
+                          day: dayEntry.key,
+                        );
+                        templateController.addShift(shift);
+                      }
+                    }
+
                     Get.back();
                   },
                   style: ElevatedButton.styleFrom(
@@ -285,7 +388,7 @@ void showAddShiftDialog(
                     ),
                   ),
                   child: Text(
-                    'Dodaj zmianę',
+                    'Dodaj zmiany',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -301,4 +404,11 @@ void showAddShiftDialog(
     ),
     barrierDismissible: false,
   );
+}
+
+// aby bylo pieknie i po polsku
+String _getDayCountText(int count) {
+  if (count == 1) return 'dzień';
+  if (count >= 2 && count <= 4) return 'dni';
+  return 'dni';
 }

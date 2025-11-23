@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
-import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
 import 'package:the_basics/features/templates/usecases/add_shift_dialog.dart';
 import 'package:the_basics/features/templates/usecases/edit_general_rules_dialog.dart';
 import 'package:the_basics/features/templates/usecases/edit_shift_dialog.dart';
@@ -13,7 +12,6 @@ import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import '../../../utils/common_widgets/side_menu.dart';
 import '../controllers/template_controller.dart';
 import '../models/template_model.dart';
-import '../models/template_shift_model.dart';
 import 'package:intl/intl.dart';
 
 /// Screen for creating, viewing, and editing templates
@@ -61,6 +59,7 @@ class NewTemplatePage extends StatelessWidget {
               final editing = templateController.isEditMode.value || !isViewMode;
               if (editing) {
                 showLeaveConfirmationDialog(() {
+                  templateController.clearController();
                   Get.toNamed(route);
                 });
               } else {
@@ -93,6 +92,8 @@ class NewTemplatePage extends StatelessWidget {
                                 final editing = templateController.isEditMode.value || !isViewMode;
                                 if (editing) {
                                   showLeaveConfirmationDialog(() {
+                                    //fix so error msg doesnt block main view
+                                    templateController.clearController();
                                     Get.offNamed('/szablony');
                                   });
                                 } else {

@@ -69,6 +69,28 @@ class TemplateController extends GetxController {
     addedShifts.clear();
   }
 
+  /// move shift to a different day - used for drag and drop
+  void moveShift(String shiftId, String newDay) {
+    final shiftIndex = addedShifts.indexWhere((shift) => shift.id == shiftId);
+    if (shiftIndex != -1) {
+      // new updated shift model but only day diff
+      final updatedShift = ShiftModel(
+        id: addedShifts[shiftIndex].id,
+        tagId: addedShifts[shiftIndex].tagId,
+        tagName: addedShifts[shiftIndex].tagName,
+        count: addedShifts[shiftIndex].count,
+        start: addedShifts[shiftIndex].start,
+        end: addedShifts[shiftIndex].end,
+        day: newDay,
+      );
+
+      // and at the end replace the old shift with updated one
+      addedShifts[shiftIndex] = updatedShift;
+      addedShifts.refresh();
+    }
+  }
+
+
   /// handles the setting of the observable variables
   void setRuleValue(String type, int value) {
     switch (type) {
@@ -274,6 +296,7 @@ class TemplateController extends GetxController {
     maxWomen = 0.obs;
 
     isEditMode.value = false;
+    errorMessage.value = '';
     isLoading(false);
   }
 
