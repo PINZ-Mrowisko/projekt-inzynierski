@@ -345,7 +345,7 @@ class NewTemplatePage extends StatelessWidget {
 
                                 // kafelki zmianowe
                                 // po kliknieciu user nadal powinien miec moc edycji w trybie nowego lub editu
-                                // W części gdzie renderujesz kafelki zmian (zastąp obecny ListView.builder):
+                                // drag and drop zarowno w edicie jak i nowych szablonach
                                 Expanded(
                                   child: DragTarget<ShiftModel>(
                                     builder: (context, candidateData, rejectedData) {
@@ -361,6 +361,7 @@ class NewTemplatePage extends StatelessWidget {
                                           itemCount: shifts.length,
                                           itemBuilder: (context, i) {
                                             final shift = shifts[i];
+                                            // still control tag deletion
                                             final isError = (shift.tagName == "BRAK");
 
                                             if (editingAllowed) {
@@ -371,6 +372,7 @@ class NewTemplatePage extends StatelessWidget {
                                                     width: 120,
                                                     padding: const EdgeInsets.all(8),
                                                     decoration: BoxDecoration(
+                                                      // if tag is missing we color it red
                                                       color: isError ? AppColors.warning : AppColors.lightBlue,
                                                       borderRadius: BorderRadius.circular(14),
                                                       boxShadow: [
@@ -456,6 +458,7 @@ class NewTemplatePage extends StatelessWidget {
                                                     );
                                                   } : null,
                                                   child: MouseRegion(
+                                                    // profesjonalnie ! zmieniamy myszke mhm mhm czujecie to
                                                     cursor: editingAllowed
                                                         ? SystemMouseCursors.click
                                                         : SystemMouseCursors.basic,
@@ -505,10 +508,11 @@ class NewTemplatePage extends StatelessWidget {
                                                 ),
                                               );
                                             } else {
-                                              // when in view dragging should be allowed!
+                                              // when in view dragging should NOT be allowed!
                                               return GestureDetector(
                                                 onTap: null,
                                                 child: MouseRegion(
+                                                  // basic cursor for basic viewing
                                                   cursor: SystemMouseCursors.basic,
                                                   child: Container(
                                                     margin: const EdgeInsets.symmetric(vertical: 4),
