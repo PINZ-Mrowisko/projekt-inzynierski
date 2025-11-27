@@ -75,83 +75,110 @@ void _goToNextRange() {
 }
 
 
-  /// Generowanie harmonogramu dla zalogowanego użytkownika
-  List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) {
-    final DateTime now = DateTime.now();
-    final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
-    List<Appointment> baseAppointments = [];
+/// generowanie harmonogramu dla zalogowanego użytkownika
+List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) {
+  final DateTime now = DateTime.now();
+  final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
+  List<Appointment> baseAppointments = [];
 
-    // 5 dni pracy w tygodniu
-    for (int day = 0; day < 5; day++) {
-      final isMorningShift = day % 2 == 0;
-      final startHour = isMorningShift ? 8 : 12;
-      final endHour = isMorningShift ? 16 : 20;
+  // 5 dni pracy w tygodniu
+  for (int day = 0; day < 5; day++) {
+    final isMorningShift = day % 2 == 0;
+    final startHour = isMorningShift ? 8 : 12;
+    final endHour = isMorningShift ? 16 : 20;
 
-      baseAppointments.add(Appointment(
-        startTime: DateTime(monday.year, monday.month, monday.day + day, startHour, 0),
-        endTime: DateTime(monday.year, monday.month, monday.day + day, endHour, 0),
-        subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
-        color: isMorningShift ? AppColors.logo : AppColors.logolighter,
-        resourceIds: <Object>[employee.id],
+    baseAppointments.add(Appointment(
+      startTime:
+          DateTime(monday.year, monday.month, monday.day + day, startHour, 0),
+      endTime:
+          DateTime(monday.year, monday.month, monday.day + day, endHour, 0),
+      subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
+      color: isMorningShift ? AppColors.logo : AppColors.logolighter,
+      resourceIds: <Object>[employee.id],
+    ));
+  }
+
+  // powiel 4 tygodnie
+  List<Appointment> repeatedAppointments = [];
+  for (int week = 0; week < 4; week++) {
+    final Duration weekOffset = Duration(days: 7 * week);
+    for (var appointment in baseAppointments) {
+      repeatedAppointments.add(Appointment(
+        startTime: appointment.startTime.add(weekOffset),
+        endTime: appointment.endTime.add(weekOffset),
+        subject: appointment.subject,
+        color: appointment.color,
+        resourceIds: appointment.resourceIds,
       ));
     }
+  }
 
-    // powiel 4 tygodnie
-    List<Appointment> repeatedAppointments = [];
-    for (int week = 0; week < 4; week++) {
-      final Duration weekOffset = Duration(days: 7 * week);
-      for (var appointment in baseAppointments) {
-        repeatedAppointments.add(Appointment(
-          startTime: appointment.startTime.add(weekOffset),
-          endTime: appointment.endTime.add(weekOffset),
-          subject: appointment.subject,
-          color: appointment.color,
-          resourceIds: appointment.resourceIds,
-        ));
+  // dodanie urlopów z godzinami 8-20
+  for (final leave in leaves) {
+    if (leave.status.toLowerCase() == 'zaakceptowany' ||
+        leave.status.toLowerCase() == 'mój urlop') {
+      DateTime current = leave.startDate;
+      while (!current.isAfter(leave.endDate)) {
+        repeatedAppointments.add(
+          Appointment(
+            startTime: DateTime(current.year, current.month, current.day, 8, 0),
+            endTime: DateTime(current.year, current.month, current.day, 20, 0),
+            subject: "Urlop",
+            color: Colors.orangeAccent,
+            resourceIds: <Object>[employee.id],
+          ),
+        );
+        current = current.add(const Duration(days: 1));
       }
     }
+  }
 
-// dodanie urlopów z godzinami 8-20
-for (final leave in leaves) {
-  if (leave.status.toLowerCase() == 'zaakceptowany' ||
-      leave.status.toLowerCase() == 'mój urlop') {
-    
-    DateTime current = leave.startDate;
-    while (!current.isAfter(leave.endDate)) {
-      repeatedAppointments.add(
-        Appointment(
-          startTime: DateTime(current.year, current.month, current.day, 8, 0),
-          endTime: DateTime(current.year, current.month, current.day, 20, 0),
-          subject: "Urlop",
-          color: Colors.orangeAccent,
-        ),
-      );
-      current = current.add(const Duration(days: 1));
+  // usuń zmiany w dniach, w których pracownik ma urlop
+  for (final leave in leaves) {
+    if (leave.status.toLowerCase() == 'zaakceptowany' ||
+        leave.status.toLowerCase() == 'mój urlop') {
+      repeatedAppointments.removeWhere((a) {
+        final aDate =
+            DateTime(a.startTime.year, a.startTime.month, a.startTime.day);
+        final leaveStart = DateTime(
+            leave.startDate.year, leave.startDate.month, leave.startDate.day);
+        final leaveEnd = DateTime(
+            leave.endDate.year, leave.endDate.month, leave.endDate.day);
+
+        return a.subject.toLowerCase().contains("zmiana") &&
+            (aDate.isAtSameMomentAs(leaveStart) ||
+                (aDate.isAfter(leaveStart) && aDate.isBefore(leaveEnd)) ||
+                aDate.isAtSameMomentAs(leaveEnd));
+      });
     }
   }
+
+  // dodanie "Brak zmiany" dla pustych dni
+  DateTime start = _visibleStartDate;
+  for (int i = 0; i < _visibleDays; i++) {
+    final date = start.add(Duration(days: i));
+
+    bool hasEvent = repeatedAppointments.any((a) =>
+        a.startTime.year == date.year &&
+        a.startTime.month == date.month &&
+        a.startTime.day == date.day);
+
+    if (!hasEvent) {
+      repeatedAppointments.add(
+        Appointment(
+          subject: "Brak zaplanowanej zmiany",
+          startTime: DateTime(date.year, date.month, date.day, 8, 0),
+          endTime: DateTime(date.year, date.month, date.day, 20, 0),
+          color: Colors.grey,
+          resourceIds: <Object>[employee.id],
+        ),
+      );
+    }
+  }
+
+  return repeatedAppointments;
 }
 
-// USUŃ zmiany w dniach, w których pracownik ma urlop
-for (final leave in leaves) {
-  if (leave.status.toLowerCase() == 'zaakceptowany' ||
-      leave.status.toLowerCase() == 'mój urlop') {
-    
-    repeatedAppointments.removeWhere((a) {
-      final aDate = DateTime(a.startTime.year, a.startTime.month, a.startTime.day);
-      final leaveStart = DateTime(leave.startDate.year, leave.startDate.month, leave.startDate.day);
-      final leaveEnd = DateTime(leave.endDate.year, leave.endDate.month, leave.endDate.day);
-
-      return a.subject.toLowerCase().contains("zmiana") &&
-             (aDate.isAtSameMomentAs(leaveStart) ||
-              (aDate.isAfter(leaveStart) && aDate.isBefore(leaveEnd)) ||
-              aDate.isAtSameMomentAs(leaveEnd));
-    });
-  }
-}
-
-
-    return repeatedAppointments;
-  }
 
   Widget _buildAppointmentWidget(
       BuildContext context, CalendarAppointmentDetails details) {
@@ -177,7 +204,7 @@ for (final leave in leaves) {
             '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -186,7 +213,7 @@ for (final leave in leaves) {
               appointment.subject,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 13,
+                fontSize: 12,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
@@ -231,7 +258,6 @@ appBar: PreferredSize(
   child: Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      // Główny tytuł i przycisk eksportu
       Container(
         color: AppColors.pageBackground,
         padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 14),
@@ -264,7 +290,7 @@ appBar: PreferredSize(
         ),
       ),
 
-      // Pasek z miesiącem i strzałkami do zmiany tygodnia
+      // pasek z miesiącem i strzałkami do zmiany tygodnia
       Container(
         color: AppColors.pageBackground,
         height: 55,
@@ -318,6 +344,7 @@ appBar: PreferredSize(
 body: Padding(
   padding: const EdgeInsets.all(12), 
   child: SfCalendar(
+    allowViewNavigation: false,
     backgroundColor: AppColors.pageBackground,
     controller: _calendarController,
     view: CalendarView.schedule,
@@ -334,12 +361,14 @@ body: Padding(
       dayHeaderSettings: DayHeaderSettings(
         dateTextStyle: TextStyle(fontSize: 16),
       ),
-      appointmentItemHeight: 65,
+      appointmentItemHeight: 60,
       monthHeaderSettings: MonthHeaderSettings(
         height: 0,
         backgroundColor: AppColors.pageBackground,
       ),
       hideEmptyScheduleWeek: false,
+      
+
       weekHeaderSettings: WeekHeaderSettings(height: 0),
     ),
   ),
