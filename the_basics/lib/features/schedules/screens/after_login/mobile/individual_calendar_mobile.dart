@@ -19,24 +19,30 @@ class IndividualCalendarMobile extends StatefulWidget {
 }
 
 class _IndividualCalendarMobileState extends State<IndividualCalendarMobile> {
-  final RxInt _currentMenuIndex = 0.obs;
+  final RxInt _currentMenuIndex = 1.obs;
   DateTime? _lastBackPressTime;
   final CalendarController _calendarController = CalendarController();
 
   DateTime _visibleStartDate = DateTime.now();
-  final int _visibleDays = 3;
+  final int _visibleDays = 7;
 
-  @override
-  void initState() {
-    super.initState();
-    _calendarController.displayDate =
-        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 8);
+@override
+void initState() {
+  super.initState();
 
-    final userController = Get.find<UserController>();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      userController.resetFilters();
-    });
-  }
+  // ustawiamy początek widoku na poniedziałek
+  _visibleStartDate = _getMonday(DateTime.now());
+  _calendarController.displayDate = _visibleStartDate;
+
+  final userController = Get.find<UserController>();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    userController.resetFilters();
+  });
+}
+
+DateTime _getMonday(DateTime date) {
+  return date.subtract(Duration(days: date.weekday - 1));
+}
 
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
@@ -54,21 +60,20 @@ class _IndividualCalendarMobileState extends State<IndividualCalendarMobile> {
     return true;
   }
 
-  void _goToPreviousRange() {
-    setState(() {
-      _visibleStartDate = _visibleStartDate.subtract(Duration(days: _visibleDays));
-      _calendarController.displayDate = DateTime(
-          _visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 8);
-    });
-  }
+void _goToPreviousRange() {
+  setState(() {
+    _visibleStartDate = _getMonday(_visibleStartDate.subtract(const Duration(days: 7)));
+    _calendarController.displayDate = _visibleStartDate;
+  });
+}
 
-  void _goToNextRange() {
-    setState(() {
-      _visibleStartDate = _visibleStartDate.add(Duration(days: _visibleDays));
-      _calendarController.displayDate = DateTime(
-          _visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 8);
-    });
-  }
+void _goToNextRange() {
+  setState(() {
+    _visibleStartDate = _getMonday(_visibleStartDate.add(const Duration(days: 7)));
+    _calendarController.displayDate = _visibleStartDate;
+  });
+}
+
 
   /// Generowanie harmonogramu dla zalogowanego użytkownika
   List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) {
@@ -162,7 +167,7 @@ for (final leave in leaves) {
         ),
       ),
       margin: const EdgeInsets.all(1),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -172,7 +177,7 @@ for (final leave in leaves) {
             '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -181,7 +186,7 @@ for (final leave in leaves) {
               appointment.subject,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 9,
+                fontSize: 13,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
@@ -310,32 +315,33 @@ appBar: PreferredSize(
 
 
 
-body: SfCalendar(
-  backgroundColor: AppColors.pageBackground,
-  controller: _calendarController,
-  view: CalendarView.schedule,
-  minDate: DateTime.now(),
-  showDatePickerButton: false,
-  showNavigationArrow: false,
-  headerHeight: 0, // ukrycie nagłówka kalendarza
-  dataSource: _CalendarDataSource(appointments),
-  appointmentBuilder: _buildAppointmentWidget,
-  firstDayOfWeek: 1,
-  todayHighlightColor: AppColors.logo,
-  scheduleViewSettings: ScheduleViewSettings(
-    
+body: Padding(
+  padding: const EdgeInsets.all(12), 
+  child: SfCalendar(
+    backgroundColor: AppColors.pageBackground,
+    controller: _calendarController,
+    view: CalendarView.schedule,
+    showDatePickerButton: false,
+    showNavigationArrow: false,
+    headerHeight: 0,
+    dataSource: _CalendarDataSource(appointments),
+    appointmentBuilder: _buildAppointmentWidget,
+    firstDayOfWeek: 1,
+    todayHighlightColor: AppColors.logo,
+    minDate: _visibleStartDate,
+    maxDate: _visibleStartDate.add(const Duration(days: 6)),
+    scheduleViewSettings: ScheduleViewSettings(
       dayHeaderSettings: DayHeaderSettings(
-    dateTextStyle: TextStyle(
-      fontSize: 16, // zmniejszona czcionka numeru dnia
-    ),
+        dateTextStyle: TextStyle(fontSize: 16),
       ),
-    appointmentItemHeight: 55,
-    monthHeaderSettings: MonthHeaderSettings(
-      height: 0, // ukrycie nagłówka miesiąca
-      backgroundColor: AppColors.pageBackground,
+      appointmentItemHeight: 65,
+      monthHeaderSettings: MonthHeaderSettings(
+        height: 0,
+        backgroundColor: AppColors.pageBackground,
+      ),
+      hideEmptyScheduleWeek: false,
+      weekHeaderSettings: WeekHeaderSettings(height: 0),
     ),
-    
-    hideEmptyScheduleWeek: true,
   ),
 ),
 
