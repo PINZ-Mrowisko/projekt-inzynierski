@@ -1,17 +1,20 @@
 from backend.models.Worker import Worker
 from backend.models.Tags import Tags
+from backend.models.Template import Template
+from backend.models.Shift import Shift
 
 def map_tag(tag_data):
-    if tag_data.get("isDeleted", "false") == "true":
-        print("Tag is deleted, skipping mapping.")
+    if tag_data.get("isDeleted", False) == True:
         return None
     else:
         name = tag_data.get("tagName", "")
         description = tag_data.get("description", "")
+        id = tag_data.get("id", "")
 
         tag = Tags(
             name=name,
-            description=description
+            description=description,
+            id = id
         )
 
         return tag
@@ -46,8 +49,7 @@ def work_time_preference_mapping(preference):
         return 0  # Default or unknown preference
 
 def map_worker(worker_data, tags_list):
-    if worker_data.get("isDeleted", "false") == "true":
-        print("Worker is deleted, skipping mapping.")
+    if worker_data.get("isDeleted", False) == True:
         return None
     else:
         firstname = worker_data.get("firstName", "")
@@ -58,6 +60,7 @@ def map_worker(worker_data, tags_list):
         phone_number = worker_data.get("phoneNumber", "")
         email = worker_data.get("email", "")
         work_time_preference = worker_data.get("shiftPreference", "")
+        id = worker_data.get("id", "")
         max_working_hours = worker_data.get("maxWeeklyHours", 0)
         tags_doc = worker_data.get("tags", [])
 
@@ -69,6 +72,7 @@ def map_worker(worker_data, tags_list):
             type_of_deal=type_of_deal,
             phone_number=phone_number,
             email=email,
+            id=id,
             max_working_hours=max_working_hours
         )
 
@@ -78,6 +82,79 @@ def map_worker(worker_data, tags_list):
         worker.tags = tags if len(tags)>0 else tags_list[-1:]  # Default tag if no tags match
 
         return worker
+
+def normalize_hour(hour_str):
+    try:
+        parts = hour_str.split(":")
+        hour = int(parts[0])
+        minute = int(parts[1]) if len(parts) > 1 else 0
+
+        return (hour, minute)
+
+    except Exception as e:
+        print(f"Error normalizing hour '{hour_str}': {e}")
+        return hour_str
+
+def map_shift(shift_data):
+    if shift_data.get("isDeleted", False) == True:
+        return None
+    else:
+        id = shift_data.get("id", "")
+        day = shift_data.get("day", "")
+        start = shift_data.get("start", "")
+
+        start = normalize_hour(start)
+        end = shift_data.get("end", "")
+        end = normalize_hour(end)
+
+        tagId = shift_data.get("tagId", "")
+        count = shift_data.get("count", 0)
+
+        shift = Shift(
+            id=id,
+            day=day,
+            start=start,
+            end=end,
+            tagId=tagId,
+            count=count
+        )
+
+        return shift
+
+
+def map_template(template_data):
+
+    if template_data.get("isDeleted", False) == True:
+        print("Template is deleted, skipping mapping.")
+        return None
+    elif template_data.get("isDataMissing", False) == True:
+        print("Template data is missing, skipping mapping.")
+        return None
+
+    else:
+
+        id = template_data.get("id", "")
+        description = template_data.get("description", "")
+        maxMen = template_data.get("maxMen", "")
+        maxWomen = template_data.get("maxWomen", "")
+        minMen = template_data.get("minMen", "")
+        minWomen = template_data.get("minWomen", "")
+
+        shifts_docs = template_data.get("Shifts", template_data.get("shifts_docs", []))
+        shifts = [map_shift(s) for s in shifts_docs if map_shift(s) is not None]
+
+        template = Template(
+            id=id,
+            description=description,
+            maxMen=maxMen,
+            maxWomen=maxWomen,
+            minMen=minMen,
+            minWomen=minWomen,
+            shifts=shifts
+        )
+
+
+        return template
 
 
 

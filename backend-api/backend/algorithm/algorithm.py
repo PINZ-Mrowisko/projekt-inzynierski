@@ -5,12 +5,28 @@ from backend.connection.database_queries import *
 def generate_all_shifts(model, days, shifts, all_workers):
     all_shifts = {}
 
+    days_dict = {
+        0: "Poniedziałek",
+        1: "Wtorek",
+        2: "Środa",
+        3: "Czwartek",
+        4: "Piątek",
+        5: "Sobota",
+        6: "Niedziela"
+    }
+
+
     for worker in all_workers:
         for day in range(days):
-            for shift in range(shifts):
+
+            day_name = days_dict[day]
+            shifts_that_day = shifts[day_name] if day_name in shifts else 0
+
+            for shift in range(shifts_that_day):
                 for role in worker.tags:
                     all_shifts[(worker, day, shift, role)] = model.new_bool_var(
                         f"shift: {worker} | {day} | {shift} | {role}")
+
     return all_shifts
 
 def create_tag_group(all_workers, tag):
@@ -33,96 +49,66 @@ def RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tag, min
     return
 
 
-def main(workers, constraints, tags):
+def main(workers, template: Template, tags):
     model = cp_model.CpModel()
     tag_groups = divide_workers_by_tags(workers, tags)
 
-    if len(tag_groups) != 5:
-        raise ValueError("Not matching scenario: Tags")
+    all_shifts = generate_all_shifts(model, template.days, template.shifts_number, workers)
 
-    all_workers = len(workers)
+    days_dict = {
+        0: "Poniedziałek",
+        1: "Wtorek",
+        2: "Środa",
+        3: "Czwartek",
+        4: "Piątek",
+        5: "Sobota",
+        6: "Niedziela"
+    }
 
-    if all_workers < 19:
-        raise ValueError("Not enough workers for the scenario: at least 19 workers are required.")
+    preference_vars = []
 
-    all_shifts = generate_all_shifts(model, constraints.days, constraints.shifts, workers)
 
-    for worker in workers:
-        for day in range(constraints.days):
-            for shift in range(constraints.shifts):
-                for role in worker.tags:
-                    all_shifts[(worker, day, shift, role)] = model.new_bool_var(f"shift: {worker} | {day} | {shift} | {role}")
+    for day in range(template.days):
+        day_name = days_dict[day]
+        shifts_that_day = template.shifts_number.get(day_name, 0)
+        shifts_objects = [s for s in template.shifts if s.day == day_name]
 
-    for day in range(constraints.days):
-        for shift in range(constraints.shifts):
+        for shift_index in range(shifts_that_day):
+            current_shift = shifts_objects[shift_index]
+            current_role_id = current_shift.tagId
+            tag = next((t for t in tags if t.id == current_role_id), None)
 
-            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tags[0], 3, 3)
-            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tags[1], 1, constraints.max_num_workers)
-            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tags[2], 1, 1)
-            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tags[3], 1, 1)
+            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift_index, tag, current_shift.count,
+                                     current_shift.count)
 
-            worker_assigned = []
             male_assigned = []
             female_assigned = []
 
             for worker in workers:
-                group_b = [role for role in worker.tags if role.name != "Kierownik"]
+                if (worker, day, shift_index, tag) in all_shifts:
+                    assigned_var = all_shifts[(worker, day, shift_index, tag)]
 
-                if not group_b:
-                    continue
+                    if current_shift.type == worker.work_time_preference:
+                        preference_vars.append(assigned_var)
 
-                non_kierownik_assignments = [
-                    all_shifts[(worker, day, shift, role)]
-                    for role in group_b
-                ]
-                is_non_kierownik_assigned = model.NewBoolVar(f"{worker}_{day}_{shift}_assigned_non_kierownik")
-                model.AddMaxEquality(is_non_kierownik_assigned, non_kierownik_assignments)
+                    if worker.sex == 'male':
+                        male_assigned.append(assigned_var)
+                    else:
+                        female_assigned.append(assigned_var)
 
-                worker_assigned.append(is_non_kierownik_assigned)
+            model.Add(sum(male_assigned) >= template.minMen)
+            model.Add(sum(female_assigned) >= template.minWomen)
+            model.Add(sum(female_assigned) <= template.maxWomen)
+            model.Add(sum(male_assigned) <= template.maxMen)
 
-                if worker.sex == 'male':
-                    male_assigned.append(is_non_kierownik_assigned)
-                else:
-                    female_assigned.append(is_non_kierownik_assigned)
-
-            model.Add(sum(worker_assigned) >= constraints.min_num_workers)
-            model.Add(sum(worker_assigned) <= constraints.max_num_workers)
-            model.Add(sum(male_assigned) >= constraints.male_number[0])
-            model.Add(sum(female_assigned) >= constraints.female_number[0])
-            model.Add(sum(female_assigned) <= constraints.female_number[1])
-            model.Add(sum(male_assigned) <= constraints.male_number[1])
-
-    for worker in workers:
-        shifts_assigned = [
-            all_shifts[(worker, day, shift, role)]
-            for day in range(constraints.days)
-            for shift in range(constraints.shifts)
-            for role in worker.tags
-        ]
-        model.add(sum(shifts_assigned) < 10)
-
-    for worker in workers:
-        for day in range(constraints.days):
-            shift_presence = []
-            for shift in range(constraints.shifts):
-                role_assignments = [
-                    all_shifts[(worker, day, shift, role)]
-                    for role in worker.tags
-                ]
-                model.Add(sum(role_assignments) <= 1)
-                works_this_shift = model.NewBoolVar(f"{worker}_{day}_{shift}_works")
-                model.AddMaxEquality(works_this_shift, role_assignments)
-                shift_presence.append(works_this_shift)
-
-            model.Add(sum(shift_presence) <= 1)
+    model.Maximize(sum(preference_vars))
 
     solver = cp_model.CpSolver()
-    printer = ShiftPrinter(all_shifts, workers, constraints)
+    printer = ShiftPrinter(all_shifts, workers, template)
 
     status = solver.Solve(model, printer)
 
-    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        printer.on_solution_callback()
+    if status == cp_model.OPTIMAL:
         print("\nFinal Solution:")
         printer.print_best_solution()
         return printer.results_json()
