@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
-import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
 import 'package:the_basics/features/templates/usecases/add_shift_dialog.dart';
 import 'package:the_basics/features/templates/usecases/edit_general_rules_dialog.dart';
 import 'package:the_basics/features/templates/usecases/edit_shift_dialog.dart';
@@ -13,8 +12,9 @@ import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import '../../../utils/common_widgets/side_menu.dart';
 import '../controllers/template_controller.dart';
 import '../models/template_model.dart';
-import '../models/template_shift_model.dart';
 import 'package:intl/intl.dart';
+
+import '../models/template_shift_model.dart';
 
 /// Screen for creating, viewing, and editing templates
 class NewTemplatePage extends StatelessWidget {
@@ -61,6 +61,7 @@ class NewTemplatePage extends StatelessWidget {
               final editing = templateController.isEditMode.value || !isViewMode;
               if (editing) {
                 showLeaveConfirmationDialog(() {
+                  templateController.clearController();
                   Get.toNamed(route);
                 });
               } else {
@@ -93,6 +94,8 @@ class NewTemplatePage extends StatelessWidget {
                                 final editing = templateController.isEditMode.value || !isViewMode;
                                 if (editing) {
                                   showLeaveConfirmationDialog(() {
+                                    //fix so error msg doesnt block main view
+                                    templateController.clearController();
                                     Get.offNamed('/szablony');
                                   });
                                 } else {
@@ -340,91 +343,227 @@ class NewTemplatePage extends StatelessWidget {
                                     },
                                   ),
 
-                                  // kafelki zmianowe
-                                  // po kliknieciu user nadal powinien miec moc edycji w trybie nowego lub editu
-                                  // kafelki zmianowe
+                                // kafelki zmianowe
+                                // po kliknieciu user nadal powinien miec moc edycji w trybie nowego lub editu
+                                // drag and drop zarowno w edicie jak i nowych szablonach
                                 Expanded(
-                                  child: Obx(() {
-                                    final shifts = templateController.addedShifts
-                                        .where((s) => s.day == days[index])
-                                        .toList();
+                                  child: DragTarget<ShiftModel>(
+                                    builder: (context, candidateData, rejectedData) {
+                                      return Obx(() {
+                                        final shifts = templateController.addedShifts
+                                            .where((s) => s.day == days[index])
+                                            .toList();
 
-                                    final editingAllowed = !isViewMode ||
-                                        templateController.isEditMode.value;
+                                        final editingAllowed = !isViewMode || templateController.isEditMode.value;
 
-                                    return ListView.builder(
-                                      padding: const EdgeInsets.all(8),
-                                      itemCount: shifts.length,
-                                      itemBuilder: (context, i) {
-                                        final shift = shifts[i];
-                                        final isError = (shift.tagName == "BRAK");
+                                        return ListView.builder(
+                                          padding: const EdgeInsets.all(8),
+                                          itemCount: shifts.length,
+                                          itemBuilder: (context, i) {
+                                            final shift = shifts[i];
+                                            // still control tag deletion
+                                            final isError = (shift.tagName == "BRAK");
 
-                                        return GestureDetector(
-                                          onTap: editingAllowed
-                                              ? () {
-                                                  showEditShiftDialog(
-                                                    context,
-                                                    templateController,
-                                                    tagsController,
-                                                    shift,
-                                                  );
-                                                }
-                                              : null,
-                                          child: MouseRegion(
-                                            cursor: editingAllowed 
-                                                ? SystemMouseCursors.click 
-                                                : SystemMouseCursors.basic,
-                                            child: AnimatedContainer(
-                                              duration: const Duration(milliseconds: 200),
-                                              margin: const EdgeInsets.symmetric(vertical: 4),
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: isError
-                                                    ? AppColors.warning
-                                                    : AppColors.lightBlue,
-                                                borderRadius: BorderRadius.circular(14),
-                                                boxShadow: [
-                                                  if (editingAllowed) 
-                                                  // shadow zeby bylo widac ze to klikalny element
-                                                    BoxShadow(
-                                                      color: Colors.black26,
-                                                      blurRadius: 4,
-                                                      offset: const Offset(0, 2),
+                                            if (editingAllowed) {
+                                              return Draggable<ShiftModel>(
+                                                data: shift,
+                                                feedback: Material(
+                                                  child: Container(
+                                                    width: 120,
+                                                    padding: const EdgeInsets.all(8),
+                                                    decoration: BoxDecoration(
+                                                      // if tag is missing we color it red
+                                                      color: isError ? AppColors.warning : AppColors.lightBlue,
+                                                      borderRadius: BorderRadius.circular(14),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black26,
+                                                          blurRadius: 8,
+                                                          offset: const Offset(0, 4),
+                                                        ),
+                                                      ],
                                                     ),
-                                                ],
-                                              ),
-                                              child: Column(
-                                                children: [
-                                                  Text(
-                                                    shift.tagName,
-                                                    style: TextStyle(
-                                                      color: AppColors.textColor2,
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    '${shift.start.format(context)} - ${shift.end.format(context)}',
-                                                    style: TextStyle(
-                                                        color: AppColors.textColor2,
-                                                        fontSize: 13),
-                                                  ),
-                                                  Text(
-                                                    '${shift.count}x',
-                                                    style: TextStyle(
-                                                      color: AppColors.textColor2,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 13,
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          shift.tagName,
+                                                          style: TextStyle(
+                                                            color: AppColors.textColor2,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 4),
+                                                        Text(
+                                                          '${shift.start.format(context)} - ${shift.end.format(context)}',
+                                                          style: TextStyle(
+                                                            color: AppColors.textColor2,
+                                                            fontSize: 11,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          '${shift.count}x',
+                                                          style: TextStyle(
+                                                            color: AppColors.textColor2,
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 11,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
+                                                ),
+                                                childWhenDragging: Container(
+                                                  margin: const EdgeInsets.symmetric(vertical: 4),
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: (isError ? AppColors.warning : AppColors.lightBlue).withOpacity(0.3),
+                                                    borderRadius: BorderRadius.circular(14),
+                                                  ),
+                                                  child: Column(
+                                                    children: [
+                                                      Text(
+                                                        shift.tagName,
+                                                        style: TextStyle(
+                                                          color: AppColors.textColor2.withOpacity(0.5),
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        '${shift.start.format(context)} - ${shift.end.format(context)}',
+                                                        style: TextStyle(
+                                                          color: AppColors.textColor2.withOpacity(0.5),
+                                                          fontSize: 11,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        '${shift.count}x',
+                                                        style: TextStyle(
+                                                          color: AppColors.textColor2.withOpacity(0.5),
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 11,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                child: GestureDetector(
+                                                  onTap: editingAllowed ? () {
+                                                    showEditShiftDialog(
+                                                      context,
+                                                      templateController,
+                                                      tagsController,
+                                                      shift,
+                                                    );
+                                                  } : null,
+                                                  child: MouseRegion(
+                                                    // profesjonalnie ! zmieniamy myszke mhm mhm czujecie to
+                                                    cursor: editingAllowed
+                                                        ? SystemMouseCursors.click
+                                                        : SystemMouseCursors.basic,
+                                                    child: AnimatedContainer(
+                                                      duration: const Duration(milliseconds: 200),
+                                                      margin: const EdgeInsets.symmetric(vertical: 4),
+                                                      padding: const EdgeInsets.all(8),
+                                                      decoration: BoxDecoration(
+                                                        color: isError ? AppColors.warning : AppColors.lightBlue,
+                                                        borderRadius: BorderRadius.circular(14),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black26,
+                                                            blurRadius: 4,
+                                                            offset: const Offset(0, 2),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Column(
+                                                        children: [
+                                                          Text(
+                                                            shift.tagName,
+                                                            style: TextStyle(
+                                                              color: AppColors.textColor2,
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(height: 4),
+                                                          Text(
+                                                            '${shift.start.format(context)} - ${shift.end.format(context)}',
+                                                            style: TextStyle(
+                                                                color: AppColors.textColor2,
+                                                                fontSize: 13),
+                                                          ),
+                                                          Text(
+                                                            '${shift.count}x',
+                                                            style: TextStyle(
+                                                              color: AppColors.textColor2,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 13,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              // when in view dragging should NOT be allowed!
+                                              return GestureDetector(
+                                                onTap: null,
+                                                child: MouseRegion(
+                                                  // basic cursor for basic viewing
+                                                  cursor: SystemMouseCursors.basic,
+                                                  child: Container(
+                                                    margin: const EdgeInsets.symmetric(vertical: 4),
+                                                    padding: const EdgeInsets.all(8),
+                                                    decoration: BoxDecoration(
+                                                      color: isError ? AppColors.warning : AppColors.lightBlue,
+                                                      borderRadius: BorderRadius.circular(14),
+                                                    ),
+                                                    child: Column(
+                                                      children: [
+                                                        Text(
+                                                          shift.tagName,
+                                                          style: TextStyle(
+                                                            color: AppColors.textColor2,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 4),
+                                                        Text(
+                                                          '${shift.start.format(context)} - ${shift.end.format(context)}',
+                                                          style: TextStyle(
+                                                              color: AppColors.textColor2,
+                                                              fontSize: 13),
+                                                        ),
+                                                        Text(
+                                                          '${shift.count}x',
+                                                          style: TextStyle(
+                                                            color: AppColors.textColor2,
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 13,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
                                         );
-                                      },
-                                    );
-                                  }),
+                                      });
+                                    },
+                                    onWillAccept: (data) {
+                                      // only accept drops when in edit mode
+                                      return !isViewMode || templateController.isEditMode.value;
+                                    },
+                                    onAccept: (ShiftModel shift) {
+                                      // move shift to this day (only works in edit mode due to onWillAccept)
+                                      templateController.moveShift(shift.id, days[index]);
+                                    },
+                                  ),
                                 ),
                               ],
                             ),
