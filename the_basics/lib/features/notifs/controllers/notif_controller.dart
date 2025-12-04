@@ -28,7 +28,7 @@ class NotificationController extends GetxController {
   Future<void> initializeFCM() async {
     try {
       // Request permissions from user ; should be one time thing
-      await _requestPermissions();
+      //await _requestPermissions();
 
       // allows for foreground notifs
       // important that this stays above message handlers
