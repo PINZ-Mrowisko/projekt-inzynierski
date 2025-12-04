@@ -9,12 +9,12 @@ import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 void showAddShiftDialog(
-  BuildContext context,
-  TemplateController templateController,
-  TagsController tagsController,
-  String day,
-) {
-  final countController = TextEditingController();
+    BuildContext context,
+    TemplateController templateController,
+    TagsController tagsController,
+    String day,
+    ) {
+  final countController = TextEditingController(text: '1');
   final startTimeController = TextEditingController();
   final endTimeController = TextEditingController();
   String? selectedTagId;
@@ -36,7 +36,14 @@ void showAddShiftDialog(
     selectedDays[dayData['full']!] = dayData['full'] == day;
   }
 
-  // sprawdzenie formatu godziny HH:MM
+  // generate time options every 30 minutes from 00:00 to 23:30
+  final List<String> timeOptions = List.generate(48, (index) {
+    final hour = (index ~/ 2).toString().padLeft(2, '0');
+    final minute = (index % 2 == 0) ? '00' : '30';
+    return '$hour:$minute';
+  });
+
+  // helper to parse time
   TimeOfDay? _parseTime(String timeText) {
     try {
       final parts = timeText.split(':');
@@ -50,6 +57,39 @@ void showAddShiftDialog(
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  // filter time options based on input
+  List<String> _filterTimeOptions(String input) {
+    if (input.isEmpty) {
+      final commonWorkHours = [
+        '06:00', '06:30', '07:00', '07:30', '08:00', '08:30',
+        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+        '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+        '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+        '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
+        '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
+      ];
+      return commonWorkHours.take(48).toList();
+    }
+
+    // Try to match exact time or partial match
+    return timeOptions.where((time) {
+      return time.toLowerCase().contains(input.toLowerCase());
+    }).toList();
+  }
+  // increment count
+  void incrementCount() {
+    final current = int.tryParse(countController.text) ?? 1;
+    countController.text = (current + 1).toString();
+  }
+
+  // decrement count
+  void decrementCount() {
+    final current = int.tryParse(countController.text) ?? 1;
+    if (current > 1) {
+      countController.text = (current - 1).toString();
     }
   }
 
@@ -109,7 +149,7 @@ void showAddShiftDialog(
           }),
           const SizedBox(height: 16),
 
-          // liczba osób
+          // liczba osób with +/- pryciskami dla ulatwienia
           Text(
             'Liczba osób',
             style: TextStyle(
@@ -119,23 +159,69 @@ void showAddShiftDialog(
             ),
           ),
           const SizedBox(height: 6),
-          TextField(
-            controller: countController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(
-              hintText: 'Wpisz liczbę osób',
-              filled: true,
-              fillColor: AppColors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
-                borderSide: BorderSide.none,
-              ),
+          Container(
+            height: 56,
+            child: Row(
+              children: [
+                // Minus button
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    onPressed: decrementCount,
+                    icon: Icon(Icons.remove, color: AppColors.textColor2),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                Container(
+                  width: 120,
+                  child: TextField(
+                    controller: countController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      hintText: 'Ilość',
+                      filled: true,
+                      fillColor: AppColors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(28),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // plusik
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    onPressed: incrementCount,
+                    icon: Icon(Icons.add, color: AppColors.textColor2),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
 
-          // godziny w jednym wierszu
+          // godziny w jednym wierszu - single input with autocomplete
           Row(
             children: [
               // start zmiany
@@ -152,27 +238,99 @@ void showAddShiftDialog(
                       ),
                     ),
                     const SizedBox(height: 6),
-                    TextField(
-                      controller: startTimeController,
-                      keyboardType: TextInputType.datetime,
-                      decoration: InputDecoration(
-                        hintText: 'HH:MM',
-                        filled: true,
-                        fillColor: AppColors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(28),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        // automatyczne dodawanie dwukropka
-                        if (value.length == 2 && !value.contains(':')) {
-                          startTimeController.text = '$value:';
-                          startTimeController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: startTimeController.text.length),
+                    Container(
+                      height: 56,
+                      child: Autocomplete<String>(
+                        optionsBuilder: (TextEditingValue textEditingValue) {
+                          return _filterTimeOptions(textEditingValue.text);
+                        },
+                        onSelected: (String selection) {
+                          startTimeController.text = selection;
+                        },
+                        fieldViewBuilder: (
+                            BuildContext context,
+                            TextEditingController fieldTextEditingController,
+                            FocusNode fieldFocusNode,
+                            VoidCallback onFieldSubmitted,
+                            ) {
+                          // Sync with our controller
+                          fieldTextEditingController.addListener(() {
+                            startTimeController.text = fieldTextEditingController.text;
+                          });
+
+                          return TextField(
+                            controller: fieldTextEditingController,
+                            focusNode: fieldFocusNode,
+                            keyboardType: TextInputType.datetime,
+                            decoration: InputDecoration(
+                              hintText: 'HH:MM lub wybierz',
+                              filled: true,
+                              fillColor: AppColors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(28),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              suffixIcon: IconButton(
+                                icon: Icon(Icons.arrow_drop_down, color: AppColors.textColor2),
+                                onPressed: () {
+                                  // Show dropdown when icon is clicked
+                                  fieldFocusNode.requestFocus();
+                                },
+                              ),
+                            ),
+                            onChanged: (value) {
+                              // Automatically add colon
+                              if (value.length == 2 && !value.contains(':')) {
+                                fieldTextEditingController.text = '$value:';
+                                fieldTextEditingController.selection = TextSelection.fromPosition(
+                                  TextPosition(offset: fieldTextEditingController.text.length),
+                                );
+                              }
+                            },
                           );
-                        }
-                      },
+                        },
+                        optionsViewBuilder: (
+                            BuildContext context,
+                            AutocompleteOnSelected<String> onSelected,
+                            Iterable<String> options,
+                            ) {
+                          return Align(
+                            alignment: Alignment.topLeft,
+                            child: Material(
+                              elevation: 4,
+                              child: Container(
+                                constraints: const BoxConstraints(maxHeight: 200),
+                                width: 200, // Fixed width for dropdown
+                                child: ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  shrinkWrap: true,
+                                  itemCount: options.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    final option = options.elementAt(index);
+                                    return InkWell(
+                                      onTap: () {
+                                        onSelected(option);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        color: AppColors.white,
+                                        child: Text(
+                                          option,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: AppColors.textColor2,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -193,27 +351,99 @@ void showAddShiftDialog(
                       ),
                     ),
                     const SizedBox(height: 6),
-                    TextField(
-                      controller: endTimeController,
-                      keyboardType: TextInputType.datetime,
-                      decoration: InputDecoration(
-                        hintText: 'HH:MM',
-                        filled: true,
-                        fillColor: AppColors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(28),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        // automatyczne dodawanie dwukropka
-                        if (value.length == 2 && !value.contains(':')) {
-                          endTimeController.text = '$value:';
-                          endTimeController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: endTimeController.text.length),
+                    Container(
+                      height: 56,
+                      child: Autocomplete<String>(
+                        optionsBuilder: (TextEditingValue textEditingValue) {
+                          return _filterTimeOptions(textEditingValue.text);
+                        },
+                        onSelected: (String selection) {
+                          endTimeController.text = selection;
+                        },
+                        fieldViewBuilder: (
+                            BuildContext context,
+                            TextEditingController fieldTextEditingController,
+                            FocusNode fieldFocusNode,
+                            VoidCallback onFieldSubmitted,
+                            ) {
+                          // sync with our controller
+                          fieldTextEditingController.addListener(() {
+                            endTimeController.text = fieldTextEditingController.text;
+                          });
+
+                          return TextField(
+                            controller: fieldTextEditingController,
+                            focusNode: fieldFocusNode,
+                            keyboardType: TextInputType.datetime,
+                            decoration: InputDecoration(
+                              hintText: 'HH:MM lub wybierz',
+                              filled: true,
+                              fillColor: AppColors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(28),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              suffixIcon: IconButton(
+                                icon: Icon(Icons.arrow_drop_down, color: AppColors.textColor2),
+                                onPressed: () {
+                                  // only show dropdown when icon is clicked
+                                  fieldFocusNode.requestFocus();
+                                },
+                              ),
+                            ),
+                            onChanged: (value) {
+                              // dwie kropki
+                              if (value.length == 2 && !value.contains(':')) {
+                                fieldTextEditingController.text = '$value:';
+                                fieldTextEditingController.selection = TextSelection.fromPosition(
+                                  TextPosition(offset: fieldTextEditingController.text.length),
+                                );
+                              }
+                            },
                           );
-                        }
-                      },
+                        },
+                        optionsViewBuilder: (
+                            BuildContext context,
+                            AutocompleteOnSelected<String> onSelected,
+                            Iterable<String> options,
+                            ) {
+                          return Align(
+                            alignment: Alignment.topLeft,
+                            child: Material(
+                              elevation: 4,
+                              child: Container(
+                                constraints: const BoxConstraints(maxHeight: 200),
+                                width: 200,
+                                child: ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  shrinkWrap: true,
+                                  itemCount: options.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    final option = options.elementAt(index);
+                                    return InkWell(
+                                      onTap: () {
+                                        onSelected(option);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        color: AppColors.white,
+                                        child: Text(
+                                          option,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: AppColors.textColor2,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -223,7 +453,7 @@ void showAddShiftDialog(
           // podpowiedź
           const SizedBox(height: 8),
           Text(
-            'Wpisz godzinę w formacie 24h (np. 08:00, 14:30, 22:15)',
+            'Wpisz godzinę (np. 8:30) lub wybierz z listy',
             style: TextStyle(
               fontSize: 12,
               color: AppColors.textColor2.withOpacity(0.6),
@@ -352,6 +582,14 @@ void showAddShiftDialog(
 
                     if (startTime == null || endTime == null) {
                       showCustomSnackbar(context, 'Wpisz poprawne godziny w formacie HH:MM!');
+                      return;
+                    }
+
+                    // validate that end time is after start time !
+                    final startTotalMinutes = startTime.hour * 60 + startTime.minute;
+                    final endTotalMinutes = endTime.hour * 60 + endTime.minute;
+                    if (endTotalMinutes <= startTotalMinutes) {
+                      showCustomSnackbar(context, 'Godzina końca musi być późniejsza niż godzina startu!');
                       return;
                     }
 
