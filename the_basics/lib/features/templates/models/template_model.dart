@@ -16,6 +16,7 @@ class TemplateModel {
   final DateTime updatedAt;
   final DateTime? deletedAt;
   final List<ShiftModel>? shifts;
+  final Map<String, dynamic>? shiftsMap;
 
   TemplateModel( {
     required this.id,
@@ -32,6 +33,7 @@ class TemplateModel {
     required this.updatedAt,
     this.deletedAt,
     this.shifts,
+    this.shiftsMap
   });
 
   static TemplateModel empty() => TemplateModel(
@@ -59,6 +61,7 @@ class TemplateModel {
       'insertedAt': insertedAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'deletedAt': deletedAt?.toIso8601String(),
+      'shiftsMap': shiftsMap
     };
   }
 
@@ -82,6 +85,7 @@ class TemplateModel {
       updatedAt: DateTime.parse(data['updatedAt']),
       deletedAt:
       data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
+      shiftsMap: data['shiftsMap']
     );
   }
 
@@ -101,6 +105,7 @@ class TemplateModel {
     DateTime? updatedAt,
     DateTime? deletedAt,
     List<ShiftModel>? shifts,
+    Map<String, dynamic>? shiftsMap,
   }) {
     return TemplateModel(
       id: id ?? this.id,
@@ -117,6 +122,7 @@ class TemplateModel {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       shifts: shifts ?? this.shifts,
+      shiftsMap: shiftsMap ?? this.shiftsMap
     );
   }
 }

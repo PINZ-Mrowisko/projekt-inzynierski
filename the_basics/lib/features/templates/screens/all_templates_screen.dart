@@ -8,7 +8,6 @@ import '../../../utils/common_widgets/generic_list.dart';
 import '../../../utils/common_widgets/search_bar.dart';
 import '../../../utils/common_widgets/side_menu.dart';
 import '../controllers/template_controller.dart';
-import 'new_template_screen.dart';
 
 
 class TemplatesPage extends StatelessWidget {

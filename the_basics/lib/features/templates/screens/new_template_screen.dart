@@ -45,6 +45,7 @@ class NewTemplatePage extends StatelessWidget {
         templateController.maxWomen.value = template!.maxWomen!;
 
         final marketId = templateController.userController.employee.value.marketId;
+        // using our new mapping logic, we go through consolidated shifts matching them
         await templateController.loadShiftsForTemplate(marketId, template!.id);
       });
     }
