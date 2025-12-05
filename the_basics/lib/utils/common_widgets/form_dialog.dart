@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:the_basics/utils/app_colors.dart';
+import 'package:the_basics/utils/platform_controller.dart';
 
 import 'confirmation_dialog.dart';
 import 'multi_select_dropdown.dart';
@@ -31,6 +32,8 @@ class CustomFormDialog extends StatefulWidget {
 
 class _CustomFormDialogState extends State<CustomFormDialog> {
   final ValueNotifier<bool> hasChanges = ValueNotifier(false);
+
+  final platformController = PlatformController.instance;
 
   @override
   void initState() {
@@ -307,15 +310,18 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
 
   void _showExitConfirmationDialog(VoidCallback onConfirmExit) {
     Get.dialog(
-      ConfirmationDialog(
+    Transform.scale(
+      scale: platformController.isMobile.value ? 0.85 : 1.0,
+      child: ConfirmationDialog(
         title: 'Czy na pewno chcesz wyjść?',
         subtitle: 'Twój progres nie zostanie zapisany.',
         confirmText: 'Wyjdź',
         cancelText: 'Anuluj',
         onConfirm: onConfirmExit,
       ),
-      barrierDismissible: false,
-    );
+    ),
+    barrierDismissible: false,
+  );
   }
 
   Widget _buildMultiSelectField(MultiSelectDialogField field) {
