@@ -181,7 +181,7 @@ class SettingsScreenMobile extends StatelessWidget {
     final userController = Get.find<UserController>();
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -191,7 +191,7 @@ class SettingsScreenMobile extends StatelessWidget {
             style: TextStyle(fontSize: 16, color: AppColors.textColor2),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
 
           Expanded(
             child: Obx(() {
