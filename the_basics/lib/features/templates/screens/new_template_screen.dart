@@ -363,7 +363,7 @@ class NewTemplatePage extends StatelessWidget {
                                           itemBuilder: (context, i) {
                                             final shift = shifts[i];
                                             // still control tag deletion
-                                            final isError = (shift.tagName == "BRAK");
+                                            final isError = (shift.tagNames == "BRAK");
 
                                             if (editingAllowed) {
                                               return Draggable<ShiftModel>(
@@ -388,7 +388,7 @@ class NewTemplatePage extends StatelessWidget {
                                                       mainAxisSize: MainAxisSize.min,
                                                       children: [
                                                         Text(
-                                                          shift.tagName,
+                                                          shift.tagNames.join(', '),
                                                           style: TextStyle(
                                                             color: AppColors.textColor2,
                                                             fontWeight: FontWeight.w600,
@@ -424,7 +424,7 @@ class NewTemplatePage extends StatelessWidget {
                                                   child: Column(
                                                     children: [
                                                       Text(
-                                                        shift.tagName,
+                                                        shift.tagNames.join(', '),
                                                         style: TextStyle(
                                                           color: AppColors.textColor2.withOpacity(0.5),
                                                           fontWeight: FontWeight.w600,
@@ -481,7 +481,7 @@ class NewTemplatePage extends StatelessWidget {
                                                       child: Column(
                                                         children: [
                                                           Text(
-                                                            shift.tagName,
+                                                            shift.tagNames.join(', '),
                                                             style: TextStyle(
                                                               color: AppColors.textColor2,
                                                               fontWeight: FontWeight.w600,
@@ -525,7 +525,7 @@ class NewTemplatePage extends StatelessWidget {
                                                     child: Column(
                                                       children: [
                                                         Text(
-                                                          shift.tagName,
+                                                          shift.tagNames.join(', '),
                                                           style: TextStyle(
                                                             color: AppColors.textColor2,
                                                             fontWeight: FontWeight.w600,

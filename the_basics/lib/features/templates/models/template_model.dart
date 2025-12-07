@@ -18,6 +18,7 @@ class TemplateModel {
   final List<ShiftModel>? shifts;
   final Map<String, dynamic>? shiftsMap;
 
+
   TemplateModel( {
     required this.id,
     required this.templateName,

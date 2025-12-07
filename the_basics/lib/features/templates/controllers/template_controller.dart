@@ -77,8 +77,8 @@ class TemplateController extends GetxController {
       // new updated shift model but only day diff
       final updatedShift = ShiftModel(
         id: addedShifts[shiftIndex].id,
-        tagId: addedShifts[shiftIndex].tagId,
-        tagName: addedShifts[shiftIndex].tagName,
+        tagIds: addedShifts[shiftIndex].tagIds,
+        tagNames: addedShifts[shiftIndex].tagNames,
         count: addedShifts[shiftIndex].count,
         start: addedShifts[shiftIndex].start,
         end: addedShifts[shiftIndex].end,
@@ -286,12 +286,11 @@ class TemplateController extends GetxController {
       final templateData = templateDoc.data();
       final shiftsMap = templateData?['shiftsMap'] as Map<String, dynamic>?;
 
-      // convert consolidated shifts back to ShiftModel objects
+      // Convert consolidated shifts back to ShiftModel objects
       final List<ShiftModel> shifts = [];
 
       if (shiftsMap != null) {
         for (final entry in shiftsMap.entries) {
-          final timeSlotKey = entry.key;
           final timeSlotData = entry.value as Map<String, dynamic>;
 
           final day = timeSlotData['day'] as String? ?? '';
@@ -306,13 +305,27 @@ class TemplateController extends GetxController {
           for (final req in requirements) {
             final requirement = req as Map<String, dynamic>;
 
+            final tagIdString = requirement['tagId'] as String? ?? '';
+            final tagNameString = requirement['tagName'] as String? ?? '';
+
+            final tagIds = tagIdString.split(',').map((id) => id.trim()).toList();
+            final tagNames = tagNameString.split(',').map((name) => name.trim()).toList();
+
+            // single tag case
+            if (tagIds.length == 1 && tagIds[0].isEmpty) {
+              tagIds.clear();
+            }
+            if (tagNames.length == 1 && tagNames[0].isEmpty) {
+              tagNames.clear();
+            }
+
             final shift = ShiftModel(
               id: UniqueKey().toString(),
               day: day,
               start: startTime ?? const TimeOfDay(hour: 0, minute: 0),
               end: endTime ?? const TimeOfDay(hour: 0, minute: 0),
-              tagId: requirement['tagId'] as String? ?? '',
-              tagName: requirement['tagName'] as String? ?? '',
+              tagIds: tagIds,
+              tagNames: tagNames,
               count: (requirement['count'] as num?)?.toInt() ?? 0,
             );
 
@@ -330,7 +343,6 @@ class TemplateController extends GetxController {
       isLoading(false);
     }
   }
-
   TimeOfDay? _parseTime(String timeStr) {
     try {
       final parts = timeStr.split(':');
@@ -354,6 +366,10 @@ class TemplateController extends GetxController {
       final endHour = shift.end.hour.toString().padLeft(2, '0');
       final endMinute = shift.end.minute.toString().padLeft(2, '0');
 
+      // łączymy tagi w stringi z przecinkami
+      final tagIdsString = shift.tagIds.join(', ');
+      final tagNamesString = shift.tagNames.join(', ');
+
       // create key like "Poniedziałek_12:00_16:00"
       final key = '${shift.day}_${startHour}:${startMinute}_${endHour}:${endMinute}';
 
@@ -370,8 +386,8 @@ class TemplateController extends GetxController {
       // Add this tag requirement to the time slot
       final requirements = List<Map<String, dynamic>>.from(consolidated[key]['requirements']);
       requirements.add({
-        'tagId': shift.tagId,
-        'tagName': shift.tagName,
+        'tagId': tagIdsString,
+        'tagName': tagNamesString,
         'count': shift.count,
       });
       consolidated[key]['requirements'] = requirements;

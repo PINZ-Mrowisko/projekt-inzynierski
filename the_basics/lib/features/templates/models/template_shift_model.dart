@@ -6,8 +6,8 @@ class ShiftModel {
   final String day;
   final TimeOfDay start;
   final TimeOfDay end;
-  final String tagId;
-  final String tagName;
+  final List<String> tagIds;
+  final List<String> tagNames;
   final int count;
 
   ShiftModel({
@@ -15,8 +15,8 @@ class ShiftModel {
     required this.day,
     required this.start,
     required this.end,
-    required this.tagId,
-    required this.tagName,
+    required this.tagIds,
+    required this.tagNames,
     required this.count,
   });
 
@@ -28,8 +28,8 @@ class ShiftModel {
       // store times as strings
       'start': '${start.hour}:${start.minute}',
       'end': '${end.hour}:${end.minute}',
-      'tagId': tagId,
-      'tagName': tagName,
+      'tagIds': tagIds,
+      'tagNames': tagNames,
       'count': count,
     };
   }
@@ -43,8 +43,8 @@ class ShiftModel {
       day: data['day'] ?? '',
       start: _parseTime(data['start']),
       end: _parseTime(data['end']),
-      tagId: data['tagId'] ?? '',
-      tagName: data['tagName'] ?? '',
+      tagIds: List<String>.from(data['tagIds'] ?? []),
+      tagNames: List<String>.from(data['tagNames'] ?? []),
       count: data['count'] ?? 0,
     );
   }
@@ -62,19 +62,20 @@ class ShiftModel {
 
   ShiftModel copyWith({
     String? day,
-    String? tagId,
-    String? tagName,
+    List<String>? tagIds, // ZMIANA
+    List<String>? tagNames, // ZMIANA
     int? count,
     TimeOfDay? start,
     TimeOfDay? end
   }) {
-  return ShiftModel(
-      day: day ?? this.day,
-      start: start ?? this.start,
-      end: end ?? this.start,
-      tagId: tagId ?? this.tagId,
-      tagName: tagName ?? this.tagName,
-      count: count ?? this.count,
-      id: id
-  );}
+    return ShiftModel(
+        day: day ?? this.day,
+        start: start ?? this.start,
+        end: end ?? this.end,
+        tagIds: tagIds ?? this.tagIds,
+        tagNames: tagNames ?? this.tagNames,
+        count: count ?? this.count,
+        id: id
+    );
+  }
 }
