@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/features/notifs/controllers/notif_controller.dart';
 import 'package:the_basics/features/settings/usecases/change_email_dialog.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
@@ -18,6 +19,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
+    final notifController = Get.find<NotificationController>();
 
     return Obx(() {
       final user = userController.employee.value;
@@ -111,7 +113,7 @@ class SettingsScreen extends StatelessWidget {
                       child: Obx(() {
                         switch (selectedTab.value) {
                           case 0:
-                            return _notificationsTab(user, userController);
+                            return _notificationsTab(context, user, userController, notifController);
                           case 1:
                             return isAdmin
                                 ? _accessTab()
@@ -134,7 +136,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   // NOTIFICATIONS TAB
-  Widget _notificationsTab(UserModel user, UserController controller) {
+  Widget _notificationsTab(BuildContext context, UserModel user, UserController userController, NotificationController notifController) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -142,8 +144,21 @@ class SettingsScreen extends StatelessWidget {
         children: [
           _settingsSwitch(
             title: 'Powiadom mnie o nowych grafikach',
-            value: user.scheduleNotifs,
-            onChanged: (val) => controller.updateSettings("scheduleNotifs", val),
+            value: user.scheduleNotifs && notifController.systemPermissionGranted.value,
+            onChanged: (val) async {
+
+              if (val == true && !notifController.systemPermissionGranted.value) {
+                await notifController.requestPermissions();
+                await notifController.checkSystemPermission();
+
+                if (!notifController.systemPermissionGranted.value) {
+                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach telefonu.");
+                  return;
+                }
+              }
+
+              userController.updateSettings("scheduleNotifs", val);
+            },
           ),
       
           const SizedBox(height: 24),
@@ -152,9 +167,22 @@ class SettingsScreen extends StatelessWidget {
           title: user.role == "admin"
               ? 'Powiadom mnie o nowych wnioskach do zatwierdzenia'
               : 'Powiadom mnie o zmianach statusów moich wniosków',
-          value: user.leaveNotifs,
-          onChanged: (val) => controller.updateSettings("leaveNotifs", val),
-        ),
+          value: user.leaveNotifs && notifController.systemPermissionGranted.value,
+          onChanged: (val) async {
+
+              if (val == true && !notifController.systemPermissionGranted.value) {
+                await notifController.requestPermissions();
+                await notifController.checkSystemPermission();
+
+                if (!notifController.systemPermissionGranted.value) {
+                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach telefonu.");
+                  return;
+                }
+              }
+
+              userController.updateSettings("leaveNotifs", val);
+            },
+          ),
         ],
       ),
     );
