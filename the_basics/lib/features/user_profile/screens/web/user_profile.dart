@@ -257,30 +257,82 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             "Preferencje zmian",
             style: TextStyle(
               fontSize: 16,
-              color: AppColors.textColor2,
-              fontWeight: FontWeight.w500,
+              color: AppColors.textColor1,
             ),
           ),
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: AppColors.textColor2, width: 1),
-            ),
-            child: DropdownButton<String>(
+          const SizedBox(height: 8),
+
+          SizedBox(
+            height: 56,
+            child: DropdownButtonFormField<String>(
               value: shiftPreference.value.isEmpty ? null : shiftPreference.value,
-              isExpanded: true,
-              underline: const SizedBox(),
+
+              hint: Text(
+                "Wybierz",
+                style: TextStyle(
+                  color: AppColors.textColor2,
+                  fontSize: 16,
+                ),
+              ),
+
               items: const [
-                DropdownMenuItem(value: "Poranne", child: Text("Poranne")),
-                DropdownMenuItem(value: "Popołudniowe", child: Text("Popołudniowe")),
-                DropdownMenuItem(value: "Brak preferencji", child: Text("Brak preferencji")),
+                DropdownMenuItem(
+                  value: "Poranne",
+                  child: Text(
+                    "Poranne",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: "Popołudniowe",
+                  child: Text(
+                    "Popołudniowe",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: "Brak preferencji",
+                  child: Text(
+                    "Brak preferencji",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
               ],
+
               onChanged: (v) => shiftPreference.value = v ?? "",
+
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: AppColors.white,
+                hoverColor: AppColors.transparent,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 16,
+                ),
+              ),
+
+              style: TextStyle(
+                fontSize: 16,
+                height: 1.0,
+                color: AppColors.textColor1,
+              ),
+
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down, color: AppColors.textColor2),
+
+              dropdownColor: AppColors.white,
+              borderRadius: BorderRadius.circular(15),
+              elevation: 4,
+              menuMaxHeight: 300,
+              itemHeight: 48,
             ),
           ),
+
+          const SizedBox(height: 22),
         ],
       ),
     );
