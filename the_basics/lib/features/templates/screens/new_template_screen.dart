@@ -15,6 +15,7 @@ import '../models/template_model.dart';
 import 'package:intl/intl.dart';
 
 import '../models/template_shift_model.dart';
+import '../usecases/helpers/number_input_widget.dart';
 
 /// Screen for creating, viewing, and editing templates
 class NewTemplatePage extends StatelessWidget {
@@ -261,17 +262,45 @@ class NewTemplatePage extends StatelessWidget {
                         const SizedBox(width: 16),
                         Expanded(
                           child: Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
+                            spacing: 20, // Increased spacing for the new larger widgets
+                            runSpacing: 15,
                             children: [
-                                 _buildRuleButton(context, templateController, 'minMen',
-                                    'Min mężczyzn', templateController.minMen, readOnly),
-                                 _buildRuleButton(context, templateController, 'maxMen',
-                                    'Max mężczyzn', templateController.maxMen, readOnly),
-                                 _buildRuleButton(context, templateController, 'minWomen',
-                                    'Min kobiet', templateController.minWomen, readOnly),
-                                 _buildRuleButton(context, templateController, 'maxWomen',
-                                    'Max kobiet', templateController.maxWomen, readOnly),
+                              NumberInputButtonsWidget(
+                                label: 'Min mężczyzn',
+                                initialValue: templateController.minMen.value,
+                                minValue: 0,
+                                onValueChanged: (value) {
+                                  templateController.setRuleValue('minMen', value);
+                                },
+                                readOnly: readOnly,
+                              ),
+                              NumberInputButtonsWidget(
+                                label: 'Max mężczyzn',
+                                initialValue: templateController.maxMen.value,
+                                minValue: 0,
+                                onValueChanged: (value) {
+                                  templateController.setRuleValue('maxMen', value);
+                                },
+                                readOnly: readOnly,
+                              ),
+                              NumberInputButtonsWidget(
+                                label: 'Min kobiet',
+                                initialValue: templateController.minWomen.value,
+                                minValue: 0,
+                                onValueChanged: (value) {
+                                  templateController.setRuleValue('minWomen', value);
+                                },
+                                readOnly: readOnly,
+                              ),
+                              NumberInputButtonsWidget(
+                                label: 'Max kobiet',
+                                initialValue: templateController.maxWomen.value,
+                                minValue: 0,
+                                onValueChanged: (value) {
+                                  templateController.setRuleValue('maxWomen', value);
+                                },
+                                readOnly: readOnly,
+                              ),
                             ],
                           ),
                         ),
@@ -581,44 +610,6 @@ class NewTemplatePage extends StatelessWidget {
         ],
       ),
     );
-    });
-  }
-  
-  // genral rule button builder
-  Widget _buildRuleButton(
-    BuildContext context,
-    TemplateController controller,
-    String key,
-    String label,
-    RxInt value,
-    bool readOnly,
-  ) {
-    return Obx(() {
-      if (readOnly) {
-        return IgnorePointer(
-          child: CustomButton(
-            text: '$label: ${value.value}',
-            onPressed: () {}, 
-            backgroundColor: AppColors.lightBlue.withOpacity(0.3),
-            textColor: AppColors.textColor2.withOpacity(0.6),
-            width: 140,
-            height: 40,
-          ),
-        );
-      } else {
-        return CustomButton(
-          text: '$label: ${value.value}',
-          onPressed: () {
-            showNumberInputDialog(context, label, value.value).then((input) {
-              if (input != null) controller.setRuleValue(key, input);
-            });
-          },
-          backgroundColor: AppColors.lightBlue,
-          textColor: AppColors.textColor2,
-          width: 140,
-          height: 40,
-        );
-      }
     });
   }
  }
