@@ -48,7 +48,7 @@ class TemplateDialogConstants {
 
   static List<String> filterTimeOptions(String input) {
     if (input.isEmpty) {
-      return commonWorkHours.take(12).toList();
+      return commonWorkHours.take(48).toList();
     }
 
     return timeOptions.where((time) {
