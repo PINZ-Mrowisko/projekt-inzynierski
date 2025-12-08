@@ -25,6 +25,7 @@ import 'package:the_basics/features/settings/screens/settings.dart';
 import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
 import 'package:the_basics/features/templates/screens/new_template_screen.dart';
 import 'package:the_basics/features/user_profile/screens/web/user_profile.dart';
+import 'package:the_basics/features/user_profile/screens/mobile/user_profile_mobile.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/employee_more_page_mobile.dart';
@@ -109,7 +110,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => PlatformWrapper(mobile: ManagerLeavesManagementMobilePage(), web: ManagerLeavesManagementPage())),
         
         GetPage(name: '/gielda', page: () => PlaceholderPage()),
-        GetPage(name: '/twoj-profil', page: () => UserProfileScreen()),
+        GetPage(name: '/twoj-profil', page: () => PlatformWrapper(mobile: UserProfileScreenMobile(), web:  UserProfileScreen())),
         GetPage(name: '/tagi', page: () => TagsPage()),
         GetPage(name: '/pracownicy', page: () => EmployeeManagementPage()),
         GetPage(name: '/szablony', page: () => TemplatesPage()),
