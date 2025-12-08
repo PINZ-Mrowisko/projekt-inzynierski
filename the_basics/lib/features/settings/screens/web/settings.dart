@@ -152,7 +152,7 @@ class SettingsScreen extends StatelessWidget {
                 await notifController.checkSystemPermission();
 
                 if (!notifController.systemPermissionGranted.value) {
-                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach telefonu.");
+                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach przeglądarki.");
                   return;
                 }
               }
@@ -175,7 +175,7 @@ class SettingsScreen extends StatelessWidget {
                 await notifController.checkSystemPermission();
 
                 if (!notifController.systemPermissionGranted.value) {
-                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach telefonu.");
+                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach przeglądarki.");
                   return;
                 }
               }
