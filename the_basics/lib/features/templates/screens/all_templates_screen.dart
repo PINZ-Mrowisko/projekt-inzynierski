@@ -78,7 +78,7 @@ class TemplatesPage extends StatelessWidget {
                   Expanded(
                     child: Obx(() {
                       if (templateController.isLoading.value) {
-                        return const Center(child: CircularProgressIndicator());
+                        return Center(child: CircularProgressIndicator(color: AppColors.logo));
                       }
                       if (templateController.errorMessage.value.isNotEmpty) {
                         return Center(child: Text(templateController.errorMessage.value));

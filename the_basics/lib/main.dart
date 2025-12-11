@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/features/auth/screens/mobile/login_page_mobile.dart';
 import 'package:the_basics/features/auth/screens/web/login_page.dart';
+import 'package:the_basics/features/dashboard/screens/web/dashboard.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
 import 'package:the_basics/features/leaves/screens/mobile/employee_leaves_management_mobile.dart';
@@ -87,7 +88,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/about', page: () => AboutPage()),
         GetPage(name: '/features', page: () => FeaturesPage()),
 
-        GetPage(name: '/dashboard', page: () => PlaceholderPage()),
+        GetPage(name: '/dashboard', page: () => ManagerDashboardScreen()),
         GetPage(
           name: '/grafik-ogolny-kierownik',
           page:
@@ -182,17 +183,14 @@ class AuthWrapper extends StatelessWidget {
               }
             });
             // lets return a loading indicator  while navigating
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+            return Scaffold(
+              body: Center(child: CircularProgressIndicator(color: AppColors.logo)),
             );
           } else {
             final userController = Get.find<UserController>();
 
                 if (userController.isAdmin.value) {
-                  return PlatformWrapper(
-                    mobile: ManagerMainCalendarMobile(), 
-                    web: ManagerMainCalendar(),
-                  );
+                  return ManagerDashboardScreen();
                 } else {
                   return PlatformWrapper(
                     mobile: EmployeeMainCalendarMobile(), 

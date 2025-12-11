@@ -69,7 +69,7 @@ class EmployeeLeavesManagementMobilePage extends StatelessWidget {
           ),
           body: Obx(() {
             if (leaveController.isLoading.value) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(child: CircularProgressIndicator(color: AppColors.logo));
             }
             if (leaveController.errorMessage.value.isNotEmpty) {
               return Center(child: Text(leaveController.errorMessage.value));

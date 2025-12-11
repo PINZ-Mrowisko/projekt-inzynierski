@@ -287,7 +287,7 @@ String _generateNewSchedule(String sourceId, String sourceType) {
                     Expanded(
                       child: Obx(() {
                         if (userController.isLoading.value) {
-                          return const Center(child: CircularProgressIndicator());
+                          return Center(child: CircularProgressIndicator(color: AppColors.logo));
                         }
 
                         if (userController.filteredEmployees.isEmpty) {
