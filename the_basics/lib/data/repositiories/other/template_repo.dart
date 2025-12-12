@@ -115,55 +115,6 @@ class TemplateRepo extends GetxController {
     }
   }
 
-  /// update all shifts conencted to a template when editing
-  Future<void> updateTemplateShifts(
-      String marketId, String templateId, List<ShiftModel> shifts) async {
-    final shiftsRef = _db
-        .collection('Markets')
-        .doc(marketId)
-        .collection('Templates')
-        .doc(templateId)
-        .collection('Shifts');
-
-    // clear old shifts - completely deletes the subcollection
-    final existingShifts = await shiftsRef.get();
-    for (final doc in existingShifts.docs) {
-      await doc.reference.delete();
-    }
-
-    // save all new shifts
-    for (final shift in shifts) {
-      await shiftsRef.doc(shift.id).set(shift.toMap());
-    }
-  }
-
-  Future<void> markTemplateAsComplete(String marketId, String templateId) async {
-    await _db
-        .collection('Markets')
-        .doc(marketId)
-        .collection('Templates')
-        .doc(templateId)
-        .update({'isDataMissing': false});
-  }
-
-  /// delete template (hard delete)
-  Future<void> deleteTemplate({
-    required String marketId,
-    required String templateId,
-  }) async {
-    try {
-      await _db
-          .collection('Markets')
-          .doc(marketId)
-          .collection('Templates')
-          .doc(templateId)
-          .delete();
-    } on FirebaseException catch (e) {
-      throw MyFirebaseException(e.code).message;
-    } catch (e) {
-      throw 'Nie udało się usunąć szablonu: ${e.toString()}';
-    }
-  }
 
   /// soft delete (we mark as deleted)
   Future<void> softDeleteTemplate({
@@ -194,72 +145,149 @@ class TemplateRepo extends GetxController {
 
     final templatesSnapshot = await templatesRef.get();
 
-    // we go through shift subcollections in each Template Tree
     for (final templateDoc in templatesSnapshot.docs) {
-      final shiftsRef = templateDoc.reference.collection('Shifts');
-      final shiftsSnapshot = await shiftsRef.get();
+      final templateData = templateDoc.data();
+      final shiftsMap = templateData['shiftsMap'] as Map<String, dynamic>?;
 
-      // batch it up
-      final batch = firestore.batch();
+      if (shiftsMap == null || shiftsMap.isEmpty) {
+        continue;
+      }
 
-      for (final shiftDoc in shiftsSnapshot.docs) {
-        final shiftData = shiftDoc.data();
+      bool changesMade = false;
 
-        if (shiftData['tagName'] != null) {
-          if (shiftData['tagName'] == (oldTagName)) {
-            batch.update(shiftDoc.reference, {'tagName': newTagName});
+      final updatedShiftsMap = Map<String, dynamic>.from(shiftsMap);
+
+      for (final entry in updatedShiftsMap.entries) {
+        final timeSlotKey = entry.key;
+        final timeSlotData = entry.value as Map<String, dynamic>;
+        final requirements = timeSlotData['requirements'] as List<dynamic>?;
+
+        if (requirements == null || requirements.isEmpty) {
+          continue;
+        }
+
+        final updatedRequirements = <Map<String, dynamic>>[];
+        bool requirementChanged = false;
+
+        for (final req in requirements) {
+          final requirement = req as Map<String, dynamic>;
+
+          if (requirement['tagName'] == oldTagName) {
+            updatedRequirements.add({
+              'tagId': requirement['tagId'],
+              'tagName': newTagName,
+              'count': requirement['count'],
+            });
+            requirementChanged = true;
+          } else {
+            // if not keep the requirement as is
+            updatedRequirements.add(Map<String, dynamic>.from(requirement));
           }
+        }
+
+        if (requirementChanged) {
+          final updatedTimeSlotData = Map<String, dynamic>.from(timeSlotData);
+          updatedTimeSlotData['requirements'] = updatedRequirements;
+          updatedShiftsMap[timeSlotKey] = updatedTimeSlotData;
+          changesMade = true;
         }
       }
 
-      // end the batch
-      await batch.commit();
+      if (changesMade) {
+        await templateDoc.reference.update({
+          'shiftsMap': updatedShiftsMap,
+          'updatedAt': DateTime.now().toIso8601String(),
+        });
+      }
     }
   }
 
   Future<void> deleteTagInTemplates(String marketId, String tagName) async {
-    Get.find<TemplateController>().isLoading.value = true;
-    final firestore = FirebaseFirestore.instance;
-    final templatesRef = firestore.collection('Markets').doc(marketId).collection('Templates');
+    final controller = Get.find<TemplateController>();
+    controller.isLoading.value = true;
 
-    final templatesSnapshot = await templatesRef.get();
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final templatesRef = firestore.collection('Markets').doc(marketId).collection('Templates');
 
-    for (final templateDoc in templatesSnapshot.docs) {
-      final shiftsRef = templateDoc.reference.collection('Shifts');
-      final shiftsSnapshot = await shiftsRef.get();
+      final templatesSnapshot = await templatesRef.get();
 
-      final batch = firestore.batch();
-      bool hasMissingData = false; // track if this template lost any tag
+      for (final templateDoc in templatesSnapshot.docs) {
+        final templateData = templateDoc.data();
+        final shiftsMap = templateData['shiftsMap'] as Map<String, dynamic>?;
 
-      for (final shiftDoc in shiftsSnapshot.docs) {
-        final shiftData = shiftDoc.data();
+        //if no shifts then simple
+        if (shiftsMap == null || shiftsMap.isEmpty) {
+          continue;
+        }
 
-        if (shiftData['tagName'] != null && shiftData['tagName'] == tagName) {
-          batch.update(shiftDoc.reference, {'tagName': 'BRAK'});
-          hasMissingData = true;
+        bool hasMissingData = false;
+        bool changesMade = false;
+
+        final updatedShiftsMap = Map<String, dynamic>.from(shiftsMap);
+
+        for (final entry in updatedShiftsMap.entries) {
+          final timeSlotKey = entry.key;
+          final timeSlotData = entry.value as Map<String, dynamic>;
+          final requirements = timeSlotData['requirements'] as List<dynamic>?;
+
+          if (requirements == null || requirements.isEmpty) {
+            continue;
+          }
+
+          final updatedRequirements = <Map<String, dynamic>>[];
+          bool requirementChanged = false;
+
+          for (final req in requirements) {
+            final requirement = req as Map<String, dynamic>;
+
+            if (requirement['tagName'] == tagName) {
+              // Replace with "BRAK" (missing) tag
+              updatedRequirements.add({
+                'tagId': requirement['tagId'],
+                'tagName': 'BRAK',
+                'count': requirement['count'],
+              });
+              hasMissingData = true;
+              requirementChanged = true;
+            } else {
+              // keep the requirements and add to our old list
+              updatedRequirements.add(Map<String, dynamic>.from(requirement));
+            }
+          }
+
+          // if requirements were changed we update the time slot
+          if (requirementChanged) {
+            final updatedTimeSlotData = Map<String, dynamic>.from(timeSlotData);
+            updatedTimeSlotData['requirements'] = updatedRequirements;
+            updatedShiftsMap[timeSlotKey] = updatedTimeSlotData;
+            changesMade = true;
+          }
+        }
+        if (changesMade) {
+          await templateDoc.reference.update({
+            'shiftsMap': updatedShiftsMap,
+            'isDataMissing': hasMissingData,
+            'updatedAt': DateTime.now().toIso8601String(),
+          });
         }
       }
-
-      // Commit the batch for this template
-      if (hasMissingData) {
-        await batch.commit();
-
-        // Mark the template as having missing data
-        await templateDoc.reference.update({'isDataMissing': true});
-      }
-
+    } catch (e) {
+      print('Error deleting tag in templates: $e');
+      rethrow;
+    } finally {
+      controller.isLoading.value = false;
     }
-
-    // after the loop update the UI :)
-
-
-    // and now refresh template list
-    await Get.find<TemplateController>().fetchTemplates();
-    Get.find<TemplateController>().update();
-
-    Get.find<TemplateController>().isLoading.value = false;
   }
 
+  Future<void> markTemplateAsComplete(String marketId, String templateId) async {
+    await _db
+        .collection('Markets')
+        .doc(marketId)
+        .collection('Templates')
+        .doc(templateId)
+        .update({'isDataMissing': false});
+  }
 
 
 }

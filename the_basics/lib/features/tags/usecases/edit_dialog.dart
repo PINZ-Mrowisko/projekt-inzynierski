@@ -26,6 +26,11 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
         if (await t){
           showCustomSnackbar(context, controller.tagExistanceMessage.value); Navigator.of(Get.overlayContext!, rootNavigator: true).pop() ;return;
         } else {
+          if(controller.nameController.text.contains(",")){
+            showCustomSnackbar(context, 'Nazwa tagu nie może zawierać przecinka (,)');
+            return;
+          }
+
           showSaveConfirmationDialog(() async {
             try {
               final updatedTag = tag.copyWith(

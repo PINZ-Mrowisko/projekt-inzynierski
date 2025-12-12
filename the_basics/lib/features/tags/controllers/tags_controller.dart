@@ -298,7 +298,7 @@ class TagsController extends GetxController {
 
       // musimy jeszcze przjesc przez szablony w danym markecie i sprawidz wystepowanie tagu tam:
       _templateRepo.deleteTagInTemplates(marketId, tagName);
-
+      await Get.find<TemplateController>().fetchTemplates();
 
 
       // odświeżamy listę tagów i pracownikow

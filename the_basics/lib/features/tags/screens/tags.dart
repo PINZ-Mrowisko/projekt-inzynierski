@@ -109,8 +109,7 @@ class TagsPage extends StatelessWidget {
       text: 'Dodaj Tag',
       icon: Icons.add,
       width: 130,
-      //onPressed: () => showAddTagDialog(context, controller),
-      onPressed: tagsController.testSendScheduleNotification,
+      onPressed: () => showAddTagDialog(context, controller),
     );
   }
 

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -28,7 +29,7 @@ class NotificationController extends GetxController {
 
   Future<void> checkSystemPermission() async {
     final settings = await _firebaseMessaging.getNotificationSettings();
-    
+
     systemPermissionGranted.value =
         settings.authorizationStatus == AuthorizationStatus.authorized ||
         settings.authorizationStatus == AuthorizationStatus.provisional;
@@ -38,7 +39,9 @@ class NotificationController extends GetxController {
   Future<void> initializeFCM() async {
     try {
       // Request permissions from user ; should be one time thing
-      await requestPermissions();
+      if(!kIsWeb) {
+        await requestPermissions();
+      }
 
       await checkSystemPermission();
 
