@@ -137,24 +137,25 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
 
                     Expanded(
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: _shiftTile(userController)),
+                          Expanded(
+                            child: _shiftTile(userController),
+                          ),
                           const SizedBox(width: 16),
-                          Expanded(child: _leavesTile(leaveController)),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Expanded(child: _leavesTile(leaveController)),
+                                const SizedBox(height: 16),
+                                Expanded(child: _importantTile()),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(child: _importantTile()),
-                        ],
-                      ),
-                    ),
-                  ] 
+                  ],
                 ),
               ),
             ),
