@@ -415,17 +415,22 @@ class NewTemplatePage extends StatelessWidget {
                                                     ),
                                                     child: Column(
                                                       mainAxisSize: MainAxisSize.min,
+                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      mainAxisAlignment: MainAxisAlignment.center,
                                                       children: [
                                                         Text(
                                                           shift.tagNames.join(', '),
+                                                          textAlign: TextAlign.center,
                                                           style: TextStyle(
                                                             color: AppColors.textColor2,
                                                             fontWeight: FontWeight.w600,
+
                                                           ),
                                                         ),
                                                         const SizedBox(height: 4),
                                                         Text(
                                                           '${shift.start.format(context)} - ${shift.end.format(context)}',
+                                                          textAlign: TextAlign.center,
                                                           style: TextStyle(
                                                             color: AppColors.textColor2,
                                                             fontSize: 11,
@@ -451,9 +456,13 @@ class NewTemplatePage extends StatelessWidget {
                                                     borderRadius: BorderRadius.circular(14),
                                                   ),
                                                   child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
                                                     children: [
                                                       Text(
                                                         shift.tagNames.join(', '),
+                                                        textAlign: TextAlign.center,
                                                         style: TextStyle(
                                                           color: AppColors.textColor2.withOpacity(0.5),
                                                           fontWeight: FontWeight.w600,
@@ -508,9 +517,13 @@ class NewTemplatePage extends StatelessWidget {
                                                         ],
                                                       ),
                                                       child: Column(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.center,
                                                         children: [
                                                           Text(
                                                             shift.tagNames.join(', '),
+                                                            textAlign: TextAlign.center,
                                                             style: TextStyle(
                                                               color: AppColors.textColor2,
                                                               fontWeight: FontWeight.w600,
@@ -552,9 +565,13 @@ class NewTemplatePage extends StatelessWidget {
                                                       borderRadius: BorderRadius.circular(14),
                                                     ),
                                                     child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      mainAxisAlignment: MainAxisAlignment.center,
                                                       children: [
                                                         Text(
                                                           shift.tagNames.join(', '),
+                                                          textAlign: TextAlign.center,
                                                           style: TextStyle(
                                                             color: AppColors.textColor2,
                                                             fontWeight: FontWeight.w600,

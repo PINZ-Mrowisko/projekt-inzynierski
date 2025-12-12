@@ -7,6 +7,10 @@ class DialogActionButtons extends StatelessWidget {
   final VoidCallback onConfirm;
   final String confirmText;
   final bool isConfirmEnabled;
+  // add optional delete button to show
+  final VoidCallback? onDelete;
+  final String deleteText;
+  final bool showDeleteButton;
 
   const DialogActionButtons({
     Key? key,
@@ -14,6 +18,9 @@ class DialogActionButtons extends StatelessWidget {
     required this.onConfirm,
     this.confirmText = 'Dodaj zmiany',
     this.isConfirmEnabled = true,
+    this.onDelete,
+    this.deleteText = 'Usuń',
+    this.showDeleteButton = false,
   }) : super(key: key);
 
   @override
@@ -21,6 +28,32 @@ class DialogActionButtons extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        if (showDeleteButton && onDelete != null) ... [
+          // this fancy operator makes it possible to include a list of widgets
+          SizedBox(
+            width: 127,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: onDelete,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.warning,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+              ),
+              child: Text(
+                deleteText,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+        ],
+
         SizedBox(
           width: 127,
           height: 56,
