@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
@@ -35,8 +34,7 @@ void showEditEmployeeDialog(
   final contractType = RxnString(employee.contractType);
   final shiftPreference = RxnString(employee.shiftPreference);
   final gender = RxnString(employee.gender);
-  print(gender.value);
-  print('oto ona');
+
   final fields = [
     RowDialogField(
       children: [
@@ -145,7 +143,7 @@ void showEditEmployeeDialog(
         try {
           if (firstNameController.text.isEmpty ||
               lastNameController.text.isEmpty ||
-              emailController.text.isEmpty) {
+              emailController.text.isEmpty || gender.value == null) {
             showCustomSnackbar(context, 'Wypełnij wszystkie wymagane pola');
             return;
           }
