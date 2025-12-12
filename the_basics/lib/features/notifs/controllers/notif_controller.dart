@@ -24,11 +24,23 @@ class NotificationController extends GetxController {
   // we will use this to handle local notifications in the app (when its in the foreground, so user active using)
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
+  final RxBool systemPermissionGranted = false.obs;
+
+  Future<void> checkSystemPermission() async {
+    final settings = await _firebaseMessaging.getNotificationSettings();
+
+    systemPermissionGranted.value =
+        settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
+  }
+
   /// initialize FCM during app startup
   Future<void> initializeFCM() async {
     try {
       // Request permissions from user ; should be one time thing
-      //await _requestPermissions();
+      await requestPermissions();
+
+      await checkSystemPermission();
 
       // allows for foreground notifs
       // important that this stays above message handlers
@@ -65,7 +77,7 @@ class NotificationController extends GetxController {
   }
 
   /// Request notification permissions
-  Future<void> _requestPermissions() async {
+  Future<void> requestPermissions() async {
     try {
       NotificationSettings settings = await _firebaseMessaging.requestPermission(
         alert: true,
@@ -73,6 +85,10 @@ class NotificationController extends GetxController {
         sound: true,
         provisional: false,
       );
+
+      systemPermissionGranted.value =
+        settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
 
       print('User granted permission: ${settings.authorizationStatus}');
     } on PlatformException catch (e) {

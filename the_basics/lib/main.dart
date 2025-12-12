@@ -21,9 +21,12 @@ import 'package:the_basics/features/schedules/screens/after_login/web/employee_m
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar_edit.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/individual_calendar.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/placeholder_page.dart';
-import 'package:the_basics/features/settings/screens/settings.dart';
+import 'package:the_basics/features/settings/screens/mobile/settings_mobile.dart';
+import 'package:the_basics/features/settings/screens/web/settings.dart';
 import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
 import 'package:the_basics/features/templates/screens/new_template_screen.dart';
+import 'package:the_basics/features/user_profile/screens/web/user_profile.dart';
+import 'package:the_basics/features/user_profile/screens/mobile/user_profile_mobile.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/employee_more_page_mobile.dart';
@@ -108,7 +111,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => PlatformWrapper(mobile: ManagerLeavesManagementMobilePage(), web: ManagerLeavesManagementPage())),
         
         GetPage(name: '/gielda', page: () => PlaceholderPage()),
-        GetPage(name: '/twoj-profil', page: () => PlaceholderPage()),
+        GetPage(name: '/twoj-profil', page: () => PlatformWrapper(mobile: UserProfileScreenMobile(), web:  UserProfileScreen())),
         GetPage(name: '/tagi', page: () => TagsPage()),
         GetPage(name: '/pracownicy', page: () => EmployeeManagementPage()),
         GetPage(name: '/szablony', page: () => TemplatesPage()),
@@ -116,7 +119,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/szablony/edytuj-szablon', page: () => NewTemplatePage()),
         GetPage(name: '/raporty', page: () => PlaceholderPage()),
 
-        GetPage(name: '/ustawienia', page: () => SettingsScreen()),
+        GetPage(name: '/ustawienia', page: () => PlatformWrapper(mobile: SettingsScreenMobile(), web: SettingsScreen())),
         GetPage(name: '/login', page: () => PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
         GetPage(name: '/wiecej-pracownicy', page: () => EmployeeMorePageMobile()),
         GetPage(name: '/wiecej-kierownik', page: () => ManagerMorePageMobile()),
