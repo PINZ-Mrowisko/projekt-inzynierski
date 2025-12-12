@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
@@ -33,7 +34,9 @@ void showEditEmployeeDialog(
 
   final contractType = RxnString(employee.contractType);
   final shiftPreference = RxnString(employee.shiftPreference);
-
+  final gender = RxnString(employee.gender);
+  print(gender.value);
+  print('oto ona');
   final fields = [
     RowDialogField(
       children: [
@@ -68,17 +71,34 @@ void showEditEmployeeDialog(
       ],
     ),
 
-    DropdownDialogField(
-      label: 'Preferencje zmian',
-      selectedValue: shiftPreference.value,
-      hintText: 'Wybierz preferencje...',
-      items: [
-        DropdownItem(value: 'Poranne', label: 'Poranne'),
-        DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
-        DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
-      ],
-      onChanged: (value) => shiftPreference.value = value,
-    ),
+    RowDialogField(children: [
+      DropdownDialogField(
+        label: 'Preferencje zmian',
+        selectedValue: shiftPreference.value,
+
+        hintText: 'Wybierz preferencje...',
+        items: [
+          DropdownItem(value: 'Poranne', label: 'Poranne'),
+          DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
+          DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
+        ],
+        onChanged: (value) => shiftPreference.value = value,
+      ),
+
+      // new gender chooser
+      DropdownDialogField(
+        label: 'Płeć',
+        selectedValue: (gender.value != null) ? gender.value : "Nie określono",
+        hintText: 'Wybierz płeć...',
+        items: [
+          DropdownItem(value: 'Kobieta', label: 'Kobieta'),
+          DropdownItem(value: 'Mężczyzna', label: 'Mężczyzna'),
+          DropdownItem(value: "Nie określono", label: "Nie określono"),
+        ],
+        onChanged: (value) => gender.value = value,
+      ),
+
+    ]),
 
     MultiSelectDialogField(
       label: 'Tagi',
@@ -146,6 +166,7 @@ void showEditEmployeeDialog(
                 maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
                 shiftPreference: shiftPreference.value,
                 tags: selectedTags.toList(),
+                gender: gender.string
               );
               Get.back();
               await userController.updateEmployee(updatedEmployee);

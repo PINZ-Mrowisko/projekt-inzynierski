@@ -16,11 +16,10 @@ class UserModel {
   final DateTime insertedAt;
   final DateTime updatedAt;
   final int numberOfLeaves;
-  //final int vacationDays;
-  //final int onDemandDays;
   final bool hasLoggedIn;
   final bool leaveNotifs;
   final bool scheduleNotifs;
+  final String gender;
 
   UserModel({
     required this.id,
@@ -38,11 +37,10 @@ class UserModel {
     required this.insertedAt,
     required this.updatedAt,
     this.numberOfLeaves = 0,
-    // this.vacationDays = 20,
-    // this.onDemandDays = 4,
     this.hasLoggedIn = false,
     this.scheduleNotifs = true,
-    this.leaveNotifs = true
+    this.leaveNotifs = true,
+    this.gender = 'Nie określono',
   });
 
   static UserModel empty() => UserModel(
@@ -55,12 +53,11 @@ class UserModel {
     role: 'employee',
     insertedAt: DateTime.now(),
     updatedAt: DateTime.now(),
-    // vacationDays: 20,
-    // onDemandDays: 4,
-      numberOfLeaves: 0,
+    numberOfLeaves: 0,
     hasLoggedIn: false,
     scheduleNotifs: true,
-    leaveNotifs: true
+    leaveNotifs: true,
+    gender: 'Nie określono',
   );
 
   Map<String, dynamic> toMap() {
@@ -79,12 +76,11 @@ class UserModel {
       'isDeleted': isDeleted,
       'insertedAt': Timestamp.fromDate(insertedAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
-      // 'vacationDays': vacationDays,
-      // 'onDemandDays': onDemandDays,
       'numberOfLeaves': numberOfLeaves,
       'hasLoggedIn': hasLoggedIn,
       'scheduleNotifs': scheduleNotifs,
-      'leaveNotifs': leaveNotifs
+      'leaveNotifs': leaveNotifs,
+      'gender': gender,
     };
   }
 
@@ -100,18 +96,17 @@ class UserModel {
         contractType: map['contractType'] ?? "Umowa o pracę",
         maxWeeklyHours: map['maxWeeklyHours'] ?? 40,
         shiftPreference: map['shiftPreference'] ?? 'Brak preferencji',
-        tags: List<String>.from(map['tags']),
+        tags: List<String>.from(map['tags'] ?? []),
         role: map['role'] ?? 'employee',
         isDeleted: map['isDeleted'] ?? false,
         insertedAt: (map['insertedAt']).toDate(),
         updatedAt: (map['updatedAt']).toDate(),
         marketId: map['marketId'] ?? '',
-        // onDemandDays: map['onDemandDays'] ?? '',
-        // vacationDays: map['vacationDays'] ?? '',
-          numberOfLeaves: map['numberOfLeaves'] ?? 0,
+        numberOfLeaves: map['numberOfLeaves'] ?? 0,
         hasLoggedIn: map['hasLoggedIn'] ?? false,
         scheduleNotifs: map['scheduleNotifs'] ?? true,
         leaveNotifs: map['leaveNotifs'] ?? true,
+        gender: map['gender'] ?? 'Nie określono',
       );
     } else {
       return UserModel.empty();
@@ -137,16 +132,15 @@ class UserModel {
       insertedAt: (data['insertedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       marketId: data['marketId']?.toString() ?? '',
-        // onDemandDays: data['onDemandDays'] ?? '',
-        // vacationDays: data['vacationDays'] ?? '',
-        numberOfLeaves: data['numberOfLeaves'] ?? 0,
-      hasLoggedIn: data['hasLoggedIn'] ?? false,
-      scheduleNotifs: data['scheduleNotifs'] ?? true,
-      leaveNotifs: data['leaveNotifs'] ?? true,
-
+      numberOfLeaves: (data['numberOfLeaves'] as num?)?.toInt() ?? 0,
+      hasLoggedIn: data['hasLoggedIn'] as bool? ?? false,
+      scheduleNotifs: data['scheduleNotifs'] as bool? ?? true,
+      leaveNotifs: data['leaveNotifs'] as bool? ?? true,
+      gender: data['gender']?.toString() ?? 'Nie określono',
     );
   }
 
+/// TODO : fix this method
   UserModel copyWithUpdatedTags(String oldTagName, String newTagName) {
     final updatedTags = tags.map((tag) => tag == oldTagName ? newTagName : tag).toList();
     return copyWith(tags: updatedTags);
@@ -164,12 +158,11 @@ class UserModel {
     String? shiftPreference,
     List<String>? tags,
     bool? isDeleted,
-    // int? vacationDays,
-    // int? onDemandDays,
     bool? hasLoggedIn,
     int? numberOfLeaves,
     bool? leaveNotifs,
-    bool? scheduleNotifs
+    bool? scheduleNotifs,
+    String? gender,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -186,12 +179,11 @@ class UserModel {
       isDeleted: isDeleted ?? this.isDeleted,
       insertedAt: insertedAt,
       updatedAt: DateTime.now(),
-      // vacationDays: vacationDays ?? this.vacationDays,
-      // onDemandDays: onDemandDays ?? this.onDemandDays,
         numberOfLeaves: numberOfLeaves ?? this.numberOfLeaves,
       hasLoggedIn: hasLoggedIn ?? this.hasLoggedIn,
       scheduleNotifs: scheduleNotifs ?? this.scheduleNotifs,
-      leaveNotifs: leaveNotifs ?? this.leaveNotifs
+      leaveNotifs: leaveNotifs ?? this.leaveNotifs,
+      gender: gender ?? this.gender,
     );
   }
 }
