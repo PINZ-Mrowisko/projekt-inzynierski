@@ -151,8 +151,7 @@ class _UserProfileScreenMobileState extends State<UserProfileScreenMobile> {
                 const SizedBox(height: 10),
                 _fieldBox("Nazwisko", user.lastName),
                 const SizedBox(height: 10),
-                // TODO: display actual gender when its added to user model
-                _fieldBox("Płeć", "-"),
+                _fieldBox("Płeć", user.gender),
                 const SizedBox(height: 10),
                 _fieldBox(
                   "Tagi",
