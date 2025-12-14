@@ -33,6 +33,7 @@ void showEditEmployeeDialog(
 
   final contractType = RxnString(employee.contractType);
   final shiftPreference = RxnString(employee.shiftPreference);
+  final gender = RxnString(employee.gender);
 
   final fields = [
     RowDialogField(
@@ -68,17 +69,34 @@ void showEditEmployeeDialog(
       ],
     ),
 
-    DropdownDialogField(
-      label: 'Preferencje zmian',
-      selectedValue: shiftPreference.value,
-      hintText: 'Wybierz preferencje...',
-      items: [
-        DropdownItem(value: 'Poranne', label: 'Poranne'),
-        DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
-        DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
-      ],
-      onChanged: (value) => shiftPreference.value = value,
-    ),
+    RowDialogField(children: [
+      DropdownDialogField(
+        label: 'Preferencje zmian',
+        selectedValue: shiftPreference.value,
+
+        hintText: 'Wybierz preferencje...',
+        items: [
+          DropdownItem(value: 'Poranne', label: 'Poranne'),
+          DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
+          DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
+        ],
+        onChanged: (value) => shiftPreference.value = value,
+      ),
+
+      // new gender chooser
+      DropdownDialogField(
+        label: 'Płeć',
+        selectedValue: (gender.value != null) ? gender.value : "Nie określono",
+        hintText: 'Wybierz płeć...',
+        items: [
+          DropdownItem(value: 'Kobieta', label: 'Kobieta'),
+          DropdownItem(value: 'Mężczyzna', label: 'Mężczyzna'),
+          DropdownItem(value: "Nie określono", label: "Nie określono"),
+        ],
+        onChanged: (value) => gender.value = value,
+      ),
+
+    ]),
 
     MultiSelectDialogField(
       label: 'Tagi',
@@ -125,7 +143,7 @@ void showEditEmployeeDialog(
         try {
           if (firstNameController.text.isEmpty ||
               lastNameController.text.isEmpty ||
-              emailController.text.isEmpty) {
+              emailController.text.isEmpty || gender.value == null) {
             showCustomSnackbar(context, 'Wypełnij wszystkie wymagane pola');
             return;
           }
@@ -146,6 +164,7 @@ void showEditEmployeeDialog(
                 maxWeeklyHours: int.tryParse(hoursController.text) ?? 40,
                 shiftPreference: shiftPreference.value,
                 tags: selectedTags.toList(),
+                gender: gender.string
               );
               Get.back();
               await userController.updateEmployee(updatedEmployee);
