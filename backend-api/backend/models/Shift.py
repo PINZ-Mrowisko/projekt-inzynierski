@@ -1,12 +1,10 @@
 class Shift:
-    def __init__(self, id, day, start, end, tagId, count):
+    def __init__(self, id, day, start, end, rules):
         self.id = id
         self.day = day
         self.start = start
         self.end = end
-        self.tagId = tagId
-        self.count = count
-
+        self.rules = rules
         self.type = self.determine_type()
 
     def determine_type(self):
@@ -16,6 +14,9 @@ class Shift:
             return 2 # popołudniowa
         else:
             return 0 # default
+
+    def __str__(self):
+        return f"Shift(id={self.id}, day={self.day}, start={self.start}, end={self.end}, rules={len(self.rules)}, type={self.type})"
 
 # shift = Shift(
 #     id="shift1",

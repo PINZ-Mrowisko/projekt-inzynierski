@@ -1,3 +1,4 @@
+from backend.models.Rule import Rule
 from backend.models.Worker import Worker
 from backend.models.Tags import Tags
 from backend.models.Template import Template
@@ -19,22 +20,22 @@ def map_tag(tag_data):
 
         return tag
 
-def temporary_sex_mapping(worker_data, worker_firstname):
-    try:
-        sex = worker_data.get("sex", "")
-        if sex:
-            return sex
-        if worker_firstname:
-            last_letter = worker_firstname.strip()[-1].lower()
-            # Prosta heurystyka: imiona kończące się na 'a' to kobiety (np. Maria), reszta to mężczyźni
-            if last_letter == "a":
-                return "female"
-            else:
-                return "male"
-        return "unknown"
-    except Exception as e:
-        print(f"Błąd podczas mapowania płci: {e}")
-        return "unknown"
+# def temporary_sex_mapping(worker_data, worker_firstname):
+#     try:
+#         sex = worker_data.get("sex", "")
+#         if sex:
+#             return sex
+#         if worker_firstname:
+#             last_letter = worker_firstname.strip()[-1].lower()
+#             # Prosta heurystyka: imiona kończące się na 'a' to kobiety (np. Maria), reszta to mężczyźni
+#             if last_letter == "a":
+#                 return "female"
+#             else:
+#                 return "male"
+#         return "unknown"
+#     except Exception as e:
+#         print(f"Błąd podczas mapowania płci: {e}")
+#         return "unknown"
 
 def work_time_preference_mapping(preference):
     try:
@@ -54,7 +55,7 @@ def map_worker(worker_data, tags_list):
     else:
         firstname = worker_data.get("firstName", "")
         lastname = worker_data.get("lastName", "")
-        sex = temporary_sex_mapping(worker_data, firstname)
+        sex = worker_data.get("gender", "Nie określono")
         age = worker_data.get("age", 0)
         type_of_deal = worker_data.get("contractType", "")
         phone_number = worker_data.get("phoneNumber", "")
@@ -96,10 +97,9 @@ def normalize_hour(hour_str):
         return hour_str
 
 def map_shift(shift_data):
-    if shift_data.get("isDeleted", False) == True:
+    if shift_data.get == None:
         return None
     else:
-        id = shift_data.get("id", "")
         day = shift_data.get("day", "")
         start = shift_data.get("start", "")
 
@@ -107,18 +107,26 @@ def map_shift(shift_data):
         end = shift_data.get("end", "")
         end = normalize_hour(end)
 
-        tagId = shift_data.get("tagId", "")
-        count = shift_data.get("count", 0)
+        requirements = shift_data.get("requirements", {})
+
+        rules = []
+
+        for req in requirements:
+            tagId = req.get("tagId", "")
+            count = req.get("count", 0)
+
+            rule = Rule(tagId, count)
+            rules.append(rule)
+
 
         shift = Shift(
             id=id,
             day=day,
             start=start,
             end=end,
-            tagId=tagId,
-            count=count
+            rules=rules
         )
-
+        #print(shift)
         return shift
 
 
@@ -140,8 +148,8 @@ def map_template(template_data):
         minMen = template_data.get("minMen", "")
         minWomen = template_data.get("minWomen", "")
 
-        shifts_docs = template_data.get("Shifts", template_data.get("shifts_docs", []))
-        shifts = [map_shift(s) for s in shifts_docs if map_shift(s) is not None]
+        shifts_docs = template_data.get("shiftsMap", template_data.get("shifts_docs", []))
+        shifts = [map_shift(shifts_docs[key]) for key in shifts_docs if map_shift(shifts_docs[key]) is not None]
 
         template = Template(
             id=id,
@@ -152,6 +160,7 @@ def map_template(template_data):
             minWomen=minWomen,
             shifts=shifts
         )
+        print(template)
 
 
         return template
