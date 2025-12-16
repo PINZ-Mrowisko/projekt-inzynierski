@@ -20,23 +20,6 @@ def map_tag(tag_data):
 
         return tag
 
-# def temporary_sex_mapping(worker_data, worker_firstname):
-#     try:
-#         sex = worker_data.get("sex", "")
-#         if sex:
-#             return sex
-#         if worker_firstname:
-#             last_letter = worker_firstname.strip()[-1].lower()
-#             # Prosta heurystyka: imiona kończące się na 'a' to kobiety (np. Maria), reszta to mężczyźni
-#             if last_letter == "a":
-#                 return "female"
-#             else:
-#                 return "male"
-#         return "unknown"
-#     except Exception as e:
-#         print(f"Błąd podczas mapowania płci: {e}")
-#         return "unknown"
-
 def work_time_preference_mapping(preference):
     try:
         if preference == "Poranne":
@@ -96,7 +79,7 @@ def normalize_hour(hour_str):
         print(f"Error normalizing hour '{hour_str}': {e}")
         return hour_str
 
-def map_shift(shift_data):
+def map_shift(shift_data, shift_id):
     if shift_data.get == None:
         return None
     else:
@@ -120,13 +103,12 @@ def map_shift(shift_data):
 
 
         shift = Shift(
-            id=id,
+            id=shift_id,
             day=day,
             start=start,
             end=end,
             rules=rules
         )
-        #print(shift)
         return shift
 
 
@@ -149,7 +131,7 @@ def map_template(template_data):
         minWomen = template_data.get("minWomen", "")
 
         shifts_docs = template_data.get("shiftsMap", template_data.get("shifts_docs", []))
-        shifts = [map_shift(shifts_docs[key]) for key in shifts_docs if map_shift(shifts_docs[key]) is not None]
+        shifts = [map_shift(shifts_docs[key], key) for key in shifts_docs if map_shift(shifts_docs[key], key) is not None]
 
         template = Template(
             id=id,
@@ -160,8 +142,6 @@ def map_template(template_data):
             minWomen=minWomen,
             shifts=shifts
         )
-        print(template)
-
 
         return template
 

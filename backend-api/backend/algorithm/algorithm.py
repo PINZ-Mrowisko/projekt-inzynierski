@@ -2,32 +2,28 @@ from ortools.sat.python import cp_model
 from backend.algorithm.solver import ShiftPrinter
 from backend.connection.database_queries import *
 
-def generate_all_shifts(model, days, shifts, all_workers):
-    all_shifts = {}
 
-    days_dict = {
-        0: "Poniedziałek",
-        1: "Wtorek",
-        2: "Środa",
-        3: "Czwartek",
-        4: "Piątek",
-        5: "Sobota",
-        6: "Niedziela"
-    }
+def generate_all_variables(model, all_shifts, all_workers):
+    variables = {}
 
+    print(all_shifts)
+    print(all_workers)
 
     for worker in all_workers:
-        for day in range(days):
+        for shift in all_shifts:
 
-            day_name = days_dict[day]
-            shifts_that_day = shifts[day_name] if day_name in shifts else 0
+            for rule_idx, rule in enumerate(shift.rules):
 
-            for shift in range(shifts_that_day):
-                for role in worker.tags:
-                    all_shifts[(worker, day, shift, role)] = model.new_bool_var(
-                        f"shift: {worker} | {day} | {shift} | {role}")
+                worker_tags_ids = [t.id for t in worker.tags]
+                required_tags = rule.tags
 
-    return all_shifts
+                if set(required_tags).issubset(set(worker_tags_ids)):
+                    variables[(worker.id, shift.day, rule_idx)] = model.new_bool_var(
+                        f"W:{worker.firstname}_D:{shift.day}_R:{rule_idx}"
+                    )
+                    print(f"DEBUG: Var created for Shift ID: {shift.day} | Worker: {worker.firstname} | Rule: {rule_idx}")
+
+    return variables
 
 def create_tag_group(all_workers, tag):
     return [worker for worker in all_workers if tag in worker.tags]
@@ -51,67 +47,55 @@ def RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tag, min
 
 def main(workers, template: Template, tags):
     model = cp_model.CpModel()
+    print("starting main")
     tag_groups = divide_workers_by_tags(workers, tags)
+    print("group tags")
+    all_shifts = template.shifts
+    print("All shifts:")
 
-    all_shifts = generate_all_shifts(model, template.days, template.shifts_number, workers)
-
-    days_dict = {
-        0: "Poniedziałek",
-        1: "Wtorek",
-        2: "Środa",
-        3: "Czwartek",
-        4: "Piątek",
-        5: "Sobota",
-        6: "Niedziela"
-    }
+    all_variables = generate_all_variables(model, template.shifts, workers)
 
     preference_vars = []
 
 
-    for day in range(template.days):
-        day_name = days_dict[day]
-        shifts_that_day = template.shifts_number.get(day_name, 0)
-        shifts_objects = [s for s in template.shifts if s.day == day_name]
+    for shift in all_shifts:
 
-        for shift_index in range(shifts_that_day):
-            current_shift = shifts_objects[shift_index]
-            current_role_id = current_shift.tagId
-            tag = next((t for t in tags if t.id == current_role_id), None)
+        worker_assignments_on_shift = {w.id: [] for w in workers}
 
-            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift_index, tag, current_shift.count,
-                                     current_shift.count)
+        for rule_idx, rule in enumerate(shift.rules):
 
-            male_assigned = []
-            female_assigned = []
+            assigned_vars_for_rule = []
 
             for worker in workers:
-                if (worker, day, shift_index, tag) in all_shifts:
-                    assigned_var = all_shifts[(worker, day, shift_index, tag)]
+                key = (worker.id, shift.day, rule_idx)
 
-                    if current_shift.type == worker.work_time_preference:
-                        preference_vars.append(assigned_var)
+                if key in all_variables:
+                    var = all_variables[key]
+                    assigned_vars_for_rule.append(var)
+                    print(var)
 
-                    if worker.sex == 'male':
-                        male_assigned.append(assigned_var)
-                    else:
-                        female_assigned.append(assigned_var)
+                    worker_assignments_on_shift[worker.id].append(var)
 
-            model.Add(sum(male_assigned) >= template.minMen)
-            model.Add(sum(female_assigned) >= template.minWomen)
-            model.Add(sum(female_assigned) <= template.maxWomen)
-            model.Add(sum(male_assigned) <= template.maxMen)
+                    if shift.type == worker.work_time_preference:
+                        preference_vars.append(var)
+
+            model.Add(sum(assigned_vars_for_rule) == rule.count)
 
     model.Maximize(sum(preference_vars))
 
     solver = cp_model.CpSolver()
-    printer = ShiftPrinter(all_shifts, workers, template)
+    #printer = ShiftPrinter(all_variables, workers, template)
 
-    status = solver.Solve(model, printer)
+    status = solver.Solve(model)
 
     if status == cp_model.OPTIMAL:
         print("\nFinal Solution:")
-        printer.print_best_solution()
-        return printer.results_json()
+        #printer.print_best_solution()
+        for v in all_variables.values():
+            if solver.Value(v) == 1:
+                print(f"{v} = 1")
+
+        return "success"#printer.results_json()
     else:
         print("No solution found.")
         return {"status": "No solution found."}

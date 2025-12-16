@@ -86,21 +86,8 @@ def get_templates(user_id: str, db):
         for template_doc in template_docs:
             try:
                 template_data = template_doc.to_dict()
-
-                shifts_ref = (
-                    db.collection("Markets")
-                    .document(market_id)
-                    .collection("Templates")
-                    .document(template_doc.id)
-                    .collection("Shifts")
-                )
-
-                shift_docs = shifts_ref.get()
-                shifts = [s.to_dict() for s in shift_docs]
-
-                template_data["Shifts"] = shifts
-
                 template = map_template(template_data)
+
                 if template is not None:
                     templates.append(template)
 
