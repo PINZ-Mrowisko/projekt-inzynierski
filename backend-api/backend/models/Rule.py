@@ -1,9 +1,10 @@
 class Rule:
-    def __init__(self, tags, count):
+    def __init__(self, tags, count, attach_default_rules=True):
 
         self.tags = tags  # List of tag IDs
         self.count = count
         self.type = self.determine_type()
+        self.attach_default_rules = attach_default_rules
 
     def determine_type(self):
         tags_list = [tag.strip() for tag in self.tags.split(',')]

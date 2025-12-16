@@ -36,6 +36,9 @@ def main(workers, template: Template):
 
         worker_assignments_on_this_shift = {w.id: [] for w in workers}
 
+        males_assigned_to_shift = []
+        females_assigned_to_shift = []
+
         for rule_idx, rule in enumerate(shift.rules):
 
             assigned_vars_for_rule = []
@@ -57,11 +60,23 @@ def main(workers, template: Template):
                         assignments_for_worker_per_day[day_key] = []
                     assignments_for_worker_per_day[day_key].append(var)
 
+                    if rule.attach_default_rules:
+                        if worker.sex == 'Mężczyzna':
+                            males_assigned_to_shift.append(var)
+                        else:
+                            females_assigned_to_shift.append(var)
+
                     if shift.type == worker.work_time_preference:
 
                         preference_vars.append(var)
 
             model.Add(sum(assigned_vars_for_rule) == rule.count)
+
+        model.Add(sum(males_assigned_to_shift) >= template.minMen)
+        model.Add(sum(females_assigned_to_shift) >= template.minWomen)
+        model.Add(sum(males_assigned_to_shift) <= template.maxMen)
+        model.Add(sum(females_assigned_to_shift) <= template.maxWomen)
+
 
         for worker in workers:
             vars_in_shift = worker_assignments_on_this_shift[worker.id]
