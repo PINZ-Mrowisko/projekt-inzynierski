@@ -4,6 +4,7 @@ class Shift:
         self.day = day
         self.start = start
         self.end = end
+        self.duration = (end[0] - start[0]) * 60 + (end[1] - start[1])
         self.rules = rules
         self.type = self.determine_type()
 

@@ -57,7 +57,7 @@ def main(workers, template: Template, tags):
     all_variables = generate_all_variables(model, template.shifts, workers)
 
     preference_vars = []
-
+    worker_hour_worked_on_shift = {w.firstname: [] for w in workers}
 
     for shift in all_shifts:
 
@@ -76,13 +76,31 @@ def main(workers, template: Template, tags):
                     print(var)
 
                     worker_assignments_on_shift[worker.id].append(var)
+                    worker_hour_worked_on_shift[worker.firstname].append(var * shift.duration)
 
                     if shift.type == worker.work_time_preference:
                         preference_vars.append(var)
 
             model.Add(sum(assigned_vars_for_rule) == rule.count)
 
-    model.Maximize(sum(preference_vars))
+    WEIGHT_PREFERENCE = 200  # Bonus za pracę w ulubionej porze
+    WEIGHT_TIME = 1  # Bonus za każdą przepracowaną minutę
+
+    total_time_working = []
+
+    for worker in workers:
+        actual_work_time = sum(worker_hour_worked_on_shift[worker.firstname])
+        max_minutes = worker.get_max_working_hours() * 60
+        model.Add(actual_work_time <= max_minutes)
+
+        total_time_working.append(actual_work_time)
+
+
+
+    model.Maximize(
+        sum(preference_vars) * WEIGHT_PREFERENCE +
+        sum(total_time_working) * WEIGHT_TIME
+    )
 
     solver = cp_model.CpSolver()
     #printer = ShiftPrinter(all_variables, workers, template)
