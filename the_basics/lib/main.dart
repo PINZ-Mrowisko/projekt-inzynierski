@@ -112,7 +112,6 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => PlatformWrapper(mobile:EmployeeLeavesManagementMobilePage(), web: EmployeeLeavesManagementPage())),
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => PlatformWrapper(mobile: ManagerLeavesManagementMobilePage(), web: ManagerLeavesManagementPage())),
         
-        GetPage(name: '/gielda', page: () => PlaceholderPage()),
         GetPage(name: '/twoj-profil', page: () => PlatformWrapper(mobile: UserProfileScreenMobile(), web:  UserProfileScreen())),
         GetPage(name: '/tagi', page: () => TagsPage()),
         GetPage(name: '/pracownicy', page: () => EmployeeManagementPage()),
