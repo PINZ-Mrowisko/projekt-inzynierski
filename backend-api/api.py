@@ -6,6 +6,7 @@ from firebase_admin import firestore, credentials, auth
 from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule, \
     get_previous_schedule
 from backend.algorithm.algorithm import main
+from backend.connection.mapping import map_result_to_json
 
 # === Inicjalizacja Firebase Admin SDK dla Cloud Run ===
 if not firebase_admin._apps:
@@ -54,9 +55,9 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
         raise HTTPException(status_code=404, detail="Template not found")
 
 
-    result = main(workers, template)
+    solver, all_variables = main(workers, template)
 
-    post_schedule(user_id, result, db)
+    result = map_result_to_json(solver, all_variables, workers, template)
 
     return result
 

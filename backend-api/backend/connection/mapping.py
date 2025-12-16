@@ -148,6 +148,43 @@ def map_template(template_data):
 
         return template
 
+def hour_to_string(hour_tuple):
+    hour, minute = hour_tuple
+    return f"{hour:02d}:{minute:02d}"
+
+def map_result_to_json(solver, all_variables, workers, template):
+    schedule = []
+
+    for shift in template.shifts:
+        shift_entry = {
+            "shiftId": shift.id,
+            "day": shift.day,
+            "start": hour_to_string(shift.start),
+            "end": hour_to_string(shift.end),
+            "duration": shift.duration / 60,
+            "assignments": []
+        }
+
+        for worker in workers:
+            for rule_idx, rule in enumerate(shift.rules):
+                key = (worker.id, shift.id, rule_idx)
+
+                if key in all_variables:
+                    var = all_variables[key]
+
+                    if solver.Value(var) == 1:
+                        assignment = {
+                            "workerId": worker.id,
+                            "firstName": worker.firstname,
+                            "lastName": worker.lastname,
+                            "tags": rule.tags,
+                        }
+                        shift_entry["assignments"].append(assignment)
+
+        schedule.append(shift_entry)
+
+    return schedule
+
 
 
 

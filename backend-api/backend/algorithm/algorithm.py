@@ -16,7 +16,7 @@ def generate_all_variables(model, all_shifts, all_workers):
 
                 if set(required_tags).issubset(set(worker_tags_ids)):
                     variables[(worker.id, shift.id, rule_idx)] = model.new_bool_var(
-                        f"W:{worker.firstname}_D:{shift.id}_R:{rule_idx}"
+                        f"W:{worker.id}_D:{shift.id}_R:{rule_idx}"
                     )
 
     return variables
@@ -118,6 +118,7 @@ def main(workers, template: Template):
     status = solver.Solve(model)
 
     if status == cp_model.OPTIMAL:
+
         print("\n--- DIAGNOSTYKA SOLVERA ---")
         for worker in workers:
             is_active_val = solver.Value(activation_vars[worker.id])
@@ -125,8 +126,8 @@ def main(workers, template: Template):
             minutes_assigned = 0
 
             print(f"\nPracownik: {worker.firstname}")
-            print(f"  -> Czy aktywny (wg Solvera): {is_active_val}")
-            print(f"  -> Limit Max Hours: {worker.max_working_hours}")
+            print(f"  -> Czy pracuje: {"tak" if is_active_val == 1 else "nie"}")
+            print(f"  -> Limit godzin: {worker.max_working_hours}")
 
             for shift in all_shifts:
                 for rule_idx, rule in enumerate(shift.rules):
@@ -137,10 +138,7 @@ def main(workers, template: Template):
 
             print(f"  -> Łącznie przydzielono: {minutes_assigned / 60} h")
 
-            if is_active_val == 1 and minutes_assigned == 0:
-                print("  ALARM: Flaga is_active=1, ale godzin 0! Kara naliczona niesłusznie.")
-
-        return "success"
+        return solver, all_variables
     else:
         print("No solution found.")
         return {"status": "No solution found."}
