@@ -20,6 +20,7 @@ class Worker:
     def get_type_of_deal(self):
         return self.type_of_deal
 
+    #To do: remove and change tests
     def get_max_working_hours(self):
         deal = self.get_type_of_deal()
 

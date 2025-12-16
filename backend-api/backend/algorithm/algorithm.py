@@ -1,5 +1,4 @@
 from ortools.sat.python import cp_model
-from backend.algorithm.solver import ShiftPrinter
 from backend.connection.database_queries import *
 
 
@@ -57,7 +56,7 @@ def main(workers, template: Template, tags):
     all_variables = generate_all_variables(model, template.shifts, workers)
 
     preference_vars = []
-    worker_hour_worked_on_shift = {w.firstname: [] for w in workers}
+    worker_hour_worked_on_shift = {w.id: [] for w in workers}
 
     for shift in all_shifts:
 
@@ -76,7 +75,7 @@ def main(workers, template: Template, tags):
                     print(var)
 
                     worker_assignments_on_shift[worker.id].append(var)
-                    worker_hour_worked_on_shift[worker.firstname].append(var * shift.duration)
+                    worker_hour_worked_on_shift[worker.id].append(var * shift.duration)
 
                     if shift.type == worker.work_time_preference:
                         preference_vars.append(var)
@@ -85,13 +84,18 @@ def main(workers, template: Template, tags):
 
     WEIGHT_PREFERENCE = 200  # Bonus za pracę w ulubionej porze
     WEIGHT_TIME = 1  # Bonus za każdą przepracowaną minutę
+    WEIGHT_ACTIVATION_PENALTY = 1000  # Kara za aktywację pracownika
 
     total_time_working = []
+    activation_vars = {}
 
     for worker in workers:
-        actual_work_time = sum(worker_hour_worked_on_shift[worker.firstname])
-        max_minutes = worker.get_max_working_hours() * 60
-        model.Add(actual_work_time <= max_minutes)
+        actual_work_time = sum(worker_hour_worked_on_shift[worker.id])
+        max_minutes = worker.max_working_hours * 60
+        is_active = model.new_bool_var(f"active_{worker.id}")
+        activation_vars[worker.id] = is_active
+
+        model.Add(actual_work_time <= max_minutes * is_active)
 
         total_time_working.append(actual_work_time)
 
@@ -99,7 +103,8 @@ def main(workers, template: Template, tags):
 
     model.Maximize(
         sum(preference_vars) * WEIGHT_PREFERENCE +
-        sum(total_time_working) * WEIGHT_TIME
+        sum(total_time_working) * WEIGHT_TIME -
+        sum(activation_vars.values()) * WEIGHT_ACTIVATION_PENALTY
     )
 
     solver = cp_model.CpSolver()
@@ -108,11 +113,34 @@ def main(workers, template: Template, tags):
     status = solver.Solve(model)
 
     if status == cp_model.OPTIMAL:
-        print("\nFinal Solution:")
-        #printer.print_best_solution()
-        for v in all_variables.values():
-            if solver.Value(v) == 1:
-                print(f"{v} = 1")
+        print("\n--- DIAGNOSTYKA SOLVERA ---")
+        for worker in workers:
+            # 1. Sprawdź czy Solver w ogóle uznał ich za aktywnych
+            is_active_val = solver.Value(activation_vars[worker.id])  # Musisz mieć dostęp do zmiennych is_active
+
+            # 2. Policz ile minut faktycznie dostali
+            minutes_assigned = 0
+            shifts_assigned_count = 0
+
+            print(f"\nPracownik: {worker.firstname}")
+            print(f"  -> Czy aktywny (wg Solvera): {is_active_val}")
+            print(f"  -> Limit Max Hours: {worker.max_working_hours}")
+
+            # Iterujemy po zmianach żeby zobaczyć co dostał
+            # (Tu zakładam uproszczoną pętlę po twoich zmiennych all_shifts/variables)
+            for shift in all_shifts:
+                #Odtwórz klucz zmiennej (u ciebie może być inny)
+                for rule_idx, rule in enumerate(shift.rules):
+                    key = (worker.id, shift.id, rule_idx)
+                    if key in all_variables and solver.Value(all_variables[key]) == 1:
+                       print(f"     - Dostał zmianę: {shift.day} {shift.start}-{shift.end} ({shift.duration} min)")
+                       minutes_assigned += shift.duration
+                # pass
+
+            print(f"  -> Łącznie przydzielono: {minutes_assigned / 60} h")
+
+            if is_active_val == 1 and minutes_assigned == 0:
+                print("  ALARM: Flaga is_active=1, ale godzin 0! Kara naliczona niesłusznie.")
 
         return "success"#printer.results_json()
     else:
