@@ -91,7 +91,7 @@ class EmployeeManagementPage extends StatelessWidget {
                   Expanded(
                     child: Obx(() {
                       if (userController.isLoading.value) {
-                        return const Center(child: CircularProgressIndicator());
+                        return Center(child: CircularProgressIndicator(color: AppColors.logo));
                       }
                       // if (userController.errorMessage.value.isNotEmpty) {
                       //   return Center(

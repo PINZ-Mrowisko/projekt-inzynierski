@@ -34,7 +34,7 @@ class SchedulePage extends StatelessWidget {
                   Expanded(
                     child: Obx(() {
                       if (scheduleController.isLoading.value) {
-                        return const Center(child: CircularProgressIndicator());
+                        return Center(child: CircularProgressIndicator(color: AppColors.logo));
                       }
                       if (scheduleController.errorMessage.value.isNotEmpty) {
                         return Center(child: Text(scheduleController.errorMessage.value));
