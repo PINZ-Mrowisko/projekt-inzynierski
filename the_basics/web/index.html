@@ -1,38 +1,157 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
 
-  <!-- iOS meta tags & icons -->
+  <!-- Viewport -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#0175C2">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="the_basics">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mrowisko">
+  <meta name="description" content="Scheduling App for Hard Working Ants">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>Mrowisko</title>
 
-  <title>the_basics</title>
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Manifest -->
   <link rel="manifest" href="manifest.json">
+
+  <!-- ============================= -->
+  <!-- PWA + Flutter <-> JS bridge -->
+  <!-- ============================= -->
+  <script>
+    /* ============================
+       DISPLAY MODE (PWA / browser)
+       ============================ */
+    window.getDisplayMode = function () {
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        return 'standalone';
+      }
+      if (window.navigator.standalone === true) {
+        return 'standalone'; // iOS
+      }
+      return 'browser';
+    };
+
+    /* ============================
+       PWA INSTALL FLOW (Android)
+       ============================ */
+    let deferredPrompt = null;
+    window.canInstallPWA = false;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      window.canInstallPWA = true;
+
+      window.dispatchEvent(
+        new CustomEvent('pwa-install-available')
+      );
+    });
+
+    window.triggerPWAInstall = async function () {
+      if (!deferredPrompt) return false;
+
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+
+      deferredPrompt = null;
+      window.canInstallPWA = false;
+
+      return choice.outcome === 'accepted';
+    };
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      window.canInstallPWA = false;
+
+      window.dispatchEvent(
+        new CustomEvent('pwa-installed')
+      );
+    });
+
+    /* ============================
+       SERVICE WORKER
+       ============================ */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register(
+          'flutter_service_worker.js',
+          { scope: './' }
+        ).catch(err => {
+          console.warn('ServiceWorker registration failed:', err);
+        });
+      });
+    }
+  </script>
 </head>
-<body>
-  <script src="flutter_bootstrap.js" async></script>
+
+<body class="loading">
+
+<!-- Flutter bootstrap -->
+<script src="flutter_bootstrap.js" async></script>
+
+<!-- ============================
+     LOADING SCREEN
+     ============================ -->
+<div id="flutter-loading" style="
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+">
+  <div style="text-align:center">
+    <div style="
+      width:48px;
+      height:48px;
+      border:4px solid #e0e0e0;
+      border-top:4px solid #0175C2;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+      margin-bottom:16px;
+    "></div>
+    <div style="font-family:sans-serif;color:#333">
+      Loading Mrowisko…
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  body.loading {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  window.addEventListener('flutter-first-frame', () => {
+    const loader = document.getElementById('flutter-loading');
+    if (!loader) return;
+
+    loader.style.opacity = '0';
+    setTimeout(() => {
+      loader.remove();
+      document.body.classList.remove('loading');
+    }, 300);
+  });
+</script>
+
 </body>
 </html>

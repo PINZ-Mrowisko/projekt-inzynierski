@@ -1,11 +1,12 @@
 {
-    "name": "the_basics",
-    "short_name": "the_basics",
+    "name": "Mrowisko",
+    "short_name": "Mrowisko",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Scheduling App for Hard Working Ants",
+    "scope": "/",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
