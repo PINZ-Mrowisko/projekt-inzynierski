@@ -6,11 +6,12 @@ from backend.connection.database_queries import *
 def generate_all_variables(model, all_shifts, all_workers):
     variables = {}
 
-    print(all_shifts)
-    print(all_workers)
+    # print(all_shifts)
+    # print(all_workers)
 
     for worker in all_workers:
         for shift in all_shifts:
+            # print(shift.rules)
 
             for rule_idx, rule in enumerate(shift.rules):
 
@@ -18,10 +19,10 @@ def generate_all_variables(model, all_shifts, all_workers):
                 required_tags = rule.tags
 
                 if set(required_tags).issubset(set(worker_tags_ids)):
-                    variables[(worker.id, shift.day, rule_idx)] = model.new_bool_var(
-                        f"W:{worker.firstname}_D:{shift.day}_R:{rule_idx}"
+                    variables[(worker.id, shift.id, rule_idx)] = model.new_bool_var(
+                        f"W:{worker.firstname}_D:{shift.id}_R:{rule_idx}"
                     )
-                    print(f"DEBUG: Var created for Shift ID: {shift.day} | Worker: {worker.firstname} | Rule: {rule_idx}")
+                    print(f"DEBUG: Var created for Shift ID: {shift.id} | Worker: {worker.firstname} | Rule: {rule_idx}")
 
     return variables
 
@@ -67,7 +68,7 @@ def main(workers, template: Template, tags):
             assigned_vars_for_rule = []
 
             for worker in workers:
-                key = (worker.id, shift.day, rule_idx)
+                key = (worker.id, shift.id, rule_idx)
 
                 if key in all_variables:
                     var = all_variables[key]

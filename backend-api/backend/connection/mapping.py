@@ -83,6 +83,7 @@ def map_shift(shift_data, shift_id):
     if shift_data.get == None:
         return None
     else:
+        print(shift_data)
         day = shift_data.get("day", "")
         start = shift_data.get("start", "")
 
@@ -109,6 +110,7 @@ def map_shift(shift_data, shift_id):
             end=end,
             rules=rules
         )
+        print(shift.rules)
         return shift
 
 
@@ -130,8 +132,9 @@ def map_template(template_data):
         minMen = template_data.get("minMen", "")
         minWomen = template_data.get("minWomen", "")
 
-        shifts_docs = template_data.get("shiftsMap", template_data.get("shifts_docs", []))
-        shifts = [map_shift(shifts_docs[key], key) for key in shifts_docs if map_shift(shifts_docs[key], key) is not None]
+        shifts_docs = template_data.get("shiftsMap", {})
+        print(shifts_docs)
+        shifts = [map_shift(shifts_docs[key], key) for key in shifts_docs]
 
         template = Template(
             id=id,
