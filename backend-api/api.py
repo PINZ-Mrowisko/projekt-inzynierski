@@ -57,11 +57,16 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
 
     solver, all_variables = main(workers, template)
 
-    result = map_result_to_json(solver, all_variables, workers, template)
+    if all_variables is None:
+        return solver
 
-    post_schedule(user_id, template, result, db)
+    else:
 
-    return result
+        result = map_result_to_json(solver, all_variables, workers, template)
+
+        post_schedule(user_id, template, result, db)
+
+        return result
 
 @app.get("/generate_from_previous/{schedule_id}")
 def generate_from_previous(authorization: str = Header(...), schedule_id: str = ""):

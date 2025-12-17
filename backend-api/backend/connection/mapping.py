@@ -97,8 +97,9 @@ def map_shift(shift_data, shift_id):
         for req in requirements:
             tagId = req.get("tagId", "")
             count = req.get("count", 0)
+            attach_default_rules = req.get("obeyGeneralRules", True)
 
-            rule = Rule(tagId, count)
+            rule = Rule(tagId, count, attach_default_rules)
             rules.append(rule)
 
 

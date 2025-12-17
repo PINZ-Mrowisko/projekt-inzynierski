@@ -72,10 +72,11 @@ def main(workers, template: Template):
 
             model.Add(sum(assigned_vars_for_rule) == rule.count)
 
-        model.Add(sum(males_assigned_to_shift) >= template.minMen)
-        model.Add(sum(females_assigned_to_shift) >= template.minWomen)
-        model.Add(sum(males_assigned_to_shift) <= template.maxMen)
-        model.Add(sum(females_assigned_to_shift) <= template.maxWomen)
+        if shift.attach_default_rules:
+            model.Add(sum(males_assigned_to_shift) >= template.minMen)
+            model.Add(sum(females_assigned_to_shift) >= template.minWomen)
+            model.Add(sum(males_assigned_to_shift) <= template.maxMen)
+            model.Add(sum(females_assigned_to_shift) <= template.maxWomen)
 
 
         for worker in workers:
@@ -141,4 +142,4 @@ def main(workers, template: Template):
         return solver, all_variables
     else:
         print("No solution found.")
-        return {"status": "No solution found."}
+        return {"status": "No solution found."}, None
