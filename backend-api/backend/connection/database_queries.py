@@ -100,9 +100,7 @@ def get_templates(user_id: str, db):
         print(f"An error occurred while fetching templates: {e}")
         return []
 
-from datetime import datetime, timedelta
-import calendar
-from collections import defaultdict
+from datetime import datetime
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
@@ -113,11 +111,42 @@ def get_next_month_year(now = datetime.now()):
     return year, month
 
 
-def group_schedule_by_day(schedule_data):
-    grouped = defaultdict(list)
-    for entry in schedule_data:
-        grouped[entry["day"]].append(entry)
-    return grouped
+from collections import defaultdict
+from datetime import date
+import calendar
+
+
+def expand_schedule_to_month(schedule_dict, year, month):
+    grouped_template = defaultdict(list)
+    iterator = schedule_dict.values() if isinstance(schedule_dict, dict) else schedule_dict
+
+    for entry in iterator:
+        if isinstance(entry, dict) and "day" in entry:
+            grouped_template[entry["day"]].append(entry)
+
+    WEEKDAYS_MAP = {
+        0: "Poniedziałek", 1: "Wtorek", 2: "Środa", 3: "Czwartek",
+        4: "Piątek", 5: "Sobota", 6: "Niedziela"
+    }
+
+    full_month_schedule = {}
+    days_in_month = calendar.monthrange(year, month)[1]
+
+    for day_num in range(1, days_in_month + 1):
+        current_date = date(year, month, day_num)
+        date_str = current_date.strftime("%Y-%m-%d")
+
+        day_of_week_index = current_date.weekday()
+        day_name_pl = WEEKDAYS_MAP[day_of_week_index]
+
+        shifts_for_day = grouped_template.get(day_name_pl, [])
+
+        for shift in shifts_for_day:
+            new_entry = shift.copy()
+            new_entry["date"] = date_str
+            full_month_schedule[date_str] = new_entry
+
+    return full_month_schedule
 
 
 def post_schedule(user_id: str, template, schedule_data: dict, db):
@@ -135,6 +164,7 @@ def post_schedule(user_id: str, template, schedule_data: dict, db):
         year, month = get_next_month_year()
         days_in_month = calendar.monthrange(year, month)[1]
 
+        full_month_data = expand_schedule_to_month(schedule_data, year, month)
         schedules_ref = db.collection("Markets").document(market_id).collection("Schedules")
         new_schedule_ref = schedules_ref.document()
 
@@ -145,7 +175,8 @@ def post_schedule(user_id: str, template, schedule_data: dict, db):
             "month_of_usage": month,
             "year_of_usage": year,
             "days_in_month": days_in_month,
-            "generated_schedule": schedule_data
+            "generated_schedule": full_month_data,
+            "weekly_template_snapshot": schedule_data
         })
 
         print(f"Schedule created with ID: {new_schedule_ref.id}")

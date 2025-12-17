@@ -83,7 +83,6 @@ def map_shift(shift_data, shift_id):
     if shift_data.get == None:
         return None
     else:
-        print(shift_data)
         day = shift_data.get("day", "")
         start = shift_data.get("start", "")
 
@@ -110,17 +109,14 @@ def map_shift(shift_data, shift_id):
             end=end,
             rules=rules
         )
-        print(shift.rules)
         return shift
 
 
 def map_template(template_data):
 
     if template_data.get("isDeleted", False) == True:
-        print("Template is deleted, skipping mapping.")
         return None
     elif template_data.get("isDataMissing", False) == True:
-        print("Template data is missing, skipping mapping.")
         return None
 
     else:
@@ -133,7 +129,6 @@ def map_template(template_data):
         minWomen = template_data.get("minWomen", "")
 
         shifts_docs = template_data.get("shiftsMap", {})
-        print(shifts_docs)
         shifts = [map_shift(shifts_docs[key], key) for key in shifts_docs]
 
         template = Template(
