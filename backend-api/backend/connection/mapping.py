@@ -153,11 +153,10 @@ def hour_to_string(hour_tuple):
     return f"{hour:02d}:{minute:02d}"
 
 def map_result_to_json(solver, all_variables, workers, template):
-    schedule = []
+    schedule = {}
 
     for shift in template.shifts:
         shift_entry = {
-            "shiftId": shift.id,
             "day": shift.day,
             "start": hour_to_string(shift.start),
             "end": hour_to_string(shift.end),
@@ -181,7 +180,7 @@ def map_result_to_json(solver, all_variables, workers, template):
                         }
                         shift_entry["assignments"].append(assignment)
 
-        schedule.append(shift_entry)
+        schedule[shift.id] = shift_entry
 
     return schedule
 

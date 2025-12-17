@@ -120,7 +120,7 @@ def group_schedule_by_day(schedule_data):
     return grouped
 
 
-def post_schedule(user_id: str, schedule_data: dict, db):
+def post_schedule(user_id: str, template, schedule_data: dict, db):
     try:
         docs = db.collection("Markets") \
             .where(filter=FieldFilter("createdBy", "==", user_id)) \
@@ -141,36 +141,12 @@ def post_schedule(user_id: str, schedule_data: dict, db):
         new_schedule_ref.set({
             "createdBy": user_id,
             "createdAt": firestore.SERVER_TIMESTAMP,
+            "templateUsed": template.id,
             "month_of_usage": month,
             "year_of_usage": year,
             "days_in_month": days_in_month,
             "generated_schedule": schedule_data
         })
-
-        grouped = group_schedule_by_day(schedule_data)
-
-        days_ref = new_schedule_ref.collection("DayAssignments")
-
-        for day_number in range(1, days_in_month + 1):
-
-            date = datetime(year, month, day_number)
-
-            day_index = ((day_number - 1) % 7) + 1
-
-            assignments = grouped.get(day_index, [])
-
-            day_doc_ref = days_ref.document()
-            day_doc_ref.set({
-                "date": date,
-                "day": day_number,
-                "weekday": date.isoweekday(),
-                "day_index": day_index
-            })
-
-            shifts_ref = day_doc_ref.collection("ShiftAssignments")
-
-            for assignment in assignments:
-                shifts_ref.document().set(assignment)
 
         print(f"Schedule created with ID: {new_schedule_ref.id}")
         return new_schedule_ref.id
