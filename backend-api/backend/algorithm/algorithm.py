@@ -6,6 +6,7 @@ def generate_all_variables(model, all_shifts, all_workers):
     variables = {}
 
     for worker in all_workers:
+        print(worker.firstname, worker.tags)
 
         for shift in all_shifts:
 
@@ -14,11 +15,11 @@ def generate_all_variables(model, all_shifts, all_workers):
                 worker_tags_ids = [t.id for t in worker.tags]
                 required_tags = rule.tags
 
-                if set(required_tags).issubset(set(worker_tags_ids)):
+                if set(required_tags).issubset(set(worker_tags_ids)) or len(worker.tags) == 0:
                     variables[(worker.id, shift.id, rule_idx)] = model.new_bool_var(
                         f"W:{worker.id}_D:{shift.id}_R:{rule_idx}"
                     )
-
+                    print(worker.id, shift.id, rule_idx)
     return variables
 
 def main(workers, template: Template):
@@ -31,6 +32,7 @@ def main(workers, template: Template):
     preference_vars = []
     worker_hour_worked_on_shift = {w.id: [] for w in workers}
     assignments_for_worker_per_day = {}
+    no_tag_worker_working_var = []
 
     for shift in all_shifts:
 
@@ -66,6 +68,9 @@ def main(workers, template: Template):
                         else:
                             females_assigned_to_shift.append(var)
 
+                    if len(rule.tags) > 0 and len(worker.tags) == 0:
+                        no_tag_worker_working_var.append(var)
+
                     if shift.type == worker.work_time_preference:
 
                         preference_vars.append(var)
@@ -91,6 +96,7 @@ def main(workers, template: Template):
     WEIGHT_PREFERENCE = 200  # Bonus za pracę w ulubionej porze
     WEIGHT_TIME = 1  # Bonus za każdą przepracowaną minutę
     WEIGHT_ACTIVATION_PENALTY = 1000  # Kara za aktywację pracownika
+    WEIGHT_NO_TAG_WORKER_PENALTY = 2000  # Kara za przydzielenie zmiany pracownikowi bez wymaganych tagów
 
     total_time_working = []
     activation_vars = {}
@@ -110,7 +116,8 @@ def main(workers, template: Template):
     model.Maximize(
         sum(preference_vars) * WEIGHT_PREFERENCE +
         sum(total_time_working) * WEIGHT_TIME -
-        sum(activation_vars.values()) * WEIGHT_ACTIVATION_PENALTY
+        sum(activation_vars.values()) * WEIGHT_ACTIVATION_PENALTY -
+        sum(no_tag_worker_working_var) * WEIGHT_NO_TAG_WORKER_PENALTY
     )
 
 

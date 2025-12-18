@@ -59,8 +59,6 @@ def get_tags(user_id: str, db):
             except Exception as e:
                 print(f"Error creating Tag from tag data {tag_data}: {e}")
 
-        default = Tags("None","default", "no special tags")
-        tags.append(default)
         return tags
 
     except Exception as e:

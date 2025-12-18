@@ -63,7 +63,7 @@ def map_worker(worker_data, tags_list):
         worker.work_time_preference = work_time_preference_mapping(work_time_preference)
 
         tags = [tag for tag in tags_list if tag.name in tags_doc]
-        worker.tags = tags if len(tags)>0 else tags_list[-1:]  # Default tag if no tags match
+        worker.tags = tags if len(tags)>0 else []
 
         return worker
 
