@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime
 
 from firebase_admin import firestore
@@ -113,8 +114,19 @@ from collections import defaultdict
 from datetime import date
 import calendar
 
+def is_on_leave(worker_id, check_date_str, leaves_req):
 
-def expand_schedule_to_month(schedule_dict, year, month):
+    if not leaves_req:
+        return False
+
+    for leave in leaves_req:
+
+        if leave.employee_id == worker_id and (leave.status == "zaakceptowany" or leave.status == "Mój urlop"):
+            if leave.start_date <= check_date_str <= leave.end_date:
+                return True
+    return False
+
+def expand_schedule_to_month(schedule_dict, year, month, leaves_req):
     grouped_template = defaultdict(list)
     iterator = schedule_dict.values() if isinstance(schedule_dict, dict) else schedule_dict
 
@@ -140,14 +152,24 @@ def expand_schedule_to_month(schedule_dict, year, month):
         shifts_for_day = grouped_template.get(day_name_pl, [])
 
         for shift in shifts_for_day:
-            new_entry = shift.copy()
+            new_entry = copy.deepcopy(shift)
             new_entry["date"] = date_str
+
+            if "assignments" in new_entry:
+                for assignment in new_entry["assignments"]:
+                    worker_id = assignment.get("workerId", "")
+                    if is_on_leave(worker_id, date_str, leaves_req):
+                        assignment["firstName"] = "Unknown"
+                        assignment["lastName"] = "Unknown"
+                        assignment["workerId"] = "Unknown"
+                        assignment["onLeave"] = True
+
             full_month_schedule[date_str] = new_entry
 
     return full_month_schedule
 
 
-def post_schedule(user_id: str, template, schedule_data: dict, db):
+def post_schedule(user_id: str, template, schedule_data: dict, leaves_req ,db):
     try:
         docs = db.collection("Markets") \
             .where(filter=FieldFilter("createdBy", "==", user_id)) \
@@ -162,7 +184,7 @@ def post_schedule(user_id: str, template, schedule_data: dict, db):
         year, month = get_next_month_year()
         days_in_month = calendar.monthrange(year, month)[1]
 
-        full_month_data = expand_schedule_to_month(schedule_data, year, month)
+        full_month_data = expand_schedule_to_month(schedule_data, year, month, leaves_req)
         schedules_ref = db.collection("Markets").document(market_id).collection("Schedules")
         new_schedule_ref = schedules_ref.document()
 

@@ -47,8 +47,6 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
     tags = get_tags(user_id, db)
     workers = get_workers(user_id, tags, db)
     leave_requests = get_leave_requests(user_id, db)
-    for lr in leave_requests:
-        print(lr.start_date)
     templates = get_templates(user_id, db)
     template = [template for template in templates if template.id == template_id]
 
@@ -67,7 +65,7 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
 
         result = map_result_to_json(solver, all_variables, workers, template)
 
-        post_schedule(user_id, template, result, db)
+        post_schedule(user_id, template, result, leave_requests, db)
 
         return result
 
