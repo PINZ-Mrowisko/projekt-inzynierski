@@ -65,7 +65,7 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
 
         result = map_result_to_json(solver, all_variables, workers, template)
 
-        post_schedule(user_id, template, result, leave_requests, db)
+        post_schedule(user_id, template.id, result, leave_requests, db)
 
         return result
 
@@ -83,8 +83,9 @@ def generate_from_previous(authorization: str = Header(...), schedule_id: str = 
         print("Błąd weryfikacji tokenu:", e)
         raise HTTPException(status_code=403, detail="Nieprawidłowy token")
 
-    schedule = get_previous_schedule(user_id, schedule_id, db)
+    schedule, template_id = get_previous_schedule(user_id, schedule_id, db)
+    leave_requests = get_leave_requests(user_id, db)
 
-    post_schedule(user_id, schedule, db)
+    post_schedule(user_id, template_id, schedule, leave_requests, db)
 
     return "Successfully generated new schedule from previous one."

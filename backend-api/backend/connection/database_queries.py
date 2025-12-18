@@ -169,7 +169,7 @@ def expand_schedule_to_month(schedule_dict, year, month, leaves_req):
     return full_month_schedule
 
 
-def post_schedule(user_id: str, template, schedule_data: dict, leaves_req ,db):
+def post_schedule(user_id: str, template_id, schedule_data: dict, leaves_req ,db):
     try:
         docs = db.collection("Markets") \
             .where(filter=FieldFilter("createdBy", "==", user_id)) \
@@ -191,7 +191,7 @@ def post_schedule(user_id: str, template, schedule_data: dict, leaves_req ,db):
         new_schedule_ref.set({
             "createdBy": user_id,
             "createdAt": firestore.SERVER_TIMESTAMP,
-            "templateUsed": template.id,
+            "templateUsed": template_id,
             "month_of_usage": month,
             "year_of_usage": year,
             "days_in_month": days_in_month,
@@ -228,8 +228,10 @@ def get_previous_schedule(user_id, schedule_id, db):
             print("Schedule not found.")
             return []
 
-        schedule_data = schedule_doc.to_dict().get("generated_schedule", [])
-        return schedule_data
+        schedule_data = schedule_doc.to_dict().get("weekly_template_snapshot", [])
+        template_id = schedule_doc.to_dict().get("templateUsed", "")
+
+        return schedule_data, template_id
 
     except Exception as e:
         print(f"An error occurred while fetching previous schedule: {e}")
