@@ -213,4 +213,36 @@ def get_previous_schedule(user_id, schedule_id, db):
         print(f"An error occurred while fetching previous schedule: {e}")
         return []
 
+def get_leave_requests(user_id: str, db):
+    try:
+        docs = db.collection("Markets") \
+            .where(filter=FieldFilter("createdBy", "==", user_id)) \
+            .limit(1).get()
+
+        if not docs:
+            print("No Market found for this user.")
+            return []
+
+        market_id = docs[0].id
+
+        leave_req_docs = db.collection("Markets") \
+            .document(market_id) \
+            .collection("LeaveReq") \
+            .get()
+
+        leave_requests = []
+        for leave_req_doc in leave_req_docs:
+            leave_req_data = leave_req_doc.to_dict()
+            try:
+                leave_request = map_leave_request(leave_req_data)
+                if leave_request is not None:
+                    leave_requests.append(leave_request)
+            except Exception as e:
+                print(f"Error creating LeaveReq from data {leave_req_data}: {e}")
+
+        return leave_requests
+
+    except Exception as e:
+        print(f"An error occurred while fetching leave requests: {e}")
+        return []
 

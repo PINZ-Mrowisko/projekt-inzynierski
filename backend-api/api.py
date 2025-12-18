@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
 from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule, \
-    get_previous_schedule
+    get_previous_schedule, get_leave_requests
 from backend.algorithm.algorithm import main
 from backend.connection.mapping import map_result_to_json
 
@@ -46,9 +46,12 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
 
     tags = get_tags(user_id, db)
     workers = get_workers(user_id, tags, db)
-
+    leave_requests = get_leave_requests(user_id, db)
+    for lr in leave_requests:
+        print(lr.start_date)
     templates = get_templates(user_id, db)
     template = [template for template in templates if template.id == template_id]
+
     try:
         template = template[0]
     except:

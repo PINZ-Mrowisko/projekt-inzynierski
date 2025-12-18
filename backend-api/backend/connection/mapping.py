@@ -1,3 +1,4 @@
+from backend.models.LeaveReq import LeaveReq
 from backend.models.Rule import Rule
 from backend.models.Worker import Worker
 from backend.models.Tags import Tags
@@ -180,6 +181,30 @@ def map_result_to_json(solver, all_variables, workers, template):
 
     return schedule
 
+def normalize_iso_date(iso_date_str):
+    try:
+        date_part = iso_date_str.split("T")[0]
+        return date_part
+    except Exception as e:
+        print(f"Error normalizing ISO date '{iso_date_str}': {e}")
+        return iso_date_str
+
+def map_leave_request(leave_data):
+    id = leave_data.get("id", "")
+    employee_id = leave_data.get("userId", "")
+    start_date = leave_data.get("startDate", "")
+    end_date = leave_data.get("endDate", "")
+    status = leave_data.get("status", "")
+
+    leave_request = LeaveReq(
+        id=id,
+        employee_id=employee_id,
+        start_date=normalize_iso_date(start_date),
+        end_date=normalize_iso_date(end_date),
+        status=status
+    )
+
+    return leave_request
 
 
 

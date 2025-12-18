@@ -6,7 +6,6 @@ def generate_all_variables(model, all_shifts, all_workers):
     variables = {}
 
     for worker in all_workers:
-        print(worker.firstname, worker.tags)
 
         for shift in all_shifts:
 
@@ -19,7 +18,6 @@ def generate_all_variables(model, all_shifts, all_workers):
                     variables[(worker.id, shift.id, rule_idx)] = model.new_bool_var(
                         f"W:{worker.id}_D:{shift.id}_R:{rule_idx}"
                     )
-                    print(worker.id, shift.id, rule_idx)
     return variables
 
 def main(workers, template: Template):
