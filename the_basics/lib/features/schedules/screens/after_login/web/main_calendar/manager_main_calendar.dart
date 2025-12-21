@@ -1,26 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/calendar_state_manager.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_generation_service.dart';
-import 'package:the_basics/utils/common_widgets/side_menu.dart';
+import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
+import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
-import 'package:the_basics/features/employees/controllers/user_controller.dart';
-import 'package:the_basics/features/tags/controllers/tags_controller.dart';
-import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
-
-// Usuwamy stare importy generowania:
-// import 'package:the_basics/features/schedules/usecases/choose_work_code_rules_dialog.dart';
-// import 'package:the_basics/features/schedules/usecases/choose_schedule_generation_type.dart';
-// import 'package:the_basics/features/schedules/usecases/choose_template.dart';
-// import 'package:the_basics/features/schedules/usecases/choose_existing_schedule.dart';
-// import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
-
-// Keep all the refactored imports
+import 'package:the_basics/utils/common_widgets/side_menu.dart';
 import 'utils/appointment_builder.dart';
 import 'utils/appointment_converter.dart';
 import 'utils/calendar_data_source.dart';
@@ -38,15 +29,13 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
   final CalendarStateManager _stateManager = CalendarStateManager();
   final AppointmentConverter _appointmentConverter = AppointmentConverter();
   final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
-
-  final ScheduleGenerationService _generationService = ScheduleGenerationService();
+    final ScheduleGenerationService _generationService = ScheduleGenerationService();
 
   final RxList<String> _selectedTags = <String>[].obs;
 
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _stateManager.initialize();
       await _loadSchedule();
@@ -67,13 +56,11 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
       return;
     }
 
-
-    await _stateManager.loadSchedule(
+     await _stateManager.loadSchedule(
       marketId: userController.employee.value.marketId,
       scheduleId: schedulesController.publishedScheduleID.value,
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +86,7 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // HEADER
                       SizedBox(
                         height: 80,
                         child: Row(
@@ -109,52 +97,51 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.red,
+                                color: AppColors.logo,
                               ),
                             ),
                             const SizedBox(width: 16),
-
                             Expanded(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  /// TAG FILTER
-                                  SizedBox(
-                                    width: 200,
-                                    child: _buildTagFilterDropdown(),
+                                  Flexible(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: _buildTagFilterDropdown(),
+                                    ),
                                   ),
                                   const SizedBox(width: 16),
-
-                                  /// SEARCH BAR
-                                  SizedBox(
-                                    width: 200,
+                                  Flexible(
                                     child: _buildSearchBar(),
                                   ),
                                   const SizedBox(width: 16),
-
-                                  /// GENERATE NEW
-                                  _buildGenerateScheduleButton(),
-
-                                  /// EDIT
-                                  CustomButton(
-                                    onPressed: () {
-                                      Get.toNamed('/grafik-ogolny-kierownik/edytuj-grafik',
-                                          arguments: {'initialDate': _calendarController.displayDate}
-                                      );
-                                    },
-                                    text: "Edytuj grafik",
-                                    width: 155,
-                                    icon: Icons.edit,
+                                  Flexible(
+                                    child: _buildGenerateScheduleButton(),
                                   ),
                                   const SizedBox(width: 10),
-
-                                  /// EXPORT
-                                  CustomButton(
-                                    onPressed: () => showExportDialog(context),
-                                    text: "Eksportuj",
-                                    width: 125,
-                                    icon: Icons.download,
-                                    backgroundColor: AppColors.lightBlue,
+                                  Flexible(
+                                    child: CustomButton(
+                                      onPressed: () {
+                                        Get.toNamed(
+                                          '/grafik-ogolny-kierownik/edytuj-grafik',
+                                          arguments: {'initialDate': _calendarController.displayDate},
+                                        );
+                                      },
+                                      text: "Edytuj grafik",
+                                      width: 155,
+                                      icon: Icons.edit,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Flexible(
+                                    child: CustomButton(
+                                      onPressed: () => showExportDialog(context),
+                                      text: "Eksportuj",
+                                      width: 125,
+                                      icon: Icons.download,
+                                      backgroundColor: AppColors.lightBlue,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -163,12 +150,12 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
                         ),
                       ),
 
-                      /// Calendar Body
+                      // CALENDAR
                       Expanded(
                         child: _buildCalendarBody(dynamicIntervalWidth),
                       ),
-                    ],
-                  ),
+                    ]
+                  ),  
                 ),
               ),
             ],
@@ -178,10 +165,9 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
     );
   }
 
-  // Header widgets
+  // HEADER HELPERS
   Widget _buildTagFilterDropdown() {
     final tagsController = Get.find<TagsController>();
-
     return Obx(() {
       return CustomMultiSelectDropdown(
         items: tagsController.allTags.map((tag) => tag.tagName).toList(),
@@ -198,7 +184,6 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
 
   Widget _buildSearchBar() {
     final userController = Get.find<UserController>();
-
     return CustomSearchBar(
       hintText: 'Wyszukaj pracownika',
       widthPercentage: 0.2,
@@ -210,8 +195,6 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
       },
     );
   }
-
-  // Calendar body
   Widget _buildCalendarBody(double intervalWidth) {
     return Obx(() {
       if (_stateManager.isLoading.value || _stateManager.isScheduleLoading.value) {
@@ -302,7 +285,6 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
       );
     }
   }
-
   @override
   void dispose() {
     _stateManager.dispose();

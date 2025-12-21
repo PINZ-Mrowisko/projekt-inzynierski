@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 void showGenerationMethodDialog(BuildContext context, Function(String?) onMethodSelected) async {
   String? selectedMethod;
@@ -42,11 +43,9 @@ void showGenerationMethodDialog(BuildContext context, Function(String?) onMethod
                 if (selectedMethod != null) {
                   Get.back(result: selectedMethod);
                 } else {
-                  Get.snackbar(
-                    'Błąd',
-                    'Proszę wybrać sposób generacji',
-                    backgroundColor: AppColors.warning,
-                    colorText: AppColors.white,
+                  showCustomSnackbar(
+                    context,
+                    "Proszę wybrać sposób generacji.",
                   );
                 }
               },
