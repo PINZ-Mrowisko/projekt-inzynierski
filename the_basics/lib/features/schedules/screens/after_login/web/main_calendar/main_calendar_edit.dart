@@ -368,10 +368,12 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       'Grafik został opublikowany!',
     );
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      Navigator.of(context).popUntil((route) => route.isFirst);
+    final routeName = '/grafik-ogolny-kierownik';
 
-    });
+    Get.offAllNamed(
+      routeName,
+      arguments: {},
+    );
 
   }
 }

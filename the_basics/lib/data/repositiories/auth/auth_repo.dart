@@ -104,6 +104,8 @@ class AuthRepo extends GetxController {
             await userController.updateEmployee(employee.copyWith(hasLoggedIn: true));
             //print("Updated hasLoggedIn to true for first login.");
           }
+          print("here navigating");
+
           _navigateToMainApp();
         } catch (e) {
           throw(e.toString());
@@ -149,8 +151,6 @@ class AuthRepo extends GetxController {
       final templateController = Get.find<TemplateController>();
       await templateController.initialize();
 
-      final notifController = Get.find<NotificationController>();
-      await notifController.initializeFCM();
 
       final scheduleController = Get.find<SchedulesController>();
       await scheduleController.initialize();
@@ -161,21 +161,40 @@ class AuthRepo extends GetxController {
   }
 
   void _navigateToMainApp() {
-    Future.delayed(Duration.zero, () {
+    Future.delayed(Duration.zero, () async {
       //Get.offAll(() => const MainCalendar());
       final userController = Get.find<UserController>();
 
-      final Widget mainPage = PlatformWrapper(
-        mobile: userController.isAdmin.value
-            ? ManagerMainCalendarMobile()
-            : EmployeeMainCalendarMobile(),
-        web: userController.isAdmin.value
-            ? ManagerMainCalendar()
-            : EmployeeMainCalendar(),
-      );
+      // add fake delay to ensure main view loads
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      if (userController.isLoading.value) {
+        await userController.initialize();
+      }
+
+      // final Widget mainPage = PlatformWrapper(
+      //   mobile: userController.isAdmin.value
+      //       ? ManagerMainCalendarMobile()
+      //       : EmployeeMainCalendarMobile(),
+      //   web: userController.isAdmin.value
+      //       ? ManagerMainCalendar()
+      //       : EmployeeMainCalendar(),
+      // );
 
       // remove popscope here
-      Get.offAll(() => mainPage);
+      //Get.offAll(() => mainPage);
+
+      final routeName = userController.isAdmin.value
+          ? '/grafik-ogolny-kierownik'
+          : '/grafik-ogolny-pracownicy';
+
+      Get.offAllNamed(
+        routeName,
+        arguments: {},
+      );
+
+      final notifController = Get.find<NotificationController>();
+      await notifController.initializeFCM();
     });
   }
 
@@ -231,6 +250,7 @@ class AuthRepo extends GetxController {
 
       // if user logs in successfully, we can start the controllers
       afterLogin();
+      // comment out as this is already called once in repo
 
       return userCredential;
     }on FirebaseAuthException catch (e) {

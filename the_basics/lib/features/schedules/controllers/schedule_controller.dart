@@ -222,6 +222,9 @@ class SchedulesController extends GetxController {
     try {
       isLoading(true);
 
+      // mark all other schedules as unpublished
+      await _scheduleRepo.unpublishOtherSchedules(marketId: marketId, currentScheduleId: scheduleId);
+
       // modify currently published status
 
       await _scheduleRepo.updatePublishStatus(
@@ -238,6 +241,7 @@ class SchedulesController extends GetxController {
 
       // set displayed schedule as new
       publishedScheduleID.value = scheduleId;
+      displayedScheduleID.value = scheduleId;
 
 
     } catch (e) {

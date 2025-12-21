@@ -182,7 +182,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.yellow,
+                                color: AppColors.logo,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -246,12 +246,9 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text('Brak zaplanowanych zmian'),
+                                  Text('Brak opublikowanego grafiku'),
                                   SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _loadSchedule,
-                                    child: Text('Załaduj grafik'),
-                                  ),
+
                                 ],
                               ),
                             );
@@ -259,7 +256,6 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
 
                           // Get appointments from schedule
                           final appointments = _getAppointments(userController.filteredEmployees);
-                          print('Appointments created: ${appointments.length}');
 
                           if (appointments.isEmpty) {
                             return const Center(
