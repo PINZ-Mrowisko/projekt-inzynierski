@@ -180,9 +180,12 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
             children: [
               _buildDateTimeWidget(),
               const SizedBox(height: 16),
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text("Brak pracowników na zmianie"),
+              Expanded(
+                child: Center(
+                  child: Text("Brak pracowników na zmianie",
+                  style: TextStyle(color: AppColors.textColor2),
+                  ),
+                ),
               ),
             ],
           )
@@ -264,10 +267,14 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
     return _baseTile(
       title: "Wnioski urlopowe do rozpatrzenia",
       child: pending.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Text("Brak wniosków oczekujących"),
-            )
+          ? Expanded(
+            child: Center(
+              child: Text(
+                "Brak wniosków oczekujących",
+                style: TextStyle(color: AppColors.textColor2),
+              ),
+            ),
+          )
           : Flexible(
               child: GenericList<LeaveModel>(
                 items: pending,
@@ -337,9 +344,12 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
     return _baseTile(
       title: "Ważne",
       child: warnings.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Text("Brak ostrzeżeń"),
+          ? Expanded(
+              child: Center(
+                child: Text("Brak ostrzeżeń",
+                style: TextStyle(color: AppColors.textColor2),
+                ),
+              ),
             )
           : Flexible(
               child: GenericList<Map<String, dynamic>>(
