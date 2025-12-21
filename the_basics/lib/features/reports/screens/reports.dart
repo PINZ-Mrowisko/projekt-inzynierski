@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/reports/usecases/show_export_dialog.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
@@ -18,6 +19,7 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
+    final leaveController = Get.find<LeaveController>();
 
     return Obx(() {
       final user = userController.employee.value;
@@ -127,7 +129,7 @@ class ReportsScreen extends StatelessWidget {
                       child: Obx(() {
                         switch (selectedTab.value) {
                           case 0:
-                            return _yearlyLeaveTotalsTab();
+                            return _yearlyLeaveTotalsTab(userController, leaveController);
                           case 1:
                             return _monthlyLeavesTotalsTab();
                           case 2:
@@ -148,75 +150,98 @@ class ReportsScreen extends StatelessWidget {
   }
 
   // YEARLY TOTAL OF LEAVES PER EMPLOYEE TAB
-  Widget _yearlyLeaveTotalsTab() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Container(
-        height: 240,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: BarChart(
-          BarChartData(
-            alignment: BarChartAlignment.spaceAround,
-            maxY: 10,
-            titlesData: FlTitlesData(
-              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 30,
-                ),
-              ),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 16,
-                  getTitlesWidget: (value, _) {
-                    const titles = ["Sty", "Lut", "Mar", "Kwi"];
-                    return Text(
-                      titles[value.toInt()],
-                      style: const TextStyle(fontSize: 12),
-                    );
-                  },
-                ),
-              ),
-            ),
-            borderData: FlBorderData(show: false),
-            barGroups: [
-              BarChartGroupData(
-                x: 0,
-                barRods: [
-                  BarChartRodData(toY: 4, color: AppColors.blue),
-                ],
-              ),
-              BarChartGroupData(
-                x: 1,
-                barRods: [
-                  BarChartRodData(toY: 7, color: AppColors.blue),
-                ],
-              ),
-              BarChartGroupData(
-                x: 2,
-                barRods: [
-                  BarChartRodData(toY: 3, color: AppColors.blue),
-                ],
-              ),
-              BarChartGroupData(
-                x: 3,
-                barRods: [
-                  BarChartRodData(toY: 6, color: AppColors.blue),
-                ],
-              ),
-            ],
-          ),
-        ),
+  Widget _yearlyLeaveTotalsTab(
+    UserController userController, LeaveController leaveController) {
+  final employees = userController.allEmployees.toList();
+
+  if (employees.isEmpty) {
+    return Center(
+      child: Text(
+        "Brak pracowników do wyświetlenia",
+        style: TextStyle(fontSize: 16, color: AppColors.textColor2),
       ),
     );
   }
+
+  // Tworzymy słupki
+  final barGroups = <BarChartGroupData>[];
+
+  for (int i = 0; i < employees.length; i++) {
+    final emp = employees[i];
+    final acceptedLeaves = leaveController.allLeaveRequests
+        .where((l) => l.userId == emp.id && l.status.toLowerCase() == 'zaakceptowany')
+        .toList();
+    final totalDays = acceptedLeaves.fold<int>(0, (sum, l) => sum + l.totalDays);
+
+    barGroups.add(
+      BarChartGroupData(
+        x: i,
+        barRods: [
+          BarChartRodData(
+            toY: totalDays.toDouble(), // <- Konwersja na double
+            color: AppColors.blue,
+            width: 16,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Maksymalna wysokość słupków
+  final maxY = barGroups.isEmpty
+      ? 10.0
+      : barGroups.map((g) => g.barRods.first.toY).reduce((a, b) => a > b ? a : b) * 1.2;
+
+  // Podpisy na osi X
+  Widget bottomTitles(double value, TitleMeta meta) {
+    final index = value.toInt();
+    if (index < 0 || index >= employees.length) return Container();
+    final name = employees[index].firstName ?? '';
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      child: Text(
+        name,
+        style: TextStyle(fontSize: 12, color: AppColors.textColor2),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  return Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: maxY,
+          titlesData: FlTitlesData(
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: true, reservedSize: 30),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: bottomTitles,
+                reservedSize: 40,
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          barGroups: barGroups,
+        ),
+      ),
+    ),
+  );
+}
+
 
   // MONTHLY TOTAL OF LEAVES IN A YEAR PER EMPLOYEE TAB
   Widget _monthlyLeavesTotalsTab() {
