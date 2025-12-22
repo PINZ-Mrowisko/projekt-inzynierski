@@ -1,6 +1,5 @@
 // YEARLY TOTAL OF LEAVES PER EMPLOYEE TAB
-    import 'dart:ui';
-
+import 'dart:ui';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
