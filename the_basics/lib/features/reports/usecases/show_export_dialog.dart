@@ -4,7 +4,7 @@ import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
-void showExportDialog(BuildContext context) {
+void showExportDialog(BuildContext context, VoidCallback onConfirmExport) {
   showDialog(
     context: context,
     builder: (context) => BaseDialog(
@@ -32,6 +32,9 @@ void showExportDialog(BuildContext context) {
               child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.of(context).pop();
+                  
+                  onConfirmExport();
+
                   showCustomSnackbar(
                     context,
                     "Raport został pomyślnie zapisany.",
