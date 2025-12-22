@@ -34,11 +34,6 @@ void showExportDialog(BuildContext context, VoidCallback onConfirmExport) {
                   Navigator.of(context).pop();
                   
                   onConfirmExport();
-
-                  showCustomSnackbar(
-                    context,
-                    "Raport został pomyślnie zapisany.",
-                  );
                 },
                 icon: Icon(Icons.download, color: AppColors.textColor2),
                 label: Text(
