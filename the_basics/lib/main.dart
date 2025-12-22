@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/features/auth/screens/mobile/login_page_mobile.dart';
 import 'package:the_basics/features/auth/screens/web/login_page.dart';
+import 'package:the_basics/features/dashboard/screens/mobile/dashboard_mobile.dart';
 import 'package:the_basics/features/dashboard/screens/web/dashboard.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
@@ -88,7 +89,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/about', page: () => AboutPage()),
         GetPage(name: '/features', page: () => FeaturesPage()),
 
-        GetPage(name: '/dashboard', page: () => ManagerDashboardScreen()),
+        GetPage(name: '/dashboard', page: () => PlatformWrapper(mobile: ManagerDashboardMobileScreen(), web: ManagerDashboardScreen())),
         GetPage(
           name: '/grafik-ogolny-kierownik',
           page:
@@ -111,7 +112,6 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => PlatformWrapper(mobile:EmployeeLeavesManagementMobilePage(), web: EmployeeLeavesManagementPage())),
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => PlatformWrapper(mobile: ManagerLeavesManagementMobilePage(), web: ManagerLeavesManagementPage())),
         
-        GetPage(name: '/gielda', page: () => PlaceholderPage()),
         GetPage(name: '/twoj-profil', page: () => PlatformWrapper(mobile: UserProfileScreenMobile(), web:  UserProfileScreen())),
         GetPage(name: '/tagi', page: () => TagsPage()),
         GetPage(name: '/pracownicy', page: () => EmployeeManagementPage()),
@@ -190,7 +190,10 @@ class AuthWrapper extends StatelessWidget {
             final userController = Get.find<UserController>();
 
                 if (userController.isAdmin.value) {
-                  return ManagerDashboardScreen();
+                  return PlatformWrapper(
+                    mobile: ManagerDashboardMobileScreen(),
+                    web: ManagerDashboardScreen(),
+                  );
                 } else {
                   return PlatformWrapper(
                     mobile: EmployeeMainCalendarMobile(), 
