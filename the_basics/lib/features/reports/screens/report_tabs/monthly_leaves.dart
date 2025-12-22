@@ -34,10 +34,12 @@ Widget monthlyLeavesTotalsTab(LeaveController leaveController, monthlyChartKey, 
                 final monthlyTotals = List<int>.filled(12, 0);
 
                 for (final leave in leaveController.allLeaveRequests) {
+                  final status = leave.status.toLowerCase();
+
                   if (leave.userId == selectedUser.value.id &&
-                      leave.status.toLowerCase() == 'zaakceptowany' &&
+                      (status == 'zaakceptowany' || status == 'mój urlop') &&
                       leave.startDate.year == currentYear) {
-                    final monthIndex = leave.startDate.month - 1; // 0-based index
+                    final monthIndex = leave.startDate.month - 1;
                     monthlyTotals[monthIndex] += leave.totalDays;
                   }
                 }

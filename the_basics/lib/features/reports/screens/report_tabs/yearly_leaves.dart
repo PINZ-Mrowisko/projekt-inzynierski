@@ -23,11 +23,13 @@ Widget yearlyLeaveTotalsTab(
 
       final employeeTotals = employees.map((emp) {
         final acceptedLeaves = leaveController.allLeaveRequests
-            .where((l) =>
-                l.userId == emp.id &&
-                l.status.toLowerCase() == 'zaakceptowany' &&
-                l.startDate.year == currentYear)
-            .toList();
+          .where((l) {
+            final status = l.status.toLowerCase();
+            return l.userId == emp.id &&
+                (status == 'zaakceptowany' || status == 'mój urlop') &&
+                l.startDate.year == currentYear;
+          })
+          .toList();
         final totalDays = acceptedLeaves.fold<int>(0, (sum, l) => sum + l.totalDays);
         return {'employee': emp, 'totalDays': totalDays};
       }).toList();
