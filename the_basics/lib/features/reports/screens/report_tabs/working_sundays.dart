@@ -58,13 +58,14 @@ Widget workingSundaysTab(UserController userController, sundaysChartKey) {
       Widget bottomTitles(double value, TitleMeta meta) {
         final idx = value.toInt();
         if (idx < 0 || idx >= employeeSundays.length) return Container();
-        final name = (employeeSundays[idx]['employee'] as UserModel).firstName ?? '';
+        final name = (employeeSundays[idx]['employee'] as UserModel).lastName ?? '';
         return SideTitleWidget(
           axisSide: meta.axisSide,
+          angle: -0.5,
           child: Text(
             name,
-            style: TextStyle(fontSize: 12, color: AppColors.textColor2),
-            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 11, color: AppColors.textColor2),
+            textAlign: TextAlign.right,
           ),
         );
       }
