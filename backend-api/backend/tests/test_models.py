@@ -6,6 +6,7 @@ from ..models.Tags import Tags
 from ..models.Template import Template
 from ..models.Shift import Shift
 from ..models.Rule import Rule
+from ..models.LeaveReq import LeaveReq
 
 class TestWorker(unittest.TestCase):
 
@@ -102,4 +103,19 @@ class TestRule(unittest.TestCase):
         self.assertEqual(rule.type, "multiple_tags")
         self.assertEqual(rule.__str__(), "Rule(tags=['123', '456'], count=1, type=multiple_tags)")
 
+class TestLeaveReq(unittest.TestCase):
+
+    def test_leave_req(self):
+
+        leave_req = LeaveReq(1, 9, "01.10.2025", "05.10.2025", "zaakceptowany")
+
+        dictionary_leave_req = {
+            "leave_id": 1,
+            "employee_id": 9,
+            "start_date": "01.10.2025",
+            "end_date": "05.10.2025",
+            "status": "zaakceptowany",
+        }
+
+        self.assertEqual(leave_req.convert_to_dict(), dictionary_leave_req)
 
