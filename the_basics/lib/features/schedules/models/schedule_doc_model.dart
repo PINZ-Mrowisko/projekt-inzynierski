@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ScheduleDocument {
+class ScheduleDocumentModel {
   final String id;
   final String marketId;
   final String templateUsed;
@@ -12,7 +12,7 @@ class ScheduleDocument {
   final bool isCurrentlyPublished;
   final Map<String, dynamic> generatedSchedule; // dane z algorytmu zparsowane z powrotem do mapy
 
-  ScheduleDocument({
+  ScheduleDocumentModel({
     required this.id,
     required this.marketId,
     required this.templateUsed,
@@ -25,10 +25,10 @@ class ScheduleDocument {
     required this.generatedSchedule
   });
 
-  factory ScheduleDocument.fromFirestore(DocumentSnapshot doc) {
+  factory ScheduleDocumentModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
-    return ScheduleDocument(
+    return ScheduleDocumentModel(
       id: doc.id,
       marketId: data['market_id'] ?? '',
       templateUsed: data['templateUsed'] ?? '',
@@ -57,11 +57,11 @@ class ScheduleDocument {
     };
   }
 
-  ScheduleDocument copyWith({
+  ScheduleDocumentModel copyWith({
     bool? isCurrentlyPublished,
     Map<String, dynamic>? generatedSchedule,
   }) {
-    return ScheduleDocument(
+    return ScheduleDocumentModel(
       id: id,
       marketId: marketId,
       templateUsed: templateUsed,

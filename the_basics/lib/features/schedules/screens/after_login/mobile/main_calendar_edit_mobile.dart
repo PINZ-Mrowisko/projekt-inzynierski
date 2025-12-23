@@ -8,15 +8,13 @@ import 'package:the_basics/features/schedules/usecases/show_employee_search_dial
 import 'package:the_basics/features/schedules/usecases/show_leave_confirmation_dialog_mobile.dart';
 import 'package:the_basics/features/schedules/usecases/show_schedule_publish_confirmation_dialog_mobile.dart';
 import 'package:the_basics/features/schedules/usecases/show_tags_filtering_dialog_mobile.dart';
-import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
-import 'package:the_basics/utils/common_widgets/base_dialog.dart';
-import 'package:the_basics/utils/common_widgets/confirmation_dialog.dart';
-import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/bottom_menu_mobile.dart';
-import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
-import 'package:the_basics/utils/common_widgets/search_bar.dart';
+
+import '../../../controllers/schedule_controller.dart';
+import '../../../models/schedule_model.dart';
+
 
 class MainCalendarEditMobile extends StatefulWidget {
   const MainCalendarEditMobile({super.key});
@@ -94,30 +92,45 @@ class _MainCalendarEditMobileState extends State<MainCalendarEditMobile> {
     showCustomSnackbar(context, 'Grafik został pomyślnie opublikowany');
   }
 
-  List<Appointment> _getAppointments(List<UserModel> filteredEmployees) {
-    final DateTime now = DateTime.now();
-    final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
+  List<Appointment> _getAppointments(String userID) {
+    final scheduleController = Get.find<SchedulesController>();
+    List<Appointment> baseAppointments = [];
 
-    List<Appointment> appointments = [];
-    for (final employee in filteredEmployees) {
-      for (int day = 0; day < 5; day++) {
-        final isMorningShift = day % 2 == 0;
-        final startHour = isMorningShift ? 8 : 12;
-        final endHour = isMorningShift ? 16 : 20;
+    List<ScheduleModel> myShifts = scheduleController.getShiftsForEmployee(userID);
 
-        appointments.add(
-          Appointment(
-            startTime: DateTime(monday.year, monday.month, monday.day + day, startHour, 0),
-            endTime: DateTime(monday.year, monday.month, monday.day + day, endHour, 0),
-            subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
-            color: isMorningShift ? AppColors.logo : AppColors.logolighter,
-            resourceIds: <Object>[employee.id],
-          ),
-        );
-      }
-    }
+    baseAppointments = myShifts.map((shift) {
+      final int startHour = shift.start.hour;
+      final int startMinute = shift.start.minute;
+      final int endHour = shift.end.hour;
+      final int endMinute = shift.end.minute;
 
-    return appointments;
+      final int dayOfWeek = shift.shiftDate.weekday;
+      final isMorningShift = dayOfWeek % 2 == 0;
+
+      return Appointment(
+        startTime: DateTime(
+          shift.shiftDate.year,
+          shift.shiftDate.month,
+          shift.shiftDate.day,
+          startHour,
+          startMinute,
+        ),
+        endTime: DateTime(
+          shift.shiftDate.year,
+          shift.shiftDate.month,
+          shift.shiftDate.day,
+          endHour,
+          endMinute,
+        ),
+        subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
+        resourceIds: <Object>[shift.employeeID],
+        color: isMorningShift ? AppColors.logo : AppColors.logolighter,
+        notes: shift.tags.join(', '),
+        id: '${shift.employeeID}_${shift.shiftDate.day}_${shift.start.hour}:${shift.start.minute}_${shift.end.hour}:${shift.end.minute}',
+      );
+    }).toList();
+
+    return baseAppointments;
   }
 
   List<TimeRegion> _getSpecialRegions() {
@@ -207,7 +220,7 @@ class _MainCalendarEditMobileState extends State<MainCalendarEditMobile> {
             showNavigationArrow: false,
             headerHeight: 0,
             firstDayOfWeek: 1,
-            dataSource: _CalendarDataSource(_getAppointments([employee])),
+            dataSource: _CalendarDataSource(_getAppointments(employee.id)),
             specialRegions: _getSpecialRegions(),
             appointmentBuilder: _buildAppointmentWidget,
             allowedViews: const [],
