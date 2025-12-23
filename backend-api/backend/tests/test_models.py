@@ -5,6 +5,7 @@ from ..models.Worker import Worker
 from ..models.Tags import Tags
 from ..models.Template import Template
 from ..models.Shift import Shift
+from ..models.Rule import Rule
 
 class TestWorker(unittest.TestCase):
 
@@ -73,3 +74,32 @@ class TestShift(unittest.TestCase):
         shift3 = Shift(3, "Poniedziałek", (6,0), (23,50), rules) # kto byłby tak okrutny??
 
         self.assertEqual(shift3.determine_type(), 0)
+
+class TestRule(unittest.TestCase):
+
+    def test_rule_single_tag(self):
+
+        tag1 = MagicMock()
+        tag1.id = '123'
+
+        tags = tag1.id
+
+        rule = Rule(tags, 1)
+
+        self.assertEqual(rule.type, "single_tag")
+        self.assertEqual(rule.__str__(), "Rule(tags=['123'], count=1, type=single_tag)")
+
+    def test_rule_multi_tag(self):
+
+        tag1 = MagicMock()
+        tag1.id = '123'
+        tag2 = MagicMock()
+        tag2.id = '456'
+
+        tags = tag1.id + ', ' + tag2.id
+
+        rule = Rule(tags, 1)
+        self.assertEqual(rule.type, "multiple_tags")
+        self.assertEqual(rule.__str__(), "Rule(tags=['123', '456'], count=1, type=multiple_tags)")
+
+
