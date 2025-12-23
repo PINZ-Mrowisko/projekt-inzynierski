@@ -12,7 +12,7 @@ class Shift:
     def determine_type(self):
         if self.start[0] < 12 and self.end[0] < 20:
             return 1 # poranna
-        elif 12 <= self.start[0] < 16 and 20 <= self.end[0] < 24:
+        elif 12 <= self.start[0] and self.end[0] < 24:
             return 2 # popołudniowa
         else:
             return 0 # default

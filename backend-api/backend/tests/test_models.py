@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 from ..models.Worker import Worker
 from ..models.Tags import Tags
 from ..models.Template import Template
+from ..models.Shift import Shift
 
 class TestWorker(unittest.TestCase):
 
@@ -44,3 +45,31 @@ class TestTemplate(unittest.TestCase):
         shifts = []
         template = Template(1, 'niedobry', 0, 1, 0, 1, shifts)
         self.assertEqual(template.__str__(), "Template(id=1, description=niedobry, maxMen=0, maxWomen=1, minMen=0, minWomen=1, shifts=0, days=7, shifts_number={})")
+
+class TestShift(unittest.TestCase):
+
+    def test_shift_correct(self):
+
+        rule1 = MagicMock()
+        rule2 = MagicMock()
+
+        rules = [rule1, rule2]
+
+        shift = Shift(1, "Poniedziałek", (10,0), (18,10), rules)
+
+        self.assertEqual(shift.duration, 8 * 60 + 10)
+        self.assertEqual(shift.type, 1)
+        self.assertTrue(shift.attach_default_rules)
+        self.assertEqual(shift.__str__(), 'Shift(id=1, day=Poniedziałek, start=(10, 0), end=(18, 10), rules=2, type=1)')
+
+
+        rules = []
+
+        shift2 = Shift(2, "Poniedziałek", (12,0), (20,10), rules)
+
+        self.assertEqual(shift2.determine_type(), 2)
+        self.assertFalse(shift2.attach_default_rules)
+
+        shift3 = Shift(3, "Poniedziałek", (6,0), (23,50), rules) # kto byłby tak okrutny??
+
+        self.assertEqual(shift3.determine_type(), 0)
