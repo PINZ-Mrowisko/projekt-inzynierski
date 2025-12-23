@@ -20,7 +20,7 @@ import 'package:the_basics/features/schedules/screens/after_login/mobile/main_ca
 import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/individual_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/employee_main_calendar.dart';
-import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar_edit.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/main_calendar_edit.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/individual_calendar.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/placeholder_page.dart';
 import 'package:the_basics/features/settings/screens/mobile/settings_mobile.dart';
@@ -29,16 +29,14 @@ import 'package:the_basics/features/templates/screens/all_templates_screen.dart'
 import 'package:the_basics/features/templates/screens/new_template_screen.dart';
 import 'package:the_basics/features/user_profile/screens/web/user_profile.dart';
 import 'package:the_basics/features/user_profile/screens/mobile/user_profile_mobile.dart';
-import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/employee_more_page_mobile.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/manager_more_page_mobile.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
-import 'package:the_basics/utils/platform_controller.dart';
 import 'package:the_basics/utils/platform_wrapper.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
-import 'features/schedules/screens/after_login/web/manager_main_calendar.dart';
+import 'features/schedules/screens/after_login/web/main_calendar/manager_main_calendar.dart';
 import 'features/tags/screens/tags.dart';
 import 'features/schedules/screens/before_login/about_page.dart';
 import 'features/schedules/screens/before_login/features_page.dart';

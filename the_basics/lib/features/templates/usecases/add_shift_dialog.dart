@@ -25,6 +25,8 @@ void showAddShiftDialog(
   final selectedTagIds = <String>[];
   final selectedTagNames = <String>[];
 
+  bool obeyGeneralRules = true;
+
   final selectedDays = <String, bool>{}.obs;
   for (final dayData in TemplateDialogConstants.polishDays) {
     selectedDays[dayData['full']!] = dayData['full'] == day;
@@ -61,6 +63,7 @@ void showAddShiftDialog(
           start: TemplateDialogConstants.parseTime(startTimeController.text)!,
           end: TemplateDialogConstants.parseTime(endTimeController.text)!,
           day: dayEntry.key,
+          obeyGeneralRules: obeyGeneralRules,
         );
         templateController.addShift(shift);
       }
@@ -147,6 +150,28 @@ void showAddShiftDialog(
                 },
               ),
               const SizedBox(height: 24),
+
+              // checkmark for general rule application
+              Row(
+                children: [
+                  Checkbox(
+                    value: !obeyGeneralRules,
+                    onChanged: (value) {
+                      setState(() {
+                        obeyGeneralRules = !(value ?? false);
+                      });
+                    },
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Nie aplikuj zasad ogólnych do tej zmiany',
+                      style: TemplateDialogConstants.hintStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
 
               // Action buttons
               DialogActionButtons(

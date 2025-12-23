@@ -19,13 +19,13 @@ class MyAppTheme {
     checkboxTheme: MyCheckboxTheme.lightCheckboxTheme,
     inputDecorationTheme: MyTextFieldTheme.lightInputDecorationTheme,
     appBarTheme: MyAppBar.lightAppBar,
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Colors.white,
       surfaceTintColor: Colors.white,
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -52,13 +52,13 @@ class MyAppTheme {
     checkboxTheme: MyCheckboxTheme.darkCheckboxTheme,
     inputDecorationTheme: MyTextFieldTheme.darkInputDecorationTheme,
     appBarTheme: MyAppBar.darkAppBar,
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Color(0xFF1E1E1E),
       surfaceTintColor: Color(0xFF1E1E1E),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: Color(0xFF1E1E1E),
       surfaceTintColor: Color(0xFF1E1E1E),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

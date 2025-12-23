@@ -4,8 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
 from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule, \
-    get_previous_schedule
+    get_previous_schedule, get_leave_requests
 from backend.algorithm.algorithm import main
+from backend.connection.mapping import map_result_to_json
 
 # === Inicjalizacja Firebase Admin SDK dla Cloud Run ===
 if not firebase_admin._apps:
@@ -45,20 +46,28 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
 
     tags = get_tags(user_id, db)
     workers = get_workers(user_id, tags, db)
-
+    leave_requests = get_leave_requests(user_id, db)
     templates = get_templates(user_id, db)
     template = [template for template in templates if template.id == template_id]
+
     try:
         template = template[0]
     except:
         raise HTTPException(status_code=404, detail="Template not found")
 
 
-    result = main(workers, template, tags)
+    solver, all_variables = main(workers, template)
 
-    post_schedule(user_id, result, db)
+    if all_variables is None:
+        return solver
 
-    return result
+    else:
+
+        result = map_result_to_json(solver, all_variables, workers, template)
+
+        post_schedule(user_id, template.id, result, leave_requests, db)
+
+        return result
 
 @app.get("/generate_from_previous/{schedule_id}")
 def generate_from_previous(authorization: str = Header(...), schedule_id: str = ""):
@@ -74,8 +83,9 @@ def generate_from_previous(authorization: str = Header(...), schedule_id: str = 
         print("Błąd weryfikacji tokenu:", e)
         raise HTTPException(status_code=403, detail="Nieprawidłowy token")
 
-    schedule = get_previous_schedule(user_id, schedule_id, db)
+    schedule, template_id = get_previous_schedule(user_id, schedule_id, db)
+    leave_requests = get_leave_requests(user_id, db)
 
-    post_schedule(user_id, schedule, db)
+    post_schedule(user_id, template_id, schedule, leave_requests, db)
 
     return "Successfully generated new schedule from previous one."

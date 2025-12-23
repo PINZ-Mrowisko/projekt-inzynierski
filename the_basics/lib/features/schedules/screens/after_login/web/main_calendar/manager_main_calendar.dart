@@ -1,0 +1,294 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/calendar_state_manager.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_generation_service.dart';
+import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
+import 'package:the_basics/features/tags/controllers/tags_controller.dart';
+import 'package:the_basics/utils/app_colors.dart';
+import 'package:the_basics/utils/common_widgets/custom_button.dart';
+import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
+import 'package:the_basics/utils/common_widgets/search_bar.dart';
+import 'package:the_basics/utils/common_widgets/side_menu.dart';
+import 'utils/appointment_builder.dart';
+import 'utils/appointment_converter.dart';
+import 'utils/calendar_data_source.dart';
+import 'utils/special_regions_builder.dart';
+
+class ManagerMainCalendar extends StatefulWidget {
+  const ManagerMainCalendar({super.key});
+
+  @override
+  State<ManagerMainCalendar> createState() => _ManagerMainCalendarState();
+}
+
+class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
+  final CalendarController _calendarController = CalendarController();
+  final CalendarStateManager _stateManager = CalendarStateManager();
+  final AppointmentConverter _appointmentConverter = AppointmentConverter();
+  final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
+    final ScheduleGenerationService _generationService = ScheduleGenerationService();
+
+  final RxList<String> _selectedTags = <String>[].obs;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _stateManager.initialize();
+      await _loadSchedule();
+    });
+
+    ever(_selectedTags, (tags) {
+      final userController = Get.find<UserController>();
+      userController.filterEmployees(tags);
+    });
+  }
+
+  Future<void> _loadSchedule() async {
+    final userController = Get.find<UserController>();
+    final schedulesController = Get.find<SchedulesController>();
+
+    if (schedulesController.publishedScheduleID.value.isEmpty) {
+      print('Brak opublikowanego grafiku');
+      return;
+    }
+
+     await _stateManager.loadSchedule(
+      marketId: userController.employee.value.marketId,
+      scheduleId: schedulesController.publishedScheduleID.value,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final totalHours = 13;
+    final visibleDays = 8.5;
+    final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
+
+    return PopScope(
+      canPop: false,
+      child: Obx(() {
+        return Scaffold(
+          backgroundColor: AppColors.pageBackground,
+          body: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
+                child: SideMenu(),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // HEADER
+                      SizedBox(
+                        height: 80,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Grafik ogólny',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.logo,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Flexible(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: _buildTagFilterDropdown(),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Flexible(
+                                    child: _buildSearchBar(),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Flexible(
+                                    child: _buildGenerateScheduleButton(),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Flexible(
+                                    child: CustomButton(
+                                      onPressed: () {
+                                        Get.toNamed(
+                                          '/grafik-ogolny-kierownik/edytuj-grafik',
+                                          arguments: {'initialDate': _calendarController.displayDate},
+                                        );
+                                      },
+                                      text: "Edytuj grafik",
+                                      width: 155,
+                                      icon: Icons.edit,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Flexible(
+                                    child: CustomButton(
+                                      onPressed: () => showExportDialog(context),
+                                      text: "Eksportuj",
+                                      width: 125,
+                                      icon: Icons.download,
+                                      backgroundColor: AppColors.lightBlue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // CALENDAR
+                      Expanded(
+                        child: _buildCalendarBody(dynamicIntervalWidth),
+                      ),
+                    ]
+                  ),  
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  // HEADER HELPERS
+  Widget _buildTagFilterDropdown() {
+    final tagsController = Get.find<TagsController>();
+    return Obx(() {
+      return CustomMultiSelectDropdown(
+        items: tagsController.allTags.map((tag) => tag.tagName).toList(),
+        selectedItems: _selectedTags,
+        onSelectionChanged: (selected) => _selectedTags.assignAll(selected),
+        hintText: 'Filtruj po tagach',
+        leadingIcon: Icons.filter_alt_outlined,
+        widthPercentage: 0.2,
+        maxWidth: 360,
+        minWidth: 160,
+      );
+    });
+  }
+
+  Widget _buildSearchBar() {
+    final userController = Get.find<UserController>();
+    return CustomSearchBar(
+      hintText: 'Wyszukaj pracownika',
+      widthPercentage: 0.2,
+      maxWidth: 360,
+      minWidth: 160,
+      onChanged: (query) {
+        userController.searchQuery.value = query;
+        userController.filterEmployees(_selectedTags);
+      },
+    );
+  }
+  Widget _buildCalendarBody(double intervalWidth) {
+    return Obx(() {
+      if (_stateManager.isLoading.value || _stateManager.isScheduleLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      final appointments = _appointmentConverter.getAppointments(
+        _stateManager.filteredEmployees,
+      );
+
+      if (appointments.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Brak zmian do wyświetlenia'),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadSchedule,
+                child: Text('Załaduj grafik'),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return SfCalendar(
+        controller: _calendarController,
+        view: CalendarView.timelineWeek,
+        showDatePickerButton: false,
+        showNavigationArrow: true,
+        headerStyle: CalendarHeaderStyle(
+          backgroundColor: AppColors.pageBackground,
+          textAlign: TextAlign.left,
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        firstDayOfWeek: 1,
+        dataSource: CustomCalendarDataSource(
+          appointments: appointments,
+          employees: _stateManager.filteredEmployees,
+        ),
+        specialRegions: _regionsBuilder.getSpecialRegions(),
+        timeSlotViewSettings: TimeSlotViewSettings(
+          startHour: 5,
+          endHour: 22,
+          timeIntervalHeight: 40,
+          timeIntervalWidth: intervalWidth,
+          timeInterval: const Duration(hours: 1),
+          timeFormat: 'HH:mm',
+          timeTextStyle: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        todayHighlightColor: AppColors.logo,
+        resourceViewSettings: const ResourceViewSettings(
+          visibleResourceCount: 10,
+          size: 170,
+          showAvatar: false,
+          displayNameTextStyle: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        appointmentBuilder: buildAppointmentWidget,
+      );
+    });
+  }
+
+  Widget _buildGenerateScheduleButton() {
+    if (_generationService.isGenerating) {
+      return CustomButton(
+        onPressed: () {},
+        text: "Generowanie...",
+        width: 155,
+        icon: Icons.hourglass_top,
+        backgroundColor: Colors.grey,
+      );
+    } else {
+      return CustomButton(
+        onPressed: () => _generationService.startGenerationFlow(context),
+        text: "Generuj grafik",
+        width: 155,
+        icon: Icons.add,
+      );
+    }
+  }
+  @override
+  void dispose() {
+    _stateManager.dispose();
+    _generationService.reset(); // Czyścimy stan serwisu
+    super.dispose();
+  }
+}

@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/features/templates/controllers/template_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 void showChooseTemplateDialog(BuildContext context, Function(String?) onTemplateSelected) async {
   String? selectedTemplate;
+
+  final templateController = Get.find<TemplateController>();
+
+  final templateItems = templateController.allTemplates
+      .map((t) => DropdownItem(value: t.id, label: t.templateName))
+      .toList();
+
+  if (templateItems.isEmpty) {
+    showCustomSnackbar(
+      context,
+      "Brak dostępnych szablonów.",
+    );
+    return;
+  }
 
   final result = await Get.dialog<String>(
     StatefulBuilder(
@@ -18,10 +34,7 @@ void showChooseTemplateDialog(BuildContext context, Function(String?) onTemplate
             DropdownDialogField(
               label: 'Szablon',
               hintText: 'Wybierz szablon',
-              items: [
-                DropdownItem(value: 'template1', label: 'Nazwa szablonu'),
-                DropdownItem(value: 'template2', label: 'Fajniejsza nazwa szablonu'),
-              ],
+              items: templateItems,
               onChanged: (value) {
                 setState(() {
                   selectedTemplate = value;
@@ -42,11 +55,9 @@ void showChooseTemplateDialog(BuildContext context, Function(String?) onTemplate
                 if (selectedTemplate != null) {
                   Get.back(result: selectedTemplate);
                 } else {
-                  Get.snackbar(
-                    'Błąd',
-                    'Proszę wybrać szablon',
-                    backgroundColor: AppColors.warning,
-                    colorText: AppColors.white,
+                  showCustomSnackbar(
+                    context,
+                    "Proszę wybrać szablon.",
                   );
                 }
               },
