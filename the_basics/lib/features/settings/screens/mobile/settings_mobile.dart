@@ -27,8 +27,8 @@ class SettingsScreenMobile extends StatelessWidget {
       final user = userController.employee.value;
 
       if (user == null) {
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+        return Scaffold(
+          body: Center(child: CircularProgressIndicator(color: AppColors.logo)),
         );
       }
 

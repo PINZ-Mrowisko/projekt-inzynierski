@@ -347,7 +347,7 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
         ),
         body: Obx(() {
           if (userController.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: AppColors.logo));
           }
           final employees = userController.filteredEmployees;
           if (employees.isEmpty) {

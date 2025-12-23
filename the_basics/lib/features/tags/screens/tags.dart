@@ -73,7 +73,7 @@ class TagsPage extends StatelessWidget {
                   Expanded(
                     child: Obx(() {
                       if (tagsController.isLoading.value) {
-                        return const Center(child: CircularProgressIndicator());
+                        return Center(child: CircularProgressIndicator(color: AppColors.logo));
                       }
                       if (tagsController.errorMessage.value.isNotEmpty) {
                         return Center(child: Text(tagsController.errorMessage.value));

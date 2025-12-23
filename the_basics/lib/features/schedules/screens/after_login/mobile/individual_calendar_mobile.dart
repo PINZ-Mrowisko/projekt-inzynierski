@@ -233,8 +233,8 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
       onPopInvoked: (_) => _onWillPop(),
       child: Obx(() {
         if (userController.isLoading.value) {
-          return const Scaffold(
-              body: Center(child: CircularProgressIndicator()));
+          return Scaffold(
+              body: Center(child: CircularProgressIndicator(color: AppColors.logo)));
         }
 
         final employee = userController.employee.value;
