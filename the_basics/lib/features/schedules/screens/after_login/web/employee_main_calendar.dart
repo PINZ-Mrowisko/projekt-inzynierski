@@ -14,6 +14,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../controllers/schedule_controller.dart';
 import '../../../models/schedule_model.dart';
+import 'main_calendar/utils/calendar_state_manager.dart';
 
 class EmployeeMainCalendar extends StatefulWidget {
   const EmployeeMainCalendar({super.key});
@@ -32,6 +33,8 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
 
   final RxBool _isScheduleLoading = false.obs;
 
+  final CalendarStateManager _stateManager = CalendarStateManager();
+
 
   @override
   void initState() {
@@ -39,38 +42,39 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
 
     final userController = Get.find<UserController>();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       userController.resetFilters();
+      //await _loadSchedule();
     });
 
     ever(_selectedTags, (tags) {
       userController.filterEmployees(tags);
     });
 
-    // we fetch schedule once on initialization
-    _loadSchedule();
   }
 
-  Future<void> _loadSchedule() async {
-    try {
-      _isScheduleLoading.value = true;
-      final scheduleController = Get.find<SchedulesController>();
-      await scheduleController.fetchAndParseGeneratedSchedule(
-        marketId: 'FH06LEVCRFJq2lbA79fs',
-        scheduleId: '6AKfrY6nWxVfAcCioKwB',
-      );
-    } catch (e) {
-      Get.snackbar('Błąd', 'Nie udało się załadować grafiku');
-    } finally {
-      _isScheduleLoading.value = false;
-    }
-  }
+  // Future<void> _loadSchedule() async {
+  //
+  //   final userController = Get.find<UserController>();
+  //   final schedulesController = Get.find<SchedulesController>();
+  //
+  //   if (schedulesController.publishedScheduleID.value.isEmpty) {
+  //     print('Brak opublikowanego grafiku');
+  //     return;
+  //   }
+  //
+  //   await _stateManager.loadSchedule(
+  //     marketId: userController.employee.value.marketId,
+  //     scheduleId: schedulesController.publishedScheduleID.value,
+  //   );
+  // }
 
   List<Appointment> _getAppointments(List<UserModel> filteredEmployees) {
     final scheduleController = Get.find<SchedulesController>();
+    List<Appointment> baseAppointments = [];
 
-    // Directly convert individualShifts to Appointments
-    final appointments = scheduleController.individualShifts.map((shift) {
+    baseAppointments = scheduleController.individualShifts.map((shift) {
+
       final startDateTime = DateTime(
         shift.shiftDate.year,
         shift.shiftDate.month,
@@ -87,43 +91,19 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
         shift.end.minute,
       );
 
-      // print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
- //      print('   Employee: ${shift.employeeFirstName} ${shift.employeeLastName}');
- //      print('   Date: ${shift.shiftDate}');
- //      print('   Time: ${shift.start.hour}:${shift.start.minute} - ${shift.end.hour}:${shift.end.minute}');
- //      print('   Start DateTime: $startDateTime');
- //      print('   End DateTime: $endDateTime');
- //      print('   Employee ID: ${shift.employeeID}');
- //      print('   Tags: ${shift.tags}');
-
-      final appointment = Appointment(
+      return Appointment(
         startTime: startDateTime,
         endTime: endDateTime,
         subject: 'Zmiana',
-        color: _getAppointmentColor(shift),  // Add this!
+        color: AppColors.logo,
         resourceIds: <Object>[shift.employeeID],
         notes: shift.tags.join(', '),
       );
 
-      return appointment;
     }).toList();
 
-    return appointments;
+    return baseAppointments;
   }
-
-  Color _getAppointmentColor(ScheduleModel shift) {
-    // Add color logic based on your tags or other criteria
-    if (shift.tags.contains('kasjer')) {
-      return Colors.blue;  // Use your AppColors.logo
-    } else if (shift.tags.contains('wózek widłowy')) {
-      return Colors.orange;
-    // } else if (shift.tags.contains('chTj4Ik3Em5qZU4BQdJI')) {  // Your "BRAK" tag?
-    //   return Colors.red;
-    } else {
-      return Colors.green;  // Default color
-    }
-  }
-
 
 
   List<TimeRegion> _getSpecialRegions() {
@@ -191,24 +171,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  Obx(() {
-                                    if (_isScheduleLoading.value) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(right: 16.0),
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 16.0),
-                                      child: CustomButton(
-                                        onPressed: _loadSchedule,
-                                        text: "Załaduj grafik",
-                                        width: 140,
-                                        icon: Icons.schedule,
-                                        backgroundColor: AppColors.logo,
-                                      ),
-                                    );
-                                  }),
+
                                   Flexible(
                                     child: Padding(
                                       padding: const EdgeInsets.only(top: 10.0),
@@ -331,29 +294,45 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
 
   Widget _buildAppointmentWidget(
       BuildContext context,
-      CalendarAppointmentDetails details,
+      CalendarAppointmentDetails calendarAppointmentDetails,
       ) {
-    final appointments = details.appointments;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: appointments.map((appointment) {
-        return Container(
-          height: 16,
-          margin: const EdgeInsets.symmetric(vertical: 0.5),
-          color: appointment.color,
-          child: Center(
-            child: Text(
-              '${appointment.startTime.hour.toString().padLeft(2, '0')}:'
-                  '${appointment.startTime.minute.toString().padLeft(2, '0')}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 8,
-              ),
+    final appointment = calendarAppointmentDetails.appointments.first;
+    return Container(
+      decoration: BoxDecoration(
+        color: appointment.color,
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(
+          color: AppColors.white,
+          width: 0.5,
+        ),
+      ),
+      margin: const EdgeInsets.all(1),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
+                '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        );
-      }).toList(),
+          if (appointment.subject.isNotEmpty)
+            Text(
+              appointment.subject.replaceAll(' - ', ' '),
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 9,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+        ],
+      ),
     );
   }
 
