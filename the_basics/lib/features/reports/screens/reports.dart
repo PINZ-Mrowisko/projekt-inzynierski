@@ -215,11 +215,6 @@ Widget build(BuildContext context) {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(
-                    color: AppColors.logo,
-                    strokeWidth: 4,
-                  ),
-                  const SizedBox(height: 24),
                   DefaultTextStyle.merge(
                     style: TextStyle(
                       decoration: TextDecoration.none,
@@ -227,9 +222,29 @@ Widget build(BuildContext context) {
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
-                    child: Text(
-                      'Eksportowanie...',
-                    ),
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Eksportowanie...\n',
+                            style: TextStyle(
+                              color: AppColors.logo,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'To może potrwać kilka sekund.\nProszę czekać.',
+                            style: TextStyle(
+                              color: AppColors.textColor2,
+                              fontSize: 16,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    )
                   ),
                 ],
               ),
