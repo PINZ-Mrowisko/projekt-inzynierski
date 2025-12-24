@@ -15,6 +15,7 @@ import 'package:the_basics/features/leaves/screens/mobile/employee_leaves_manage
 import 'package:the_basics/features/leaves/screens/mobile/manager_leaves_management_mobile.dart';
 import 'package:the_basics/features/leaves/screens/web/employee_leaves_management.dart';
 import 'package:the_basics/features/leaves/screens/web/manager_leaves_management.dart';
+import 'package:the_basics/features/reports/screens/reports.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/employee_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/main_calendar_edit_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
@@ -116,7 +117,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/szablony', page: () => TemplatesPage()),
         GetPage(name: '/szablony/nowy-szablon', page: () => NewTemplatePage()),
         GetPage(name: '/szablony/edytuj-szablon', page: () => NewTemplatePage()),
-        GetPage(name: '/raporty', page: () => PlaceholderPage()),
+        GetPage(name: '/raporty', page: () => ReportsScreen()),
 
         GetPage(name: '/ustawienia', page: () => PlatformWrapper(mobile: SettingsScreenMobile(), web: SettingsScreen())),
         GetPage(name: '/login', page: () => PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
