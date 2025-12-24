@@ -9,6 +9,7 @@ COPY . .
 
 #unsafe for production
 ENV GOOGLE_APPLICATION_CREDENTIALS="/app/serviceAccountKey.json"
+ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 

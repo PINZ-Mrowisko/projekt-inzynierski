@@ -29,6 +29,9 @@ void showEditShiftDialog(
   final List<String>selectedTagIds = List<String>.from(shift.tagIds ?? []);
   final List<String>selectedTagNames = List<String>.from(shift.tagNames ?? []);
 
+  bool obeyGeneralRules = shift.obeyGeneralRules;
+
+
   void incrementCount() {
     final current = int.tryParse(countController.text) ?? 1;
     countController.text = (current + 1).toString();
@@ -75,6 +78,7 @@ void showEditShiftDialog(
       start: startTime,
       end: endTime,
       day: shift.day,
+      obeyGeneralRules: obeyGeneralRules
     );
 
     final index = templateController.addedShifts.indexWhere((s) => s.id == shift.id);
@@ -157,6 +161,27 @@ void showEditShiftDialog(
                 style: TemplateDialogConstants.hintStyle,
               ),
               const SizedBox(height: 24),
+
+              Row(
+                children: [
+                  Checkbox(
+                    value: !obeyGeneralRules,
+                    onChanged: (value) {
+                      setState(() {
+                        obeyGeneralRules = !(value ?? false);
+                      });
+                    },
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Nie aplikuj zasad ogólnych do tej zmiany',
+                      style: TemplateDialogConstants.hintStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
 
               // BUTTONY
               DialogActionButtons(

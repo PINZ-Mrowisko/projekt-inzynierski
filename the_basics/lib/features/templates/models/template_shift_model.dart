@@ -9,6 +9,7 @@ class ShiftModel {
   final List<String> tagIds;
   final List<String> tagNames;
   final int count;
+  final bool obeyGeneralRules;
 
   ShiftModel({
     required this.id,
@@ -18,6 +19,7 @@ class ShiftModel {
     required this.tagIds,
     required this.tagNames,
     required this.count,
+    required this.obeyGeneralRules,
   });
 
   /// Converts to a map suitable for Firestore
@@ -25,12 +27,12 @@ class ShiftModel {
     return {
       'id': id,
       'day': day,
-      // store times as strings
       'start': '${start.hour}:${start.minute}',
       'end': '${end.hour}:${end.minute}',
       'tagIds': tagIds,
       'tagNames': tagNames,
       'count': count,
+      'obeyGeneralRules': obeyGeneralRules,
     };
   }
 
@@ -46,6 +48,7 @@ class ShiftModel {
       tagIds: List<String>.from(data['tagIds'] ?? []),
       tagNames: List<String>.from(data['tagNames'] ?? []),
       count: data['count'] ?? 0,
+      obeyGeneralRules: data['obeyGeneralRules'] ?? true,
     );
   }
 
@@ -62,20 +65,22 @@ class ShiftModel {
 
   ShiftModel copyWith({
     String? day,
-    List<String>? tagIds, // ZMIANA
-    List<String>? tagNames, // ZMIANA
+    List<String>? tagIds,
+    List<String>? tagNames,
     int? count,
     TimeOfDay? start,
-    TimeOfDay? end
+    TimeOfDay? end,
+    bool? obeyGeneralRules,
   }) {
     return ShiftModel(
-        day: day ?? this.day,
-        start: start ?? this.start,
-        end: end ?? this.end,
-        tagIds: tagIds ?? this.tagIds,
-        tagNames: tagNames ?? this.tagNames,
-        count: count ?? this.count,
-        id: id
+      id: id,
+      day: day ?? this.day,
+      start: start ?? this.start,
+      end: end ?? this.end,
+      tagIds: tagIds ?? this.tagIds,
+      tagNames: tagNames ?? this.tagNames,
+      count: count ?? this.count,
+      obeyGeneralRules: obeyGeneralRules ?? this.obeyGeneralRules,
     );
   }
 }

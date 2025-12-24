@@ -58,7 +58,8 @@ class LoginController extends GetxController {
       rememberMe.value = false;
 
       // redirect using our fancy func
-      AuthRepo.instance.afterLogin();
+      //.instance.afterLogin();
+
     } on FirebaseAuthException catch (e) {
       errorMessage.value = _getFriendlyErrorMessage(e);
     } on FirebaseException catch (e) {
