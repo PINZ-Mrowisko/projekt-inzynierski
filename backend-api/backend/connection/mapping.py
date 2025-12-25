@@ -22,15 +22,11 @@ def map_tag(tag_data):
         return tag
 
 def work_time_preference_mapping(preference):
-    try:
-        if preference == "Poranne":
-            return 1
-        elif preference == "Popołudniowe":
-            return 2
-        else:
-            return 0  # Default or unknown preference
-    except Exception as e:
-        print(f"Błąd podczas mapowania preferencji czasu pracy: {e}")
+    if preference == "Poranne":
+        return 1
+    elif preference == "Popołudniowe":
+        return 2
+    else:
         return 0  # Default or unknown preference
 
 def map_worker(worker_data, tags_list):
@@ -81,7 +77,7 @@ def normalize_hour(hour_str):
         return hour_str
 
 def map_shift(shift_data, shift_id):
-    if shift_data.get == None:
+    if shift_data is None or shift_data == {}:
         return None
     else:
         day = shift_data.get("day", "")
