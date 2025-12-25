@@ -6,6 +6,7 @@ from ..models.Tags import Tags
 from ..models.Worker import Worker
 from ..models.Shift import Shift
 from ..models.Template import Template
+from ..models.LeaveReq import LeaveReq
 
 class TestMapping(unittest.TestCase):
 
@@ -251,4 +252,166 @@ class TestMapping(unittest.TestCase):
 
         template = map_template(template_data)
         self.assertEqual(template, None)
+
+    def test_hour_to_string(self):
+
+        hour_tuple = (16,10)
+        hour_tuple2 = (9,12)
+        hour_tuple3 = (10,0)
+
+        result = hour_to_string(hour_tuple)
+        result2 = hour_to_string(hour_tuple2)
+        result3 = hour_to_string(hour_tuple3)
+
+        self.assertEqual(result, "16:10")
+        self.assertEqual(result2, "09:12")
+        self.assertEqual(result3, "10:00")
+
+    def setUp(self):
+        self.worker = MagicMock()
+        self.worker.id = 101
+        self.worker.firstname = "Jan"
+        self.worker.lastname = "Kowalski"
+
+        self.rule = MagicMock()
+        self.rule.tags = ["tag1", "tag2"]
+
+        self.shift = MagicMock()
+        self.shift.id = "shift_1"
+        self.shift.day = "Monday"
+        self.shift.start = "08:00"
+        self.shift.end = "16:00"
+        self.shift.duration = 480
+        self.shift.rules = [self.rule]
+
+        self.template = MagicMock()
+        self.template.shifts = [self.shift]
+
+        self.solver = MagicMock()
+
+    @patch('backend.connection.mapping.hour_to_string')
+    def test_worker_assigned_success(self, mock_hour_to_string):
+
+        mock_hour_to_string.side_effect = lambda x: f"{x}"
+
+        mock_var = MagicMock()
+
+        key = (101, "shift_1", 0)
+        all_variables = {key: mock_var}
+
+        self.solver.Value.return_value = 1
+
+        result = map_result_to_json(self.solver, all_variables, [self.worker], self.template)
+
+        self.assertIn("shift_1", result)
+        entry = result["shift_1"]
+
+        self.assertEqual(entry["start"], "08:00")
+        self.assertEqual(entry["duration"], 8.0)  # 480 / 60
+
+        self.assertEqual(len(entry["assignments"]), 1)
+        assignment = entry["assignments"][0]
+
+        self.assertEqual(assignment["workerId"], 101)
+        self.assertEqual(assignment["firstName"], "Jan")
+        self.assertEqual(assignment["tags"], ["tag1", "tag2"])
+
+        self.solver.Value.assert_called_with(mock_var)
+
+    @patch('backend.connection.mapping.hour_to_string')
+    def test_worker_not_assigned(self, mock_hour_to_string):
+        mock_hour_to_string.return_value = "00:00"
+
+        mock_var = MagicMock()
+        key = (101, "shift_1", 0)
+        all_variables = {key: mock_var}
+
+        self.solver.Value.return_value = 0
+
+        result = map_result_to_json(self.solver, all_variables, [self.worker], self.template)
+
+        self.assertEqual(len(result["shift_1"]["assignments"]), 0)
+
+    @patch('backend.connection.mapping.hour_to_string')
+    def test_variable_missing_in_map(self, mock_hour_to_string):
+        mock_hour_to_string.return_value = "00:00"
+
+        all_variables = {}
+
+        result = map_result_to_json(self.solver, all_variables, [self.worker], self.template)
+
+        self.assertEqual(len(result["shift_1"]["assignments"]), 0)
+
+    @patch('backend.connection.mapping.hour_to_string')
+    def test_multiple_workers_one_shift(self, mock_hour_to_string):
+        mock_hour_to_string.return_value = "10:00"
+
+        worker2 = MagicMock()
+        worker2.id = 102
+        worker2.firstname = "Adam"
+        worker2.lastname = "Nowak"
+
+        workers = [self.worker, worker2]
+
+        var1 = MagicMock()
+        var2 = MagicMock()
+
+        all_variables = {
+            (101, "shift_1", 0): var1,
+            (102, "shift_1", 0): var2
+        }
+
+        self.solver.Value.return_value = 1
+
+        result = map_result_to_json(self.solver, all_variables, workers, self.template)
+
+        assignments = result["shift_1"]["assignments"]
+        self.assertEqual(len(assignments), 2)
+
+        ids = [a["workerId"] for a in assignments]
+        self.assertIn(101, ids)
+        self.assertIn(102, ids)
+
+    def test_normalize_iso_date(self):
+
+        iso_date = "2005-01-02T03:01:45+01:00"
+        iso_date2 = "2005-01-02"
+
+        res1 = normalize_iso_date(iso_date)
+        res2 = normalize_iso_date(iso_date2)
+
+        self.assertEqual(res1, "2005-01-02")
+        self.assertEqual(res1, res2)
+
+    @patch('builtins.print')
+    def test_normalize_iso_date_wrong(self, mock_print):
+
+        iso_date_fail = 2005
+        res = normalize_iso_date(iso_date_fail)
+
+        self.assertEqual(res, 2005)
+
+    @patch('backend.connection.mapping.normalize_iso_date')
+    def test_map_leave_request(self, mock_normalize_iso_date):
+
+        mock_normalize_iso_date.side_effect = ["2005-01-02", "2005-01-15"]
+
+        leave_data = {
+            "id": 1,
+            "userId": 123,
+            "startDate": "2005-01-02T03:01:45+01:00",
+            "endDate": "2005-01-15T03:01:45+01:00",
+            "status": "zaakceptowany"
+        }
+
+        leave_result = map_leave_request(leave_data)
+        leave_result_dict = leave_result.convert_to_dict()
+        print(leave_result.employee_id)
+        print(leave_result_dict)
+
+        self.assertEqual(leave_result_dict["leave_id"], 1)
+        self.assertEqual(leave_result_dict["employee_id"], 123)
+        self.assertEqual(leave_result_dict["start_date"], "2005-01-02")
+        self.assertEqual(leave_result_dict["end_date"], "2005-01-15")
+        self.assertEqual(leave_result_dict["status"], "zaakceptowany")
 
