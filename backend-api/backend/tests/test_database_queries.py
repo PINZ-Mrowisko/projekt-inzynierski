@@ -74,9 +74,10 @@ class TestDatabaseQueries(unittest.TestCase):
 
         self.assertEqual(workers, [])
 
+    @patch('builtins.print')
     @patch('backend.connection.database_queries.FieldFilter')
     @patch('backend.connection.database_queries.map_worker')
-    def test_get_workers_no_market(self, mock_map_worker, mock_map_field_filter):
+    def test_get_workers_no_market(self, mock_map_worker, mock_map_field_filter, mock_print):
 
         (self.mock_db.collection.return_value
          .where.return_value
@@ -137,10 +138,10 @@ class TestDatabaseQueries(unittest.TestCase):
 
         self.assertEqual(tags, [tag1, tag2])
 
+    @patch('builtins.print')
     @patch('backend.connection.database_queries.FieldFilter')
     @patch('backend.connection.database_queries.map_tag')
-
-    def test_get_tags_no_market(self, mock_map_tag, mock_map_field_filter):
+    def test_get_tags_no_market(self, mock_map_tag, mock_map_field_filter, mock_print):
 
         (self.mock_db.collection.return_value
          .where.return_value
@@ -217,9 +218,10 @@ class TestDatabaseQueries(unittest.TestCase):
 
         self.assertEqual(templates, [template1, template2])
 
+    @patch('builtins.print')
     @patch('backend.connection.database_queries.FieldFilter')
     @patch('backend.connection.database_queries.map_template')
-    def test_get_templates_no_market(self, mock_map_template, mock_map_field_filter):
+    def test_get_templates_no_market(self, mock_map_template, mock_map_field_filter, mock_print):
 
         (self.mock_db.collection.return_value
          .where.return_value
@@ -338,9 +340,10 @@ class TestDatabaseQueries(unittest.TestCase):
 
         self.assertEqual(leaves, [leave_req1, leave_req3])
 
+    @patch('builtins.print')
     @patch('backend.connection.database_queries.FieldFilter')
     @patch('backend.connection.database_queries.map_leave_request')
-    def test_get_leaves_requests_no_market(self, mock_map_leave_request, mock_map_field_filter):
+    def test_get_leaves_requests_no_market(self, mock_map_leave_request, mock_map_field_filter, mock_print):
 
 
         (self.mock_db.collection.return_value

@@ -406,8 +406,6 @@ class TestMapping(unittest.TestCase):
 
         leave_result = map_leave_request(leave_data)
         leave_result_dict = leave_result.convert_to_dict()
-        print(leave_result.employee_id)
-        print(leave_result_dict)
 
         self.assertEqual(leave_result_dict["leave_id"], 1)
         self.assertEqual(leave_result_dict["employee_id"], 123)
