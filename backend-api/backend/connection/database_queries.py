@@ -116,7 +116,7 @@ import calendar
 
 def is_on_leave(worker_id, check_date_str, leaves_req):
 
-    if not leaves_req:
+    if len(leaves_req) == 0:
         return False
 
     for leave in leaves_req:
