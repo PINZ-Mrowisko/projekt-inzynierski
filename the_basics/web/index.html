@@ -22,7 +22,7 @@
 
   <!-- Icons -->
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/x-icon" href="favicon.png">
 
   <!-- Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -30,10 +30,15 @@
   <!-- ============================= -->
   <!-- PWA + Flutter <-> JS bridge -->
   <!-- ============================= -->
+
+
   <script>
     /* ============================
        DISPLAY MODE (PWA / browser)
        ============================ */
+
+    // detect whether app is standalone or in browser
+
     window.getDisplayMode = function () {
       if (window.matchMedia('(display-mode: standalone)').matches) {
         return 'standalone';
@@ -47,6 +52,8 @@
     /* ============================
        PWA INSTALL FLOW (Android)
        ============================ */
+
+
     let deferredPrompt = null;
     window.canInstallPWA = false;
 
@@ -84,16 +91,18 @@
     /* ============================
        SERVICE WORKER
        ============================ */
+
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register(
-          'flutter_service_worker.js',
-          { scope: './' }
-        ).catch(err => {
-          console.warn('ServiceWorker registration failed:', err);
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(registration => {
+          console.log('Firebase Messaging SW registered: ', registration);
+        })
+        .catch(err => {
+          console.log('Firebase Messaging SW registration failed: ', err);
         });
-      });
-    }
+    });
+  }
   </script>
 </head>
 
@@ -105,38 +114,54 @@
 <!-- ============================
      LOADING SCREEN
      ============================ -->
+
+
 <div id="flutter-loading" style="
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: #ffffff;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  transition: opacity 0.3s ease;
 ">
-  <div style="text-align:center">
-    <div style="
-      width:48px;
-      height:48px;
-      border:4px solid #e0e0e0;
-      border-top:4px solid #0175C2;
-      border-radius:50%;
-      animation:spin 1s linear infinite;
-      margin-bottom:16px;
-    "></div>
-    <div style="font-family:sans-serif;color:#333">
-      Loading Mrowisko…
-    </div>
+  <!-- Spinner -->
+  <div style="
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(1, 117, 194, 0.1);
+    border-top: 3px solid #0175C2;
+    border-radius: 50%;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 20px;
+  "></div>
+
+  <div style="
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #333;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  ">
+    Loading Mrowisko...
   </div>
 </div>
 
 <style>
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
   body.loading {
     overflow: hidden;
+    margin: 0;
+    height: 100vh;
   }
 </style>
 

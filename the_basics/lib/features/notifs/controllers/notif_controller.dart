@@ -1,5 +1,6 @@
 import 'dart:io';
-
+import 'dart:js' as js;
+import 'dart:ui';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -23,44 +24,31 @@ class NotificationController extends GetxController {
   final RxString errorMessage = ''.obs;
 
   // we will use this to handle local notifications in the app (when its in the foreground, so user active using)
+  // nvm - local notifs work only for android apparently?
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
   final RxBool systemPermissionGranted = false.obs;
 
-  Future<void> checkSystemPermission() async {
-    final settings = await _firebaseMessaging.getNotificationSettings();
-
-    systemPermissionGranted.value =
-        settings.authorizationStatus == AuthorizationStatus.authorized ||
-        settings.authorizationStatus == AuthorizationStatus.provisional;
-  }
-
-  /// initialize FCM during app startup
   Future<void> initializeFCM() async {
     try {
-      // Request permissions from user ; should be one time thing
-      if(!kIsWeb) {
+      if (kIsWeb) {
+        await _initializeFCMForWeb();
+      } else {
         await requestPermissions();
+        await _initializeLocalNotifications();
       }
 
       await checkSystemPermission();
 
-      // allows for foreground notifs
-      // important that this stays above message handlers
-      _initializeLocalNotifications();
+      final String? vapidKey = kIsWeb ? 'BEZWrpAoThiHDnceouh-VGXXrJjwuISfnI2_NNCgvCwtzwCTuz4s9MIJMxyJcshKXzW5TFFV3_QUb0ZGZxhT9s0' : null;
+      final token = await _firebaseMessaging.getToken(vapidKey: vapidKey);
 
-      // Get current FCM token
-      final token = await _firebaseMessaging.getToken();
       if (token != null) {
         currentToken.value = token;
-        print(token);
         await _saveTokenToFirestore(token);
       }
 
-      // we setup token refresh listener
       _setupTokenRefreshListener();
-
-      // also setup message handlers
       _setupMessageHandlers();
 
     } catch (e) {
@@ -69,51 +57,71 @@ class NotificationController extends GetxController {
     }
   }
 
-  Future<void> _initializeLocalNotifications() async {
-    const AndroidInitializationSettings androidSettings =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const InitializationSettings initSettings =
-    InitializationSettings(android: androidSettings);
-
-    await _localNotifications.initialize(initSettings);
-  }
-
-  /// Request notification permissions
-  Future<void> requestPermissions() async {
+  Future<void> _initializeFCMForWeb() async {
     try {
-      NotificationSettings settings = await _firebaseMessaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
-
-      systemPermissionGranted.value =
-        settings.authorizationStatus == AuthorizationStatus.authorized ||
-        settings.authorizationStatus == AuthorizationStatus.provisional;
-
-      print('User granted permission: ${settings.authorizationStatus}');
-    } on PlatformException catch (e) {
-      print('Permission error: ${e.message}');
+      if (kIsWeb) {
+        final token = await _firebaseMessaging.getToken(
+          vapidKey: 'BEZWrpAoThiHDnceouh-VGXXrJjwuISfnI2_NNCgvCwtzwCTuz4s9MIJMxyJcshKXzW5TFFV3_QUb0ZGZxhT9s0',
+        );
+        print('Web token initialized: $token');
+      }
+    } catch (e) {
+      print('Web FCM initialization error: $e');
     }
   }
 
-  /// Save token to Firestore for current user
+  Future<void> requestWebPermission() async {
+    try {
+      if (!kIsWeb) return;
+
+      final jsPermission = js.context['Notification']['permission'];
+      if (jsPermission == 'default') {
+        await _firebaseMessaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+      }
+
+      await checkSystemPermission();
+    } catch (e) {
+      print('Web permission error: $e');
+    }
+  }
+
+  void _setupMessageHandlers() {
+    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+     // print('Background message opened: ${message.notification?.title}');
+    });
+  }
+
+  void _handleForegroundMessage(RemoteMessage message) {
+    if (kIsWeb) {
+    } else {
+      _showLocalNotification(message);
+    }
+  }
+
+
+  Future<void> checkSystemPermission() async {
+    final settings = await _firebaseMessaging.getNotificationSettings();
+    systemPermissionGranted.value =
+        settings.authorizationStatus == AuthorizationStatus.authorized ||
+            settings.authorizationStatus == AuthorizationStatus.provisional;
+  }
+
   Future<void> _saveTokenToFirestore(String token) async {
     try {
       final currentUser = _userController.employee.value;
-      if (currentUser.id.isEmpty) {
-        print('No user logged in, skipping token save');
-        return;
-      }
+      if (currentUser.id.isEmpty) return;
 
       final tokenModel = TokenModel(
         userId: currentUser.id,
         token: token,
         deviceInfo: '${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
         platform: Platform.operatingSystem.toString(),
-        appVersion: '1.0.0', // You can get this from package_info
+        appVersion: '1.0.0',
         insertedAt: DateTime.now(),
         lastActive: DateTime.now(),
         isActive: true,
@@ -123,44 +131,115 @@ class NotificationController extends GetxController {
       await _tokenRepo.saveToken(tokenModel, _userController.employee.value.marketId);
       isTokenSaved.value = true;
 
-      print('FCM Token saved for user: ${currentUser.id}');
+      //print('FCM Token saved for user: ${currentUser.id}');
     } catch (e) {
       errorMessage.value = 'Błąd zapisu tokenu: ${e.toString()}';
-      print('Token save error: $e');
+      //print('Token save error: $e');
     }
   }
 
   /// Listen for token refresh (app reinstall, data clearance)
   void _setupTokenRefreshListener() {
     _firebaseMessaging.onTokenRefresh.listen((newToken) async {
-      print('FCM Token refreshed: $newToken');
+      //print('FCM Token refreshed: $newToken');
       currentToken.value = newToken;
       await _saveTokenToFirestore(newToken);
     });
   }
 
-  /// message handlers for different states
-  void _setupMessageHandlers() {
+  Future<void> testSendScheduleNotification() async {
+    // we use the same function calling style as with the auth func previously
+    final functions = FirebaseFunctions.instanceFor(region: 'europe-central2');
 
-    // we need to handle messages when app is in foreground
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    try {
+      final payload = <String, dynamic>{
+        'marketId': _userController.employee.value.marketId,
+        'scheduleName': 'Grafik Listopad',
+      };
 
-    // app is in background but opened via notification
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      print('Background message opened: ${message.notification?.title}');
-    });
+      final result = await functions.httpsCallable('sendScheduleNotification').call(payload);
 
-    // app is terminated and opened via notification
-    //_handleTerminatedMessage();
+      print('Notification function result: ${result.data}');
+    } on FirebaseFunctionsException catch (e) {
+      print('Function error: ${e.code} - ${e.message}');
+    } catch (e) {
+      print('Unexpected error: $e');
+    }
   }
 
-  /// foreground message : user is in the app when he gets notification
-  void _handleForegroundMessage(RemoteMessage message) {
-    //print('Foreground message: ${message.notification?.title}');
-    _showLocalNotification(message);
+  Future<void> leaveStatusChangeNotification(String userId, String decision) async {
+    final functions = FirebaseFunctions.instanceFor(region: 'europe-central2');
+
+    try {
+      final payload = <String, dynamic>{
+        'marketId': _userController.employee.value.marketId,
+        'userId': userId,
+        'decision': decision, // we notify whether "accepted" or "denied"
+      };
+
+      final result = await functions.httpsCallable('sendLeaveStatusNotification').call(payload);
+      print("im sending");
+      print('Notification function result: ${result.data}');
+    } on FirebaseFunctionsException catch (e) {
+      print('Function error: ${e.code} - ${e.message}');
+    } catch (e) {
+      print('Unexpected error: $e');
+    }
   }
 
-  /// Show local notification using flutter_local_notifications
+  /// deactivate token when user logs out
+  Future<void> deactivateCurrentToken() async {
+    try {
+      final currentUser = _userController.employee.value;
+      if (currentUser.id.isNotEmpty && currentToken.value.isNotEmpty) {
+        await _tokenRepo.deactivateToken(currentUser.id, currentToken.value, currentUser.marketId);
+        isTokenSaved.value = false;
+        //print('Token deactivated for user: ${currentUser.id}');
+      }
+    } catch (e) {
+      errorMessage.value = 'Błąd deaktywacji tokenu: ${e.toString()}';
+    }
+  }
+
+  /// used when user logs in
+  Future<void> reactivateCurrentToken() async {
+    try {
+      final currentUser = _userController.employee.value;
+      if (currentUser.id.isNotEmpty && currentToken.value.isNotEmpty) {
+        await _tokenRepo.updateTokenActivity(currentUser.id, currentToken.value, true, currentUser.marketId);
+        isTokenSaved.value = true;
+        //print('Token reactivated for user: ${currentUser.id}');
+      }
+    } catch (e) {
+      errorMessage.value = 'Błąd reaktywacji tokenu: ${e.toString()}';
+    }
+  }
+
+  Future<void> _initializeLocalNotifications() async {
+    const AndroidInitializationSettings androidSettings =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initSettings =
+    InitializationSettings(android: androidSettings);
+    await _localNotifications.initialize(initSettings);
+  }
+
+  Future<void> requestPermissions() async {
+    try {
+      NotificationSettings settings = await _firebaseMessaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+      systemPermissionGranted.value =
+          settings.authorizationStatus == AuthorizationStatus.authorized ||
+              settings.authorizationStatus == AuthorizationStatus.provisional;
+      print('User granted permission: ${settings.authorizationStatus}');
+    } on PlatformException catch (e) {
+      print('Permission error: ${e.message}');
+    }
+  }
+
   void _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
@@ -185,76 +264,6 @@ class NotificationController extends GetxController {
       platformDetails,
       payload: message.data.toString(),
     );
-  }
-
-
-  // this will later need to be changed into notifyin users of new schedule
-  Future<void> testSendScheduleNotification() async {
-    // we use the same function calling style as with the auth func previously
-    final functions = FirebaseFunctions.instanceFor(region: 'europe-central2');
-
-    try {
-      final payload = <String, dynamic>{
-        'marketId': _userController.employee.value.marketId,
-        'scheduleName': 'Grafik Listopad',
-      };
-
-      final result = await functions.httpsCallable('sendScheduleNotification').call(payload);
-
-      print('Notification function result: ${result.data}');
-    } on FirebaseFunctionsException catch (e) {
-      print('Function error: ${e.code} - ${e.message}');
-    } catch (e) {
-      print(' Unexpected error: $e');
-    }
-  }
-
-  Future<void> leaveStatusChangeNotification(String userId, String decision) async {
-    final functions = FirebaseFunctions.instanceFor(region: 'europe-central2');
-
-    try {
-      final payload = <String, dynamic>{
-        'marketId': _userController.employee.value.marketId,
-        'userId': userId,
-        'decision': decision, // we notify whether "accepted" or "denied"
-      };
-
-      final result = await functions.httpsCallable('sendLeaveStatusNotification').call(payload);
-
-      print('Notification function result: ${result.data}');
-    } on FirebaseFunctionsException catch (e) {
-      print('Function error: ${e.code} - ${e.message}');
-    } catch (e) {
-      print('Unexpected error: $e');
-    }
-  }
-
-  /// deactivate token when user logs out
-  Future<void> deactivateCurrentToken() async {
-    try {
-      final currentUser = _userController.employee.value;
-      if (currentUser.id.isNotEmpty && currentToken.value.isNotEmpty) {
-        await _tokenRepo.deactivateToken(currentUser.id, currentToken.value, currentUser.marketId);
-        isTokenSaved.value = false;
-        print('Token deactivated for user: ${currentUser.id}');
-      }
-    } catch (e) {
-      errorMessage.value = 'Błąd deaktywacji tokenu: ${e.toString()}';
-    }
-  }
-
-  /// used when user logs in
-  Future<void> reactivateCurrentToken() async {
-    try {
-      final currentUser = _userController.employee.value;
-      if (currentUser.id.isNotEmpty && currentToken.value.isNotEmpty) {
-        await _tokenRepo.updateTokenActivity(currentUser.id, currentToken.value, true, currentUser.marketId);
-        isTokenSaved.value = true;
-        print('Token reactivated for user: ${currentUser.id}');
-      }
-    } catch (e) {
-      errorMessage.value = 'Błąd reaktywacji tokenu: ${e.toString()}';
-    }
   }
 
   @override
