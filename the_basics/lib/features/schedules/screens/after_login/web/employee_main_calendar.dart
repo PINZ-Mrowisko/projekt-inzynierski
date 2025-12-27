@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
@@ -14,6 +17,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../controllers/schedule_controller.dart';
 import '../../../models/schedule_model.dart';
+import 'main_calendar/utils/calendar_state_manager.dart';
 
 class EmployeeMainCalendar extends StatefulWidget {
   const EmployeeMainCalendar({super.key});
@@ -24,13 +28,17 @@ class EmployeeMainCalendar extends StatefulWidget {
 
 class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
   final CalendarController _calendarController = CalendarController();
-
+  final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
+  final AppointmentConverter _appointmentConverter = AppointmentConverter();
+  
   final platformController = Get.find<PlatformController>();
   // use method from this to detect device!
 
   final RxList<String> _selectedTags = <String>[].obs;
 
   final RxBool _isScheduleLoading = false.obs;
+
+  final CalendarStateManager _stateManager = CalendarStateManager();
 
 
   @override
@@ -39,38 +47,39 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
 
     final userController = Get.find<UserController>();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       userController.resetFilters();
+      //await _loadSchedule();
     });
 
     ever(_selectedTags, (tags) {
       userController.filterEmployees(tags);
     });
 
-    // we fetch schedule once on initialization
-    _loadSchedule();
   }
 
-  Future<void> _loadSchedule() async {
-    try {
-      _isScheduleLoading.value = true;
-      final scheduleController = Get.find<SchedulesController>();
-      await scheduleController.fetchAndParseGeneratedSchedule(
-        marketId: 'FH06LEVCRFJq2lbA79fs',
-        scheduleId: '6AKfrY6nWxVfAcCioKwB',
-      );
-    } catch (e) {
-      Get.snackbar('Błąd', 'Nie udało się załadować grafiku');
-    } finally {
-      _isScheduleLoading.value = false;
-    }
-  }
+  // Future<void> _loadSchedule() async {
+  //
+  //   final userController = Get.find<UserController>();
+  //   final schedulesController = Get.find<SchedulesController>();
+  //
+  //   if (schedulesController.publishedScheduleID.value.isEmpty) {
+  //     print('Brak opublikowanego grafiku');
+  //     return;
+  //   }
+  //
+  //   await _stateManager.loadSchedule(
+  //     marketId: userController.employee.value.marketId,
+  //     scheduleId: schedulesController.publishedScheduleID.value,
+  //   );
+  // }
 
   List<Appointment> _getAppointments(List<UserModel> filteredEmployees) {
     final scheduleController = Get.find<SchedulesController>();
+    List<Appointment> baseAppointments = [];
 
-    // Directly convert individualShifts to Appointments
-    final appointments = scheduleController.individualShifts.map((shift) {
+    baseAppointments = scheduleController.individualShifts.map((shift) {
+
       final startDateTime = DateTime(
         shift.shiftDate.year,
         shift.shiftDate.month,
@@ -87,62 +96,19 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
         shift.end.minute,
       );
 
-      // print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
- //      print('   Employee: ${shift.employeeFirstName} ${shift.employeeLastName}');
- //      print('   Date: ${shift.shiftDate}');
- //      print('   Time: ${shift.start.hour}:${shift.start.minute} - ${shift.end.hour}:${shift.end.minute}');
- //      print('   Start DateTime: $startDateTime');
- //      print('   End DateTime: $endDateTime');
- //      print('   Employee ID: ${shift.employeeID}');
- //      print('   Tags: ${shift.tags}');
-
-      final appointment = Appointment(
+      return Appointment(
         startTime: startDateTime,
         endTime: endDateTime,
         subject: 'Zmiana',
-        color: _getAppointmentColor(shift),  // Add this!
+        color: AppColors.logo,
         resourceIds: <Object>[shift.employeeID],
         notes: shift.tags.join(', '),
       );
 
-      return appointment;
     }).toList();
 
-    return appointments;
+    return baseAppointments;
   }
-
-  Color _getAppointmentColor(ScheduleModel shift) {
-    // Add color logic based on your tags or other criteria
-    if (shift.tags.contains('kasjer')) {
-      return Colors.blue;  // Use your AppColors.logo
-    } else if (shift.tags.contains('wózek widłowy')) {
-      return Colors.orange;
-    // } else if (shift.tags.contains('chTj4Ik3Em5qZU4BQdJI')) {  // Your "BRAK" tag?
-    //   return Colors.red;
-    } else {
-      return Colors.green;  // Default color
-    }
-  }
-
-
-
-  List<TimeRegion> _getSpecialRegions() {
-    final DateTime now = DateTime.now();
-    final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
-
-    return List.generate(365, (index) {
-      final day = monday.subtract(const Duration(days: 180)).add(Duration(days: index));
-      return TimeRegion(
-        startTime: DateTime(day.year, day.month, day.day, 8, 0),
-        endTime: DateTime(day.year, day.month, day.day, 20, 59),
-        enablePointerInteraction: false,
-        color: day.weekday.isEven ? AppColors.lightBlue : Colors.transparent,
-        text: '',
-      );
-    });
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -191,24 +157,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  Obx(() {
-                                    if (_isScheduleLoading.value) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(right: 16.0),
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 16.0),
-                                      child: CustomButton(
-                                        onPressed: _loadSchedule,
-                                        text: "Załaduj grafik",
-                                        width: 140,
-                                        icon: Icons.schedule,
-                                        backgroundColor: AppColors.logo,
-                                      ),
-                                    );
-                                  }),
+
                                   Flexible(
                                     child: Padding(
                                       padding: const EdgeInsets.only(top: 10.0),
@@ -255,7 +204,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                           }
 
                           // Get appointments from schedule
-                          final appointments = _getAppointments(userController.filteredEmployees);
+                          final appointments = _appointmentConverter.getAppointments(userController.filteredEmployees);
 
                           if (appointments.isEmpty) {
                             return const Center(
@@ -289,7 +238,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                                   appointments,
                                   userController.filteredEmployees,
                                 ),
-                                specialRegions: _getSpecialRegions(),
+                                specialRegions: _regionsBuilder.getSpecialRegions(),
                                 timeSlotViewSettings: TimeSlotViewSettings(
                                   startHour: 5,
                                   endHour: 22,
@@ -312,7 +261,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                appointmentBuilder: _buildAppointmentWidget,
+                                appointmentBuilder: buildAppointmentWidget,
                               ),
                             ],
                           );
@@ -328,37 +277,6 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
       }),
     );
   }
-
-  Widget _buildAppointmentWidget(
-      BuildContext context,
-      CalendarAppointmentDetails details,
-      ) {
-    final appointments = details.appointments;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: appointments.map((appointment) {
-        return Container(
-          height: 16,
-          margin: const EdgeInsets.symmetric(vertical: 0.5),
-          color: appointment.color,
-          child: Center(
-            child: Text(
-              '${appointment.startTime.hour.toString().padLeft(2, '0')}:'
-                  '${appointment.startTime.minute.toString().padLeft(2, '0')}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 8,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-
-
 
   Widget _buildTagFilterDropdown(TagsController tagsController) {
     return Obx(() {

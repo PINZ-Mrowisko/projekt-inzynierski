@@ -139,7 +139,7 @@ def expand_schedule_to_month(schedule_dict, year, month, leaves_req):
         4: "Piątek", 5: "Sobota", 6: "Niedziela"
     }
 
-    full_month_schedule = {}
+    full_month_schedule = defaultdict(list)
     days_in_month = calendar.monthrange(year, month)[1]
 
     for day_num in range(1, days_in_month + 1):
@@ -164,7 +164,7 @@ def expand_schedule_to_month(schedule_dict, year, month, leaves_req):
                         assignment["workerId"] = "Unknown"
                         assignment["onLeave"] = True
 
-            full_month_schedule[date_str] = new_entry
+            full_month_schedule[date_str].append(new_entry)
 
     return full_month_schedule
 

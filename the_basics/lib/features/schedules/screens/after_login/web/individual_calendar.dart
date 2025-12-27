@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
+import 'package:the_basics/features/schedules/models/schedule_model.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
@@ -12,6 +13,7 @@ import 'package:the_basics/utils/app_colors.dart';
 import '../../../../employees/controllers/user_controller.dart';
 import '../../../../tags/controllers/tags_controller.dart';
 import '../../../../leaves/controllers/leave_controller.dart';
+import '../../../controllers/schedule_controller.dart';
 
 /// panel boczny
 class SideInfoPanel extends StatelessWidget {
@@ -124,54 +126,44 @@ class IndividualCalendar extends StatefulWidget {
 class _IndividualCalendarState extends State<IndividualCalendar> {
   final CalendarController _calendarController = CalendarController();
 
-  List<Appointment> _getAppointments(
-      List<UserModel> filteredEmployees, List<LeaveModel> leaves) {
+  List<Appointment> _getAppointments(List<UserModel> filteredEmployees, List<LeaveModel> leaves) {
+
     final DateTime now = DateTime.now();
     final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
     List<Appointment> baseAppointments = [];
 
-    // generuj 5 dni pracy
-    for (final employee in filteredEmployees) {
-      for (int day = 0; day < 5; day++) {
-        final isMorningShift = day % 2 == 0;
-        final startHour = isMorningShift ? 8 : 12;
-        final endHour = isMorningShift ? 16 : 20;
+    final scheduleController = Get.find<SchedulesController>();
+    final userController = Get.find<UserController>();
 
-        baseAppointments.add(
-          Appointment(
-            startTime: DateTime(
-                monday.year, monday.month, monday.day + day, startHour, 0),
-            endTime:
-                DateTime(monday.year, monday.month, monday.day + day, endHour, 0),
-            subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
-            color: isMorningShift ? AppColors.logo : AppColors.logolighter,
-            resourceIds: <Object>[employee.id],
-          ),
-        );
-      }
-    }
+    List<ScheduleModel> myShifts = scheduleController.getShiftsForEmployee(userController.employee.value.id);
 
-    // powiel 4 tygodnie
-    List<Appointment> repeatedAppointments = [];
-    for (int week = 0; week < 4; week++) {
-      final Duration weekOffset = Duration(days: 7 * week);
-      for (var appointment in baseAppointments) {
-        repeatedAppointments.add(
-          Appointment(
-            startTime: appointment.startTime.add(weekOffset),
-            endTime: appointment.endTime.add(weekOffset),
-            subject: appointment.subject,
-            color: appointment.color,
-            resourceIds: appointment.resourceIds,
-          ),
-        );
-      }
-    }
 
-    // urlopy zaakceptowane
+    baseAppointments = myShifts.map((shift) {
+      final int startHour = shift.start.hour;
+      final int endHour = shift.start.hour;
+
+      final int dayOfWeek = shift.shiftDate.weekday;
+      final isMorningShift = dayOfWeek% 2 == 0;
+
+      return Appointment(
+        startTime: DateTime(
+            shift.shiftDate.year, shift.shiftDate.month, shift.shiftDate.day , startHour, 0),
+        endTime: DateTime(shift.shiftDate.year, shift.shiftDate.month, shift.shiftDate.day, endHour, 0),
+        subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
+        resourceIds: <Object>[shift.employeeID],
+        color: isMorningShift ? AppColors.logo : AppColors.logolighter,
+        notes: shift.tags.join(', '),
+        id: '${shift.employeeID}_${shift.shiftDate.day}_${shift.start.hour}:${shift.start.minute}_${shift.end.hour}:${shift.end.minute}',
+      );
+    }).toList();
+
+
+
+    // Accepted leaves
     for (final leave in leaves) {
-      if (leave.status.toLowerCase() == 'zaakceptowany' || leave.status.toLowerCase() == 'mój urlop') {
-        repeatedAppointments.add(
+      if (leave.status.toLowerCase() == 'zaakceptowany' ||
+          leave.status.toLowerCase() == 'mój urlop') {
+        baseAppointments.add(
           Appointment(
             startTime: leave.startDate,
             endTime: leave.endDate.add(const Duration(hours: 23)),
@@ -182,18 +174,18 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
       }
     }
 
-    return repeatedAppointments;
+    return baseAppointments;
   }
 
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
     final leaveController = Get.find<LeaveController>();
-    final tagsController = Get.find<TagsController>();
 
     return Obx(() {
       final employee = userController.employee.value;
 
+      // get all leave reqs
       final allLeaves = leaveController.allLeaveRequests;
       final userLeaves = allLeaves.where((l) =>
           l.userId == employee.id &&
@@ -201,6 +193,8 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
           l.status.toLowerCase() == 'mój urlop')
       ).toList();
 
+
+      // get all shifts of employee from currently published schedule
       final appointments = _getAppointments([employee], userLeaves);
 
       final now = DateTime.now();
@@ -404,6 +398,7 @@ Widget _buildAppointmentWidget(
   }
 }
 
+// same as in main calendar
 class _CalendarDataSource extends CalendarDataSource {
   _CalendarDataSource(List<Appointment> appointments, List<UserModel> employees) {
     this.appointments = appointments;

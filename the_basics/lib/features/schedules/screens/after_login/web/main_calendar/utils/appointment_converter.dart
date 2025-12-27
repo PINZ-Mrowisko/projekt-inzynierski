@@ -28,12 +28,6 @@ class AppointmentConverter {
         shift.start.minute,
       );
 
-      // calculate real duration of shift - because of forced display rules we need to keep it sotred
-      final realDuration = Duration(
-        hours: shift.end.hour - shift.start.hour,
-        minutes: shift.end.minute - shift.start.minute,
-      );
-
       // FAKE 8-hour duration for visual width !!!!!!!!!
       final visualEndDateTime = startDateTime.add(Duration(hours: 8));
 
@@ -53,3 +47,4 @@ class AppointmentConverter {
     return AppColors.logo; // just single color for simplicity, can be changed here
   }
 }
+

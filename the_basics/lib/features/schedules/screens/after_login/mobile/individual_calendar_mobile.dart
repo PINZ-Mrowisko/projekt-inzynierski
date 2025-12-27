@@ -4,11 +4,15 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog_mobile.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/bottom_menu_mobile.dart';
+
+import '../../../controllers/schedule_controller.dart';
+import '../../../models/schedule_model.dart';
 
 class IndividualCalendarMobile extends StatefulWidget {
   const IndividualCalendarMobile({super.key});
@@ -78,40 +82,42 @@ void _goToNextRange() {
 /// generowanie harmonogramu dla zalogowanego użytkownika
 List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) {
   final DateTime now = DateTime.now();
-  final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
+
+  final scheduleController = Get.find<SchedulesController>();
+  final userController = Get.find<UserController>();
+
+  List<ScheduleModel> myShifts = scheduleController.getShiftsForEmployee(userController.employee.value.id);
+
   List<Appointment> baseAppointments = [];
 
-  // 5 dni pracy w tygodniu
-  for (int day = 0; day < 5; day++) {
-    final isMorningShift = day % 2 == 0;
-    final startHour = isMorningShift ? 8 : 12;
-    final endHour = isMorningShift ? 16 : 20;
+  baseAppointments = myShifts.map((shift) {
+    final int startHour = shift.start.hour;
+    final int startMinute = shift.start.minute;
+    final int endHour = shift.end.hour;
+    final int endMinute = shift.end.minute;
 
-    baseAppointments.add(Appointment(
-      startTime:
-          DateTime(monday.year, monday.month, monday.day + day, startHour, 0),
-      endTime:
-          DateTime(monday.year, monday.month, monday.day + day, endHour, 0),
-      subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
-      color: isMorningShift ? AppColors.logo : AppColors.logolighter,
-      resourceIds: <Object>[employee.id],
-    ));
-  }
+    return Appointment(
+      startTime: DateTime(
+          shift.shiftDate.year,
+          shift.shiftDate.month,
+          shift.shiftDate.day,
+          startHour,
+          startMinute
+      ),
+      endTime: DateTime(
+          shift.shiftDate.year,
+          shift.shiftDate.month,
+          shift.shiftDate.day,
+          endHour,
+          endMinute
+      ),
+      resourceIds: <Object>[shift.employeeID],
+      subject: 'Zmiana',
+      color: AppColors.logo,
+      id: '${shift.employeeID}_${shift.shiftDate.day}_${shift.start.hour}:${shift.start.minute}_${shift.end.hour}:${shift.end.minute}',
+    );
+  }).toList();
 
-  // powiel 4 tygodnie
-  List<Appointment> repeatedAppointments = [];
-  for (int week = 0; week < 4; week++) {
-    final Duration weekOffset = Duration(days: 7 * week);
-    for (var appointment in baseAppointments) {
-      repeatedAppointments.add(Appointment(
-        startTime: appointment.startTime.add(weekOffset),
-        endTime: appointment.endTime.add(weekOffset),
-        subject: appointment.subject,
-        color: appointment.color,
-        resourceIds: appointment.resourceIds,
-      ));
-    }
-  }
 
   // dodanie urlopów z godzinami 8-20
   for (final leave in leaves) {
@@ -119,7 +125,7 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
         leave.status.toLowerCase() == 'mój urlop') {
       DateTime current = leave.startDate;
       while (!current.isAfter(leave.endDate)) {
-        repeatedAppointments.add(
+        baseAppointments.add(
           Appointment(
             startTime: DateTime(current.year, current.month, current.day, 8, 0),
             endTime: DateTime(current.year, current.month, current.day, 20, 0),
@@ -137,7 +143,7 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
   for (final leave in leaves) {
     if (leave.status.toLowerCase() == 'zaakceptowany' ||
         leave.status.toLowerCase() == 'mój urlop') {
-      repeatedAppointments.removeWhere((a) {
+      baseAppointments.removeWhere((a) {
         final aDate =
             DateTime(a.startTime.year, a.startTime.month, a.startTime.day);
         final leaveStart = DateTime(
@@ -158,13 +164,13 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
   for (int i = 0; i < _visibleDays; i++) {
     final date = start.add(Duration(days: i));
 
-    bool hasEvent = repeatedAppointments.any((a) =>
+    bool hasEvent = baseAppointments.any((a) =>
         a.startTime.year == date.year &&
         a.startTime.month == date.month &&
         a.startTime.day == date.day);
 
     if (!hasEvent) {
-      repeatedAppointments.add(
+      baseAppointments.add(
         Appointment(
           subject: "Brak zaplanowanej zmiany",
           startTime: DateTime(date.year, date.month, date.day, 8, 0),
@@ -176,52 +182,9 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
     }
   }
 
-  return repeatedAppointments;
+  return baseAppointments;
 }
 
-
-  Widget _buildAppointmentWidget(
-      BuildContext context, CalendarAppointmentDetails details) {
-    final appointment = details.appointments.first;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: appointment.color,
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(
-          color: AppColors.white,
-          width: 0.5,
-        ),
-      ),
-      margin: const EdgeInsets.all(1),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
-            '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (appointment.subject.isNotEmpty)
-            Text(
-              appointment.subject,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -352,7 +315,7 @@ body: Padding(
     showNavigationArrow: false,
     headerHeight: 0,
     dataSource: _CalendarDataSource(appointments),
-    appointmentBuilder: _buildAppointmentWidget,
+    appointmentBuilder: buildAppointmentWidget,
     firstDayOfWeek: 1,
     todayHighlightColor: AppColors.logo,
     minDate: _visibleStartDate,

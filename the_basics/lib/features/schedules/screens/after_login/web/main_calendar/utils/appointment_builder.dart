@@ -42,8 +42,8 @@ Widget buildAppointmentWidget(
         Text(
           '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
               '${realEndTime?.hour}:${realEndTime?.minute.toString().padLeft(2, '0')}',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.white,
             fontSize: 10,
             fontWeight: FontWeight.w600,
           ),
@@ -51,8 +51,8 @@ Widget buildAppointmentWidget(
         if (appointment.subject.isNotEmpty)
           Text(
             appointment.subject.replaceAll(' - ', ' '),
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.white,
               fontSize: 9,
             ),
             overflow: TextOverflow.ellipsis,

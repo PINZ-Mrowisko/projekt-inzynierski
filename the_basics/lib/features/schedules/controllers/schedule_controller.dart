@@ -7,17 +7,36 @@ import '../../../data/repositiories/other/schedule_repo.dart';
 import '../../employees/controllers/user_controller.dart';
 import '../models/schedule_model.dart';
 
+
+/// possible issues with the complexity of schedule controller
+/// because of the build of Firebase Files, there is a divide between ScheduleModel and ScheduleDocModel
+/// our controller (this one) keeps a list of scheduleModels - those are singular "shifts", containing day, worker, start, end, etc. - this is the Schedule Model
+/// the ScheduleDoc Model contains the general info about the schedule - creator, creation date, year, month of use etc.
+/// In Firebase each ScheduleDoc contains a map "generated_schedules" - that is the transformed list of ScheduleModels
+/// when updating, editing the schedule in the App we will need to save the WHOLE scheduleDocModel
+/// so the basic data fields + SheduleModels mapped back into "generated_schedules" map
+
+/// please use the method : convertShiftsToGeneratedSchedule() to get : List of Shedule Models -> Map
+/// use method: fetchAndParseGeneratedSchedule() to get : Map -> List of Shedule Models
+
+
+
 class SchedulesController extends GetxController {
   static SchedulesController get instance => Get.find();
 
   final ScheduleRepo _scheduleRepo = Get.find();
 
   RxList<ScheduleModel> individualShifts = <ScheduleModel>[].obs;
+
+  // when editing the shedule, we can mayhaps use this ?
+  RxList<ScheduleModel> updatedShifts = <ScheduleModel>[].obs;
+
   RxMap<String, dynamic> rawScheduleData = <String, dynamic>{}.obs;
 
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
 
+  // displayed ID is changed for editing, to temporarily changed view schedule
   final RxString displayedScheduleID = ''.obs;
   final RxString publishedScheduleID = ''.obs;
 
@@ -162,6 +181,7 @@ class SchedulesController extends GetxController {
 
 
   /// parse : individual shifts back to generated_schedules Map
+  /// changes List of ScheduleModels -> Map ready to be saved in FB
   Map<String, dynamic> convertShiftsToGeneratedSchedule(List<ScheduleModel> shifts) {
     final Map<String, Map<String, dynamic>> scheduleByDate = {};
 
@@ -192,7 +212,9 @@ class SchedulesController extends GetxController {
   }
 
 
-  // zapis zaktualizowanego grafiku - całość
+  // zapis zaktualizowanego grafiku - chwilowo tylko czesc generated_schedules, ale mozna rownie dobrze dorobic całosc
+  // a więc tu aktualizujemy zarówną główną część Shedule + opcjonalnie generated_shifts mapę
+
   Future<void> saveUpdatedScheduleDocument({
     required String marketId,
     required String scheduleId,
@@ -204,6 +226,7 @@ class SchedulesController extends GetxController {
       final generatedSchedule = convertShiftsToGeneratedSchedule(updatedShifts);
 
       // call method from Repo rewriting all changes
+      await _scheduleRepo.updateSchedule(marketId: marketId, scheduleId: scheduleId, generatedSchedule: generatedSchedule);
 
       // and lastly update local state
       individualShifts.assignAll(updatedShifts);
