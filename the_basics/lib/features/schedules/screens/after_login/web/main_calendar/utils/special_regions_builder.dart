@@ -10,8 +10,8 @@ class SpecialRegionsBuilder {
     return List.generate(365, (index) {
       final day = monday.subtract(const Duration(days: 180)).add(Duration(days: index));
       return TimeRegion(
-        startTime: DateTime(day.year, day.month, day.day, 8, 0),
-        endTime: DateTime(day.year, day.month, day.day, 20, 59),
+        startTime: DateTime(day.year, day.month, day.day, 5, 0),
+        endTime: DateTime(day.year, day.month, day.day, 21, 59),
         enablePointerInteraction: false,
         color: day.weekday.isEven ? AppColors.lightBlue : Colors.transparent,
         text: '',

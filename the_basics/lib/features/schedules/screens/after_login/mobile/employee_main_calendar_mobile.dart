@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_employee_search_dialog_mobile.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog_mobile.dart';
 import 'package:the_basics/features/schedules/usecases/show_tags_filtering_dialog_mobile.dart';
@@ -28,12 +30,13 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
   final int _visibleDays = 3;
   
   final CalendarController _calendarController = CalendarController();
-
+  final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
+ 
   @override
   void initState() {
     super.initState();
     _calendarController.displayDate =
-        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 8);
+        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 5);
 
     final userController = Get.find<UserController>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -66,7 +69,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
       _visibleStartDate =
           _visibleStartDate.subtract(Duration(days: _visibleDays));
       _calendarController.displayDate =
-        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 8);
+        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 5);
     });
   }
 
@@ -74,7 +77,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
     setState(() {
       _visibleStartDate = _visibleStartDate.add(Duration(days: _visibleDays));
     _calendarController.displayDate =
-        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 8);
+        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 5);
     });
   }
 
@@ -89,9 +92,6 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
       final int startMinute = shift.start.minute;
       final int endHour = shift.end.hour;
       final int endMinute = shift.end.minute;
-
-      final int dayOfWeek = shift.shiftDate.weekday;
-      final isMorningShift = dayOfWeek % 2 == 0;
 
       return Appointment(
         startTime: DateTime(
@@ -108,76 +108,15 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
           endHour,
           endMinute,
         ),
-        subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
+        subject: 'Zmiana',
         resourceIds: <Object>[shift.employeeID],
-        color: isMorningShift ? AppColors.logo : AppColors.logolighter,
+        color: AppColors.logo,
         notes: shift.tags.join(', '),
         id: '${shift.employeeID}_${shift.shiftDate.day}_${shift.start.hour}:${shift.start.minute}_${shift.end.hour}:${shift.end.minute}',
       );
     }).toList();
 
     return baseAppointments;
-  }
-
-  List<TimeRegion> _getSpecialRegions() {
-    final DateTime now = DateTime.now();
-    final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
-
-    return List.generate(30, (index) {
-      final day = monday.add(Duration(days: index));
-      return TimeRegion(
-        startTime: DateTime(day.year, day.month, day.day, 8, 0),
-        endTime: DateTime(day.year, day.month, day.day, 20, 0),
-        enablePointerInteraction: false,
-        color: day.weekday.isEven
-            ? AppColors.lightBlue.withOpacity(0.2)
-            : AppColors.transparent,
-      );
-    });
-  }
-
-  Widget _buildAppointmentWidget(
-    BuildContext context,
-    CalendarAppointmentDetails calendarAppointmentDetails,
-  ) {
-    final appointment = calendarAppointmentDetails.appointments.first;
-    return Container(
-      decoration: BoxDecoration(
-        color: appointment.color,
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(
-          color: AppColors.white,
-          width: 0.5,
-        ),
-      ),
-      margin: const EdgeInsets.all(1),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
-            '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
-            style: TextStyle(
-              color: AppColors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (appointment.subject.isNotEmpty)
-            Text(
-              appointment.subject.replaceAll(' - ', ' '),
-              style: TextStyle(
-                color: AppColors.white,
-                fontSize: 9,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-        ],
-      ),
-    );
   }
 
   Widget _buildEmployeeCalendar(UserModel employee, List<UserModel> filteredEmployees) {
@@ -207,16 +146,16 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
             headerHeight: 0,
             firstDayOfWeek: 1,
             dataSource: _CalendarDataSource(_getAppointments(employee.id)),
-            specialRegions: _getSpecialRegions(),
-            appointmentBuilder: _buildAppointmentWidget,
+            specialRegions: _regionsBuilder.getSpecialRegions(),
+            appointmentBuilder: buildAppointmentWidget,
             allowedViews: const [],
             allowViewNavigation: true,
             viewHeaderHeight: 30,
             todayHighlightColor: AppColors.logo,
             showCurrentTimeIndicator: true,
             timeSlotViewSettings: const TimeSlotViewSettings(
-              startHour: 8,
-              endHour: 21,
+              startHour: 5,
+              endHour: 22,
               timeInterval: Duration(hours: 1),
               timeIntervalWidth: 12,
               timeTextStyle: TextStyle(color: AppColors.transparent, fontSize: 0),

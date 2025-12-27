@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
@@ -25,7 +28,9 @@ class EmployeeMainCalendar extends StatefulWidget {
 
 class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
   final CalendarController _calendarController = CalendarController();
-
+  final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
+  final AppointmentConverter _appointmentConverter = AppointmentConverter();
+  
   final platformController = Get.find<PlatformController>();
   // use method from this to detect device!
 
@@ -104,25 +109,6 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
 
     return baseAppointments;
   }
-
-
-  List<TimeRegion> _getSpecialRegions() {
-    final DateTime now = DateTime.now();
-    final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
-
-    return List.generate(365, (index) {
-      final day = monday.subtract(const Duration(days: 180)).add(Duration(days: index));
-      return TimeRegion(
-        startTime: DateTime(day.year, day.month, day.day, 8, 0),
-        endTime: DateTime(day.year, day.month, day.day, 20, 59),
-        enablePointerInteraction: false,
-        color: day.weekday.isEven ? AppColors.lightBlue : Colors.transparent,
-        text: '',
-      );
-    });
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +204,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                           }
 
                           // Get appointments from schedule
-                          final appointments = _getAppointments(userController.filteredEmployees);
+                          final appointments = _appointmentConverter.getAppointments(userController.filteredEmployees);
 
                           if (appointments.isEmpty) {
                             return const Center(
@@ -252,7 +238,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                                   appointments,
                                   userController.filteredEmployees,
                                 ),
-                                specialRegions: _getSpecialRegions(),
+                                specialRegions: _regionsBuilder.getSpecialRegions(),
                                 timeSlotViewSettings: TimeSlotViewSettings(
                                   startHour: 5,
                                   endHour: 22,
@@ -275,7 +261,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                appointmentBuilder: _buildAppointmentWidget,
+                                appointmentBuilder: buildAppointmentWidget,
                               ),
                             ],
                           );
@@ -291,53 +277,6 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
       }),
     );
   }
-
-  Widget _buildAppointmentWidget(
-      BuildContext context,
-      CalendarAppointmentDetails calendarAppointmentDetails,
-      ) {
-    final appointment = calendarAppointmentDetails.appointments.first;
-    return Container(
-      decoration: BoxDecoration(
-        color: appointment.color,
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(
-          color: AppColors.white,
-          width: 0.5,
-        ),
-      ),
-      margin: const EdgeInsets.all(1),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
-                '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
-            style: TextStyle(
-              color: AppColors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (appointment.subject.isNotEmpty)
-            Text(
-              appointment.subject.replaceAll(' - ', ' '),
-              style: TextStyle(
-                color: AppColors.white,
-                fontSize: 9,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-        ],
-      ),
-    );
-  }
-
-
-
 
   Widget _buildTagFilterDropdown(TagsController tagsController) {
     return Obx(() {

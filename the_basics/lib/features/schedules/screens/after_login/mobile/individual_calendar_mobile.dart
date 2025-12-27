@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog_mobile.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
@@ -95,10 +96,6 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
     final int endHour = shift.end.hour;
     final int endMinute = shift.end.minute;
 
-    final int dayOfWeek = shift.shiftDate.weekday;
-    final isMorningShift = dayOfWeek% 2 == 0;
-
-
     return Appointment(
       startTime: DateTime(
           shift.shiftDate.year,
@@ -115,8 +112,8 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
           endMinute
       ),
       resourceIds: <Object>[shift.employeeID],
-      subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
-      color: isMorningShift ? AppColors.logo : AppColors.logolighter,
+      subject: 'Zmiana',
+      color: AppColors.logo,
       id: '${shift.employeeID}_${shift.shiftDate.day}_${shift.start.hour}:${shift.start.minute}_${shift.end.hour}:${shift.end.minute}',
     );
   }).toList();
@@ -188,49 +185,6 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
   return baseAppointments;
 }
 
-
-  Widget _buildAppointmentWidget(
-      BuildContext context, CalendarAppointmentDetails details) {
-    final appointment = details.appointments.first;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: appointment.color,
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(
-          color: AppColors.white,
-          width: 0.5,
-        ),
-      ),
-      margin: const EdgeInsets.all(1),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
-            '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (appointment.subject.isNotEmpty)
-            Text(
-              appointment.subject,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -361,7 +315,7 @@ body: Padding(
     showNavigationArrow: false,
     headerHeight: 0,
     dataSource: _CalendarDataSource(appointments),
-    appointmentBuilder: _buildAppointmentWidget,
+    appointmentBuilder: buildAppointmentWidget,
     firstDayOfWeek: 1,
     todayHighlightColor: AppColors.logo,
     minDate: _visibleStartDate,
