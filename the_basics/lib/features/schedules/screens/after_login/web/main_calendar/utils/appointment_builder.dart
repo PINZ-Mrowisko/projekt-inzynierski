@@ -18,6 +18,8 @@ Widget buildAppointmentWidget(
 
   final appointment = calendarAppointmentDetails.appointments.first;
 
+  final isLeave = appointment.subject.toLowerCase().contains('urlop');
+
   // Parse REAL times from appointment ID or notes - we do this to achieve same tile length for all appointments
   // we keep real end time in id, meanwhile pass fake end time to builder
 
@@ -26,7 +28,7 @@ Widget buildAppointmentWidget(
 
   return Container(
     decoration: BoxDecoration(
-      color: appointment.color,
+      color: isLeave ? Colors.orangeAccent : appointment.color,
       borderRadius: BorderRadius.circular(3),
       border: Border.all(
         color: AppColors.white,
@@ -39,18 +41,38 @@ Widget buildAppointmentWidget(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
-              '${realEndTime?.hour}:${realEndTime?.minute.toString().padLeft(2, '0')}',
-          style: TextStyle(
-            color: AppColors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
+        if (isLeave)
+          Text(
+            'Urlop',
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          )
+        else
+          Text(
+            '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
+                '${realEndTime?.hour}:${realEndTime?.minute.toString().padLeft(2, '0')}',
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        if (appointment.subject.isNotEmpty)
+        if (appointment.subject.isNotEmpty && !isLeave)
           Text(
             appointment.subject.replaceAll(' - ', ' '),
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: 9,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 4,
+          ),
+        if (isLeave && appointment.notes != null && appointment.notes!.isNotEmpty)
+          Text(
+            appointment.notes!,
             style: TextStyle(
               color: AppColors.white,
               fontSize: 9,
@@ -64,6 +86,14 @@ Widget buildAppointmentWidget(
 }
 
 Map<String, TimeOfDay> _parseRealTimes(Appointment appointment) {
+
+  if (appointment.subject.toLowerCase().contains('urlop')) {
+    // for leaves we just return standard 8-16 time
+    return {
+      'start': TimeOfDay(hour: 8, minute: 0),
+      'end': TimeOfDay(hour: 16, minute: 0),
+    };
+  }
 
   // Check if ID exists and has the expected format
   if (appointment.id != null) {
