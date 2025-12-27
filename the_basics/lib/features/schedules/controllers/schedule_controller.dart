@@ -75,6 +75,7 @@ class SchedulesController extends GetxController {
     }
   }
 
+  /// UPDATED
   /// fetch and parse a generated schedule into individual shifts
   /// this current logic implies 1 month being kept at all times in the controller
   /// we could in theory load all published Months, but that needs to be discussed
@@ -118,49 +119,52 @@ class SchedulesController extends GetxController {
 
       for (final entry in generatedSchedule.entries) {
         final dateString = entry.key;
-        final dateData = entry.value as Map<String, dynamic>;
+        final dateShifts = entry.value as List<dynamic>?; // now LIST of assignments
 
+        if (dateShifts == null || dateShifts.isEmpty) {
+          print('No shifts found for date $dateString');
+          continue;
+        }
 
+        // extract each shift data
+        for (final shiftData in dateShifts) {
+          if (shiftData is! Map<String, dynamic>) {
+            print('Shift data is not a Map, type: ${shiftData.runtimeType}');
+            continue;
+          }
 
-        // extract assignments for this date
-        final assignments = dateData['assignments'] as List<dynamic>? ?? [];
-
-
-        if (assignments.isNotEmpty) {
-          final startStr = dateData['start'] as String? ?? '00:00';
-          final endStr = dateData['end'] as String? ?? '00:00';
+          final assignments = shiftData['assignments'] as List<dynamic>? ?? [];
+          final startStr = shiftData['start'] as String? ?? '00:00';
+          final endStr = shiftData['end'] as String? ?? '00:00';
+          final duration = (shiftData['duration'] as num?)?.toDouble() ?? 0.0;
 
           final startTime = _parseTimeOfDay(startStr);
           final endTime = _parseTimeOfDay(endStr);
 
-          for (int i = 0; i < assignments.length; i++) {
-            final assignment = assignments[i];
-
-            if (assignment is Map<String, dynamic>) {
-              final assignmentMap = assignment;
-
-              final shift = ScheduleModel(
-                shiftDate: DateTime.parse(dateString),
-                employeeID: assignmentMap['workerId'] as String? ?? '',
-                employeeFirstName: assignmentMap['firstName'] as String? ?? '',
-                employeeLastName: assignmentMap['lastName'] as String? ?? '',
-                start: startTime,
-                end: endTime,
-                duration: (dateData['duration'] as num?)?.toInt() ?? 0,
-                tags: List<String>.from(assignmentMap['tags'] as List<dynamic>? ?? []),
-                isDataMissing: false,
-                isDeleted: false,
-                insertedAt: DateTime.now(),
-                updatedAt: DateTime.now(),
-              );
-
-              parsedShifts.add(shift);
-            } else {
-              print('Assignment $i is not a Map, type: ${assignment.runtimeType}');
+          // for every assignment in assignments list
+          for (final assignment in assignments) {
+            if (assignment is! Map<String, dynamic>) {
+              print('Assignment is not a Map, type: ${assignment.runtimeType}');
+              continue;
             }
+
+            final shift = ScheduleModel(
+              shiftDate: DateTime.parse(dateString),
+              employeeID: assignment['workerId'] as String? ?? '',
+              employeeFirstName: assignment['firstName'] as String? ?? '',
+              employeeLastName: assignment['lastName'] as String? ?? '',
+              start: startTime,
+              end: endTime,
+              duration: duration.toInt(),
+              tags: List<String>.from(assignment['tags'] as List<dynamic>? ?? []),
+              isDataMissing: false,
+              isDeleted: false,
+              insertedAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            );
+
+            parsedShifts.add(shift);
           }
-        } else {
-          print('No assignments found for date $dateString');
         }
       }
 
@@ -169,6 +173,7 @@ class SchedulesController extends GetxController {
 
       individualShifts.assignAll(parsedShifts);
 
+      print('[DEBUG] Successfully parsed ${parsedShifts.length} shifts');
 
     } catch (e) {
       errorMessage.value = 'Failed to load schedule: $e';
@@ -178,39 +183,64 @@ class SchedulesController extends GetxController {
       isLoading(false);
     }
   }
-
-
-  /// parse : individual shifts back to generated_schedules Map
-  /// changes List of ScheduleModels -> Map ready to be saved in FB
+  
+  /// UPDATED
+  /// convert list of ScheduleModel shifts back into generated_schedule Map format
   Map<String, dynamic> convertShiftsToGeneratedSchedule(List<ScheduleModel> shifts) {
-    final Map<String, Map<String, dynamic>> scheduleByDate = {};
+    final Map<String, List<Map<String, dynamic>>> scheduleByDate = {};
 
     for (final shift in shifts) {
       final dateKey = '${shift.shiftDate.year}-${shift.shiftDate.month.toString().padLeft(2, '0')}-${shift.shiftDate.day.toString().padLeft(2, '0')}';
 
-      if (!scheduleByDate.containsKey(dateKey)) {
-        scheduleByDate[dateKey] = {
+      // find if this shift time already exists for the date
+      final existingShiftIndex = scheduleByDate[dateKey]?.indexWhere((s) => 
+        s['start'] == '${shift.start.hour.toString().padLeft(2, '0')}:${shift.start.minute.toString().padLeft(2, '0')}' &&
+        s['end'] == '${shift.end.hour.toString().padLeft(2, '0')}:${shift.end.minute.toString().padLeft(2, '0')}'
+      );
+
+      if (existingShiftIndex != null && existingShiftIndex >= 0) {
+        // add to existing shift
+        final assignment = {
+          'workerId': shift.employeeID,
+          'firstName': shift.employeeFirstName,
+          'lastName': shift.employeeLastName,
+          'tags': shift.tags,
+        };
+        scheduleByDate[dateKey]![existingShiftIndex]['assignments'].add(assignment);
+      } else {
+        // create new shift entry
+        if (!scheduleByDate.containsKey(dateKey)) {
+          scheduleByDate[dateKey] = [];
+        }
+
+        final newShift = {
           'start': '${shift.start.hour.toString().padLeft(2, '0')}:${shift.start.minute.toString().padLeft(2, '0')}',
           'end': '${shift.end.hour.toString().padLeft(2, '0')}:${shift.end.minute.toString().padLeft(2, '0')}',
-          'assignments': [],
-          'duration': shift.duration
+          'assignments': [
+            {
+              'workerId': shift.employeeID,
+              'firstName': shift.employeeFirstName,
+              'lastName': shift.employeeLastName,
+              'tags': shift.tags,
+            }
+          ],
+          'duration': shift.duration,
+          'date': dateKey,
+          'day': _getDayName(shift.shiftDate),
         };
+
+        scheduleByDate[dateKey]!.add(newShift);
       }
-
-      final assignment = {
-        'workerId': shift.employeeID,
-        'firstName': shift.employeeFirstName,
-        'lastName': shift.employeeLastName,
-        'tags': shift.tags,
-
-      };
-
-      scheduleByDate[dateKey]!['assignments'].add(assignment);
     }
 
     return scheduleByDate;
   }
 
+  /// helper to get day name from DateTime
+  String _getDayName(DateTime date) {
+    const dayNames = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'];
+    return dayNames[date.weekday - 1];
+  }
 
   // zapis zaktualizowanego grafiku - chwilowo tylko czesc generated_schedules, ale mozna rownie dobrze dorobic całosc
   // a więc tu aktualizujemy zarówną główną część Shedule + opcjonalnie generated_shifts mapę
