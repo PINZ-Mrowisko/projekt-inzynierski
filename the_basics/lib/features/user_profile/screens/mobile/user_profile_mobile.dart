@@ -121,7 +121,7 @@ class _UserProfileScreenMobileState extends State<UserProfileScreenMobile> {
         ),
         body: Obx(() {
           if (!readyToShow.value || isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: AppColors.logo));
           }
           if (user == null) {
             return const Center(child: Text("Nie udało się załadować danych użytkownika"));

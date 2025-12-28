@@ -137,7 +137,7 @@ class SideMenu extends StatelessWidget {
       child: Obx(() {
 
         if (userController.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(),);
+          return Center(child: CircularProgressIndicator(color: AppColors.logo),);
         }
         final isAdmin = userController.isAdmin.value;
 
@@ -199,12 +199,6 @@ class SideMenu extends StatelessWidget {
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(
-        icon: Icons.change_circle_outlined,
-        text: 'Giełda',
-        route: '/gielda',
-      ),
-      SizedBox(height: 4 * _scaleFactor),
-      _buildMenuItem(
         icon: Icons.person,
         text: 'Twój profil',
         route: '/twoj-profil',
@@ -230,12 +224,6 @@ class SideMenu extends StatelessWidget {
         icon: Icons.sunny,
         text: 'Wnioski urlopowe',
         route: '/wnioski-urlopowe-pracownicy',
-      ),
-      SizedBox(height: 4 * _scaleFactor),
-      _buildMenuItem(
-        icon: Icons.change_circle_outlined,
-        text: 'Giełda',
-        route: '/gielda',
       ),
       SizedBox(height: 4 * _scaleFactor),
       _buildMenuItem(

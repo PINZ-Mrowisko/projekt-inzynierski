@@ -83,6 +83,7 @@ class TemplateController extends GetxController {
         start: addedShifts[shiftIndex].start,
         end: addedShifts[shiftIndex].end,
         day: newDay,
+        obeyGeneralRules: addedShifts[shiftIndex].obeyGeneralRules
       );
 
       // and at the end replace the old shift with updated one
@@ -308,6 +309,8 @@ class TemplateController extends GetxController {
             final tagIdString = requirement['tagId'] as String? ?? '';
             final tagNameString = requirement['tagName'] as String? ?? '';
 
+            final obey = requirement['obeyGeneralRules'] as bool? ?? true;
+
             final tagIds = tagIdString.split(',').map((id) => id.trim()).toList();
             final tagNames = tagNameString.split(',').map((name) => name.trim()).toList();
 
@@ -327,6 +330,7 @@ class TemplateController extends GetxController {
               tagIds: tagIds,
               tagNames: tagNames,
               count: (requirement['count'] as num?)?.toInt() ?? 0,
+              obeyGeneralRules: obey
             );
 
             shifts.add(shift);
@@ -389,6 +393,7 @@ class TemplateController extends GetxController {
         'tagId': tagIdsString,
         'tagName': tagNamesString,
         'count': shift.count,
+        'obeyGeneralRules': shift.obeyGeneralRules
       });
       consolidated[key]['requirements'] = requirements;
     }

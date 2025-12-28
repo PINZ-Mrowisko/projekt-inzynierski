@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
 void showChooseExistingScheduleDialog(BuildContext context, Function(String?) onScheduleSelected) async {
   String? selectedSchedule;
@@ -42,11 +43,9 @@ void showChooseExistingScheduleDialog(BuildContext context, Function(String?) on
                 if (selectedSchedule != null) {
                   Get.back(result: selectedSchedule);
                 } else {
-                  Get.snackbar(
-                    'Błąd',
-                    'Proszę wybrać grafik',
-                    backgroundColor: AppColors.warning,
-                    colorText: AppColors.white,
+                  showCustomSnackbar(
+                    context,
+                    "Proszę wybrać grafik.",
                   );
                 }
               },
