@@ -4,7 +4,7 @@ import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 
-void showExportDialog(BuildContext context, VoidCallback onConfirmExport) {
+void showMainCalendarExportDialog(BuildContext context, VoidCallback onConfirmExport) {
     showDialog(
       context: context,
       builder: (context) => BaseDialog(
@@ -19,6 +19,16 @@ void showExportDialog(BuildContext context, VoidCallback onConfirmExport) {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 32,
+                fontWeight: FontWeight.w400,
+                color: AppColors.textColor2,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              "Wskazówka: Eksportowany plik PDF będzie zawierał aktualnie widoczny dla Ciebie grafik. Upewnij się, że przed eksportem wyświetlasz odpowiedni zakres dat i pracowników.\nEksportuj w trybie jasnym dla najlepszej czytelności.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textColor2,
               ),
