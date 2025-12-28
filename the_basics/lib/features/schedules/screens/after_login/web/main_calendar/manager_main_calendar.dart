@@ -249,8 +249,8 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
         ),
         specialRegions: _regionsBuilder.getSpecialRegions(),
         timeSlotViewSettings: TimeSlotViewSettings(
-          startHour: 5,
-          endHour: 22,
+          startHour: 7,
+          endHour: 21,
           timeIntervalHeight: 40,
           timeIntervalWidth: intervalWidth,
           timeInterval: const Duration(hours: 1),
