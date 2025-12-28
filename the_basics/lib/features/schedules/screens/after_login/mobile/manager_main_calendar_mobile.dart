@@ -217,7 +217,7 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
   Widget _buildEmployeeCalendar(UserModel employee, List<UserModel> filteredEmployees) {
     final appointments = _getAppointments(employee.id);
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -330,7 +330,28 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
                             SizedBox(width: 4),
                             IconButton(
                               onPressed: () {
-                                Get.toNamed('/grafik-ogolny-kierownik/edytuj-grafik', arguments: {'initialDate': _calendarController.displayDate});
+                                final userController = Get.find<UserController>();
+                                final scheduleController = Get.find<SchedulesController>();
+                                
+                                // get current schedule and market IDs
+                                final scheduleId = scheduleController.publishedScheduleID.value;
+                                final marketId = userController.employee.value.marketId;
+                                
+                                // error handling
+                                if (scheduleId.isEmpty || marketId.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Brak opublikowanego grafiku do edycji')),
+                                  );
+                                  return;
+                                }
+                                Get.toNamed(
+                                  '/grafik-ogolny-kierownik/edytuj-grafik',
+                                  arguments: {
+                                    'initialDate': _calendarController.displayDate,
+                                    'scheduleId': scheduleId,
+                                    'marketId': marketId,
+                                  },
+                                );
                               },
                               icon: const Icon(Icons.edit_outlined, size: 30),
                               color: AppColors.logo,

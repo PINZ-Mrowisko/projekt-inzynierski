@@ -130,9 +130,29 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
                                   Flexible(
                                     child: CustomButton(
                                       onPressed: () {
+                                        final userController = Get.find<UserController>();
+                                        final schedulesController = Get.find<SchedulesController>();
+
+                                        // get current schedule and market IDs
+                                        final scheduleId = schedulesController.publishedScheduleID.value;
+                                        final marketId = userController.employee.value.marketId;
+
+                                        if (scheduleId.isEmpty || marketId.isEmpty) {
+                                          // error handling
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Brak danych grafiku do edycji')),
+                                          );
+                                          return;
+                                        }
+                                        
+                                        // pass parameters to edit screen
                                         Get.toNamed(
                                           '/grafik-ogolny-kierownik/edytuj-grafik',
-                                          arguments: {'initialDate': _calendarController.displayDate},
+                                          arguments: {
+                                            'initialDate': _calendarController.displayDate,
+                                            'scheduleId': scheduleId,
+                                            'marketId': marketId,
+                                          },
                                         );
                                       },
                                       text: "Edytuj grafik",
