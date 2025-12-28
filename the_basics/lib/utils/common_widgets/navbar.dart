@@ -36,13 +36,13 @@ class NavBar extends StatelessWidget {
                 onTap: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
+                    MaterialPageRoute(builder: (context) => const PromoPage()),
                   );
                 },
                 child: Image.asset('assets/mrowisko_logo2.JPG', height: 40),
               ),
               const SizedBox(width: 40),
-              _NavItem(title: 'Strona główna', page: const HomePage()),
+              _NavItem(title: 'Strona główna', page: const PromoPage()),
               _NavItem(title: 'O aplikacji', page: const AboutPage()),
               _NavItem(title: 'Funkcjonalności', page: const FeaturesPage()),
               _NavItem(title: 'Dokumentacja', page: const DocsPage()),
