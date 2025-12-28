@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:js' as js;
-import 'dart:ui';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -30,9 +29,26 @@ class NotificationController extends GetxController {
   final RxBool systemPermissionGranted = false.obs;
 
   Future<void> initializeFCM() async {
+    print("here!!!!!!!!!!!!!");
+
     try {
       if (kIsWeb) {
-        await _initializeFCMForWeb();
+        //await FirebaseMessaging.instance.setDeliveryMetricsExportToBigQuery(true);
+
+        NotificationSettings settings =
+        await FirebaseMessaging.instance.requestPermission(
+          alert: true,
+          announcement: false,
+          badge: true,
+          carPlay: false,
+          criticalAlert: false,
+          provisional: false,
+          sound: true,
+        );
+
+        print('Notification permission: ${settings.authorizationStatus}');
+
+        //await _initializeFCMForWeb();
       } else {
         await requestPermissions();
         await _initializeLocalNotifications();
@@ -43,10 +59,15 @@ class NotificationController extends GetxController {
       final String? vapidKey = kIsWeb ? 'BEZWrpAoThiHDnceouh-VGXXrJjwuISfnI2_NNCgvCwtzwCTuz4s9MIJMxyJcshKXzW5TFFV3_QUb0ZGZxhT9s0' : null;
       final token = await _firebaseMessaging.getToken(vapidKey: vapidKey);
 
+      print("hjere is my token");
+      print(token);
+
       if (token != null) {
         currentToken.value = token;
         await _saveTokenToFirestore(token);
       }
+
+
 
       _setupTokenRefreshListener();
       _setupMessageHandlers();
