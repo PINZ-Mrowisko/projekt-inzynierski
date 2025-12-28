@@ -209,6 +209,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
           height: 56,
           child: TextField(
             controller: field.controller,
+            enabled: field.enabled,
             textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
               filled: true,
@@ -436,11 +437,13 @@ class DialogInputField {
   final String label;
   final TextEditingController? controller;
   final DialogInputType type;
+  final bool enabled;
 
   DialogInputField({
     required this.label,
     this.controller,
     this.type = DialogInputType.text,
+    this.enabled = true
   });
 }
 
