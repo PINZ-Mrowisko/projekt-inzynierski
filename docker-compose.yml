@@ -2,11 +2,11 @@ services:
   backend:
     build: ./backend-api
     ports:
-      - "8000:8000"
+      - "8080:8080"
     volumes:
       - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
     environment:
-        - GOOGLE_APPLICATION_CREDENTIALS=/app/serviceAccountKey.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/serviceAccountKey.json
   tests:
     build: ./backend-api
     command: [ "python", "-m", "unittest", "discover", "-s", "backend/tests", "-t", "." ]

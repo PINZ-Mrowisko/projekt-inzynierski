@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
@@ -10,12 +9,10 @@ import 'package:the_basics/features/reports/utils/report_exporter.dart';
 import 'package:the_basics/features/reports/utils/report_tab_type.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
-import 'package:the_basics/utils/common_widgets/generic_list.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import '../../auth/models/user_model.dart';
 import '../../employees/controllers/user_controller.dart';
 import '../../../../utils/common_widgets/side_menu.dart';
-import 'package:fl_chart/fl_chart.dart';
 
 class ReportsScreen extends StatefulWidget {
   ReportsScreen({super.key});

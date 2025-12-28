@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../features/schedules/models/schedule_doc_model.dart';
-import '../../../features/schedules/models/schedule_model.dart';
 import '../exceptions.dart';
 
 class ScheduleRepo extends GetxController {

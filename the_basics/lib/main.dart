@@ -23,7 +23,6 @@ import 'package:the_basics/features/schedules/screens/after_login/mobile/individ
 import 'package:the_basics/features/schedules/screens/after_login/web/employee_main_calendar.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/main_calendar_edit.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/individual_calendar.dart';
-import 'package:the_basics/features/schedules/screens/after_login/web/placeholder_page.dart';
 import 'package:the_basics/features/settings/screens/mobile/settings_mobile.dart';
 import 'package:the_basics/features/settings/screens/web/settings.dart';
 import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
@@ -42,7 +41,6 @@ import 'features/schedules/screens/after_login/web/main_calendar/manager_main_ca
 import 'features/tags/screens/tags.dart';
 import 'features/schedules/screens/before_login/about_page.dart';
 import 'features/schedules/screens/before_login/features_page.dart';
-import 'features/schedules/screens/before_login/home_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'features/templates/controllers/algorithm_controller.dart';
 import 'firebase_options.dart';
@@ -85,7 +83,7 @@ class MyApp extends StatelessWidget {
       //initialRoute: '/',
       initialBinding: AppBindings(),
       getPages: [
-        GetPage(name: '/', page: () => HomePage()),
+        //GetPage(name: '/', page: () => HomePage()),
         GetPage(name: '/about', page: () => AboutPage()),
         GetPage(name: '/features', page: () => FeaturesPage()),
 

@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/features/schedules/screens/before_login/home_page.dart';
 
 import '../../../data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:flutter/material.dart';
+
+import '../../employees/controllers/user_controller.dart';
 
 class VerifyEmailController extends GetxController {
   static VerifyEmailController get instance => Get.find();
@@ -54,19 +55,25 @@ sendEmailVerification([BuildContext? context]) async {
     );
   }
 
-checkEmailVerificationStatus(BuildContext context) async {
-  await FirebaseAuth.instance.currentUser?.reload();
-  final currentUser = FirebaseAuth.instance.currentUser;
+  checkEmailVerificationStatus(BuildContext context) async {
+    await FirebaseAuth.instance.currentUser?.reload();
+    final currentUser = FirebaseAuth.instance.currentUser;
 
-  if (currentUser != null && currentUser.emailVerified) {
-    Get.offAll(() => HomePage());
-  } else {
-    showCustomSnackbar(
-      context,
-      "Sprawdź swoją skrzynkę pocztową i kliknij w link weryfikacyjny.",
-    );
+    if (currentUser != null && currentUser.emailVerified) {
+      final userController = Get.find<UserController>();
+
+      if (userController.isAdmin.value) {
+        Get.offAllNamed('/grafik-ogolny-kierownik');
+      } else {
+        Get.offAllNamed('/grafik-ogolny-pracownicy');
+      }
+    } else {
+      showCustomSnackbar(
+        context,
+        "Sprawdź swoją skrzynkę pocztową i kliknij w link weryfikacyjny.",
+      );
+    }
   }
-}
 
 }
 

@@ -8,7 +8,6 @@ import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
 import '../../../../../../utils/common_widgets/side_menu.dart';
-import '../../../../../../utils/platform_controller.dart';
 import '../../../../../auth/models/user_model.dart';
 import '../../../../../employees/controllers/user_controller.dart';
 import '../../../../../../utils/app_colors.dart';
@@ -69,8 +68,10 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final totalHours = 13;
+
+    final totalHours = 14;
     final visibleDays = 8.5;
+    
     final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
 
     final userController = Get.find<UserController>();
@@ -268,8 +269,8 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       ),
       specialRegions: _regionsBuilder.getSpecialRegions(),
       timeSlotViewSettings: TimeSlotViewSettings(
-        startHour: 5, // Rozszerzamy zakres bo algorytm może generować wczesne zmiany
-        endHour: 22,
+        startHour: 7,
+        endHour: 21,
         timeIntervalHeight: 40,
         timeIntervalWidth: intervalWidth,
         timeInterval: const Duration(hours: 1),
@@ -300,6 +301,8 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       ) {
     final filteredEmployeeIds = filteredEmployees.map((e) => e.id).toSet();
 
+    final tagsController = Get.find<TagsController>();
+
     return shifts.where((shift) => filteredEmployeeIds.contains(shift.employeeID)).map((shift) {
       final startDateTime = DateTime(
         shift.shiftDate.year,
@@ -317,15 +320,22 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
         shift.end.minute,
       );
 
+      // making sure tiles in every screen look the same
+      final tagNames = _convertTagIdsToNames(shift.tags, tagsController);
+      final displayTags = tagNames.isNotEmpty 
+          ? tagNames.join(', ')
+          : 'Brak tagów';
+
       return Appointment(
         startTime: startDateTime,
-        endTime: startDateTime.add(Duration(hours: 8)), // 8 godzin dla width
-        subject: 'Zmiana',
-        color: AppColors.logo,
+        endTime: endDateTime,
+        subject: displayTags,
+        color: _getAppointmentColor(shift),
         resourceIds: <Object>[shift.employeeID],
         id: '${shift.employeeID}_${shift.shiftDate.day}_'
             '${shift.start.hour}:${shift.start.minute}_'
             '${shift.end.hour}:${shift.end.minute}',
+        notes: displayTags,
       );
     }).toList();
   }
@@ -344,6 +354,32 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       );
     });
   }
+
+  List<String> _convertTagIdsToNames(List<String> tagIds, TagsController tagsController) {
+    final List<String> tagNames = [];
+    
+    for (final tagId in tagIds) {
+      final tag = tagsController.allTags.firstWhere(
+        (t) => t.id == tagId,
+      );
+      
+      if (tag != null && tag.tagName != null && tag.tagName!.isNotEmpty) {
+        tagNames.add(tag.tagName!);
+      } else {
+        tagNames.add(tagId);
+      }
+    }
+    
+    return tagNames;
+  }
+
+Color _getAppointmentColor(ScheduleModel shift) {
+  if (shift.start.hour >= 12) {
+    return AppColors.logolighter;
+  } else {
+    return AppColors.logo;
+  }
+}
 
   Widget _buildSearchBar() {
     final userController = Get.find<UserController>();

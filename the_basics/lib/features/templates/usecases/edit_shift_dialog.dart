@@ -5,7 +5,6 @@ import 'package:the_basics/features/templates/controllers/template_controller.da
 import 'package:the_basics/features/templates/models/template_shift_model.dart';
 import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
-import '../../../utils/app_colors.dart';
 import 'helpers/count_selector_widget.dart';
 import 'helpers/dialog_action_buttons.dart';
 import 'helpers/tags_selection_widget.dart';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/calendar_state_manager.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_generation_service.dart';
@@ -29,9 +30,11 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
   final CalendarStateManager _stateManager = CalendarStateManager();
   final AppointmentConverter _appointmentConverter = AppointmentConverter();
   final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
-    final ScheduleGenerationService _generationService = ScheduleGenerationService();
+  final ScheduleGenerationService _generationService = ScheduleGenerationService();
 
   final RxList<String> _selectedTags = <String>[].obs;
+
+  final LeaveController _leaveController = Get.find<LeaveController>(); 
 
   @override
   void initState() {
@@ -60,13 +63,17 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
       marketId: userController.employee.value.marketId,
       scheduleId: schedulesController.publishedScheduleID.value,
     );
+
+    await _leaveController.fetchLeaves();
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final totalHours = 13;
+    
+    final totalHours = 14;
     final visibleDays = 8.5;
+
     final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
 
     return PopScope(
@@ -123,9 +130,29 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
                                   Flexible(
                                     child: CustomButton(
                                       onPressed: () {
+                                        final userController = Get.find<UserController>();
+                                        final schedulesController = Get.find<SchedulesController>();
+
+                                        // get current schedule and market IDs
+                                        final scheduleId = schedulesController.publishedScheduleID.value;
+                                        final marketId = userController.employee.value.marketId;
+
+                                        if (scheduleId.isEmpty || marketId.isEmpty) {
+                                          // error handling
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Brak danych grafiku do edycji')),
+                                          );
+                                          return;
+                                        }
+                                        
+                                        // pass parameters to edit screen
                                         Get.toNamed(
                                           '/grafik-ogolny-kierownik/edytuj-grafik',
-                                          arguments: {'initialDate': _calendarController.displayDate},
+                                          arguments: {
+                                            'initialDate': _calendarController.displayDate,
+                                            'scheduleId': scheduleId,
+                                            'marketId': marketId,
+                                          },
                                         );
                                       },
                                       text: "Edytuj grafik",
@@ -201,8 +228,11 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
         return const Center(child: CircularProgressIndicator());
       }
 
+      final allLeaves = _leaveController.allLeaveRequests;
+
       final appointments = _appointmentConverter.getAppointments(
         _stateManager.filteredEmployees,
+        leaves: allLeaves,
       );
 
       if (appointments.isEmpty) {
@@ -241,8 +271,9 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
         ),
         specialRegions: _regionsBuilder.getSpecialRegions(),
         timeSlotViewSettings: TimeSlotViewSettings(
-          startHour: 5,
-          endHour: 22,
+          startHour: 7,
+          endHour: 21,
+          numberOfDaysInView: 7,
           timeIntervalHeight: 40,
           timeIntervalWidth: intervalWidth,
           timeInterval: const Duration(hours: 1),

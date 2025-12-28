@@ -6,13 +6,11 @@ import 'package:the_basics/features/leaves/models/leave_model.dart';
 import 'package:the_basics/features/schedules/models/schedule_model.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
+import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
-import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
-import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../../../employees/controllers/user_controller.dart';
-import '../../../../tags/controllers/tags_controller.dart';
 import '../../../../leaves/controllers/leave_controller.dart';
 import '../../../controllers/schedule_controller.dart';
 
@@ -135,44 +133,111 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
 
     final scheduleController = Get.find<SchedulesController>();
     final userController = Get.find<UserController>();
+    final tagsController = Get.find<TagsController>();
 
     List<ScheduleModel> myShifts = scheduleController.getShiftsForEmployee(userController.employee.value.id);
 
-
     baseAppointments = myShifts.map((shift) {
-      final int startHour = shift.start.hour;
-      final int endHour = shift.start.hour;
+      final startDateTime = DateTime(
+        shift.shiftDate.year,
+        shift.shiftDate.month,
+        shift.shiftDate.day,
+        shift.start.hour,
+        shift.start.minute,
+      );
+
+      final endDateTime = DateTime(
+        shift.shiftDate.year,
+        shift.shiftDate.month,
+        shift.shiftDate.day,
+        shift.end.hour,
+        shift.end.minute,
+      );
+
+      // making sure tiles in every screen look the same
+      final tagNames = _convertTagIdsToNames(shift.tags, tagsController);
+      final displayTags = tagNames.isNotEmpty 
+          ? tagNames.join(', ')
+          : 'Brak tagów';
 
       return Appointment(
-        startTime: DateTime(
-            shift.shiftDate.year, shift.shiftDate.month, shift.shiftDate.day , startHour, 0),
-        endTime: DateTime(shift.shiftDate.year, shift.shiftDate.month, shift.shiftDate.day, endHour, 0),
-        subject: 'Zmiana',
+        startTime: startDateTime,
+        endTime: endDateTime,
+        subject: displayTags,
         resourceIds: <Object>[shift.employeeID],
-        color: AppColors.logo,
-        notes: shift.tags.join(', '),
+        color: _getAppointmentColor(shift),
+        notes: displayTags,
         id: '${shift.employeeID}_${shift.shiftDate.day}_${shift.start.hour}:${shift.start.minute}_${shift.end.hour}:${shift.end.minute}',
       );
     }).toList();
 
-
-
-    // Accepted leaves
     for (final leave in leaves) {
       if (leave.status.toLowerCase() == 'zaakceptowany' ||
           leave.status.toLowerCase() == 'mój urlop') {
+        final startDateTime = DateTime(
+          leave.startDate.year,
+          leave.startDate.month,
+          leave.startDate.day,
+          8,
+          0,
+        );
+
+        final endDateTime = DateTime(
+          leave.endDate.year,
+          leave.endDate.month,
+          leave.endDate.day,
+          16,
+          0,
+        );
+
         baseAppointments.add(
           Appointment(
-            startTime: leave.startDate,
-            endTime: leave.endDate.add(const Duration(hours: 23)),
-            subject: "Urlop: ${leave.comment}",
+            startTime: startDateTime,
+            endTime: endDateTime,
+            subject: "Urlop",
             color: Colors.orangeAccent,
+            notes: leave.comment?.isNotEmpty == true 
+                ? leave.comment!
+                : "Urlop",
           ),
         );
       }
     }
 
     return baseAppointments;
+  }
+
+  List<String> _convertTagIdsToNames(List<String> tagIds, TagsController tagsController) {
+    final List<String> tagNames = [];
+    
+    for (final tagId in tagIds) {
+      try {
+        final foundTags = tagsController.allTags.where((t) => t.id == tagId).toList();
+        
+        if (foundTags.isNotEmpty) {
+          final tag = foundTags.first;
+          if (tag.tagName != null && tag.tagName!.isNotEmpty) {
+            tagNames.add(tag.tagName!);
+          } else {
+            tagNames.add(tagId);
+          }
+        } else {
+          tagNames.add(tagId);
+        }
+      } catch (e) {
+        tagNames.add(tagId);
+      }
+    }
+    
+    return tagNames;
+  }
+
+  Color _getAppointmentColor(ScheduleModel shift) {
+    if (shift.start.hour >= 12) {
+      return AppColors.logolighter;
+    } else {
+      return AppColors.logo;
+    }
   }
 
   @override

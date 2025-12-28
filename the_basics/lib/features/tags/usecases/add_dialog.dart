@@ -11,6 +11,11 @@ void showAddTagDialog(BuildContext context, TagsController controller) {
 
   void _performAddOperation() async {
     try {
+      if(controller.nameController.text.toLowerCase() == 'kierownik') {
+        showCustomSnackbar(context, 'Tag Kierownika już istnieje');
+        return;
+      }
+
       if (controller.nameController.text.isEmpty) {
         showCustomSnackbar(context, 'Nazwa tagu nie może być pusta');
         return;
