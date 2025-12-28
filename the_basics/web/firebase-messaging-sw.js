@@ -17,59 +17,14 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('background message received:', payload);
 
-  const notificationTitle = payload.notification?.title || 'Mrowisko';
+  const notificationTitle = payload.data?.title || 'Mrowisko';
   const notificationOptions = {
-    body: payload.notification?.body || '',
+    body: payload.data?.body || '',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-72x72.png',
-    data: payload.data || {},
-    tag: `bg-notif-${Date.now()}`,
-    requireInteraction: false
+    data: payload.data,
   };
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  return self.clients.claim();
-});
-
-self.addEventListener('push', (event) => {
-  if (!event.data) return;
-
-  try {
-    const data = event.data.json();
-    if (data && data['firebase-messaging-msg-type']) {
-      return;
-    }
-  } catch (e) {
-
-  }
-});
-
-// notification click handler - need changes here later
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  const urlToOpen = self.location.origin;
-
-  event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    }).then((windowClients) => {
-      for (const client of windowClients) {
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow('/');
-      }
-    })
-  );
-});

@@ -27,11 +27,6 @@
   <!-- Manifest -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- ============================= -->
-  <!-- PWA + Flutter <-> JS bridge -->
-  <!-- ============================= -->
-
-
   <script>
     /* ============================
        DISPLAY MODE (PWA / browser)
@@ -87,36 +82,6 @@
         new CustomEvent('pwa-installed')
       );
     });
-
-
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      console.log('Attempting to register service worker...');
-
-      navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-        scope: '/',
-        updateViaCache: 'none'
-      })
-      .then(function(registration) {
-        console.log('ServiceWorker registration successful:', registration);
-
-        // Check if active
-        if (registration.active) {
-          console.log('Service Worker is active');
-        }
-
-        registration.addEventListener('updatefound', () => {
-          console.log('Service Worker update found');
-        });
-      })
-      .catch(function(err) {
-        console.error('ServiceWorker registration failed:', err);
-        console.error('Error details:', err.message, err.stack);
-      });
-    });
-  } else {
-    console.log('Service workers not supported');
-  }
 
   </script>
 </head>

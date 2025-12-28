@@ -30,11 +30,6 @@ setGlobalOptions({region: "europe-central2"});
 
 exports.createAuthUser = onCall(async (request) => {
   try {
-    // DEBUGOWANIE - sprawdź co dociera
-//    console.log("=== DEBUG START ===");
-//    console.log("request:", request.data);
-//    console.log("=== DEBUG END ===");
-
   const data = request.data;
 //  console.log("data.password:", data.password);
 //  console.log("data.email:", data.email);
@@ -55,8 +50,6 @@ exports.createAuthUser = onCall(async (request) => {
           // console.log(`Password reset email sent to: ${data.email}`);
         } catch (emailError) {
           console.error("Error sending password reset email:", emailError);
-          console.error("Error sending password reset email:", emailError);
-          // Możesz zdecydować czy rzucić błąd czy nie
           throw new functions.https.HttpsError(
             "internal",
             "nie udało się wysłać emaila: " + emailError.message,
@@ -248,12 +241,10 @@ exports.sendLeaveStatusNotification = onCall(async (request) => {
     const tokens = tokensSnapshot.docs.map((doc) => doc.data().token);
 
     const payload = {
-      notification: {
-        title,
-        body,
-      },
       data: {
         type: "LEAVE_STATUS_CHANGE",
+        title: title,
+        body: body,
         decision,
         marketId,
         userId,
