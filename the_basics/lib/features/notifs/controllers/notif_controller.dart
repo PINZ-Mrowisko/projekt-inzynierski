@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
+import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
 import '../../../data/repositiories/other/notifs/token_repo.dart';
 import '../models/token_model.dart';
 
@@ -62,6 +63,9 @@ class NotificationController extends GetxController {
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         _setupMessageHandlers();
 
+        // set this up so our settings page shows correct values
+        systemPermissionGranted.value = true;
+
         final String? vapidKey = kIsWeb ? 'BEZWrpAoThiHDnceouh-VGXXrJjwuISfnI2_NNCgvCwtzwCTuz4s9MIJMxyJcshKXzW5TFFV3_QUb0ZGZxhT9s0' : null;
         final token = await _firebaseMessaging.getToken(vapidKey: vapidKey);
 
@@ -94,15 +98,17 @@ class NotificationController extends GetxController {
 
       switch (type) {
         case 'NEW_SCHEDULE':
-          // Get.find<ScheduleController>().fe(
-          //   marketId: data['marketId'],
-          // );
+          Get.find<SchedulesController>().initialize();
           break;
 
         case 'LEAVE_STATUS_CHANGE':
-          print("im here chaning");
           Get.find<LeaveController>().fetchLeaves();
           break;
+
+          case 'NEW_LEAVE_REQUEST':
+          Get.find<LeaveController>().fetchLeaves();
+          break;
+
       }
 
 
@@ -117,10 +123,14 @@ class NotificationController extends GetxController {
         break;
 
       case 'NEW_SCHEDULE':
-      // ScheduleController.refresh()
+        Get.find<SchedulesController>().initialize();
+        break;
+
+      case 'NEW_LEAVE_REQUEST':
+        Get.find<LeaveController>().fetchLeaves();
         break;
     }
-  }
+    }
 
   void setupVisibilityRefresh() {
     if (!kIsWeb) return;
@@ -143,7 +153,11 @@ class NotificationController extends GetxController {
         break;
 
       case 'NEW_SCHEDULE':
-        Get.toNamed('/schedule');
+        Get.toNamed('/grafik-ogolny-pracownicy');
+        break;
+
+      case 'NEW_LEAVE_REQUEST':
+        Get.toNamed('/wnioski-urlopowe-kierownik');
         break;
     }
   }

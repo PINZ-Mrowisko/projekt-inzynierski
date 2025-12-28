@@ -109,12 +109,11 @@ exports.sendScheduleNotification = onCall(async (request) =>
       return { success: false, message: "No active tokens found" };}
 
     // Step 2: Create the notif payload
+    // now edited to not icnlude the payload part, just body so SW works
     const payload = {
-      notification: {
-        title,
-        body,
-      },
       data: {
+        title: title,
+        body: body,
         type: "NEW_SCHEDULE",
         marketId,
       },
@@ -358,22 +357,20 @@ exports.notifyNewLeaveRequest = onDocumentCreated(
       return;
     }
 
-    // Send FCM notification
+// modiffyied data !!
     const payload = {
-      notification: {
-        title: "Nowa prośba o nieobecność",
-        body: "Jeden z pracowników wysłał nową prośbę o nieobecność.",
-      },
       data: {
         type: "NEW_LEAVE_REQUEST",
+        title: "Nowa prośba o nieobecność",
+        body: "Jeden z pracowników wysłał nową prośbę o nieobecność.",
         marketId,
         leaveId: event.params.leaveId,
       },
     };
 
+    // remove notif from here
     const response = await admin.messaging().sendEachForMulticast({
       tokens,
-      notification: payload.notification,
       data: payload.data,
     });
 
