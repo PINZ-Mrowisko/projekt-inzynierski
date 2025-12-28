@@ -5,9 +5,12 @@ import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
 import 'package:the_basics/features/schedules/models/schedule_model.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_exporter.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_type.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../../../employees/controllers/user_controller.dart';
@@ -124,6 +127,8 @@ class IndividualCalendar extends StatefulWidget {
 
 class _IndividualCalendarState extends State<IndividualCalendar> {
   final CalendarController _calendarController = CalendarController();
+  final GlobalKey individualCalendarKey = GlobalKey();
+  final isExporting = false.obs;
 
   List<Appointment> _getAppointments(List<UserModel> filteredEmployees, List<LeaveModel> leaves) {
 
@@ -240,6 +245,48 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
     }
   }
 
+  Future<void> _exportCalendar() async {
+  try {
+    final visibleDate = _calendarController.displayDate;
+    final monthName = _getPolishMonthName(visibleDate!.month);
+    
+    await ScheduleExporter.exportToPdf(
+      type: ScheduleType.individualCalendar,
+      chartKey: individualCalendarKey,
+      title: 'Grafik indywidualny - $monthName ${visibleDate.year}',
+      visibleDate: visibleDate,
+    );
+    
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Raport został pomyślnie zapisany.");
+    }
+  } catch (e) {
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Wystąpił błąd podczas eksportu raportu: $e");
+    }
+  } finally {
+    isExporting.value = false;
+  }
+}
+
+String _getPolishMonthName(int month) {
+  switch (month) {
+    case 1: return 'Styczeń';
+    case 2: return 'Luty';
+    case 3: return 'Marzec';
+    case 4: return 'Kwiecień';
+    case 5: return 'Maj';
+    case 6: return 'Czerwiec';
+    case 7: return 'Lipiec';
+    case 8: return 'Sierpień';
+    case 9: return 'Wrzesień';
+    case 10: return 'Październik';
+    case 11: return 'Listopad';
+    case 12: return 'Grudzień';
+    default: return '';
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
@@ -340,7 +387,7 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
                       children: [
                         const Spacer(),
                         CustomButton(
-                          onPressed: () => showExportDialog(context),
+                          onPressed: () => showExportDialog(context, _exportCalendar),
                           text: "Eksportuj",
                           width: 125,
                           icon: Icons.download,
@@ -349,21 +396,24 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
                     ),
                   ),
                   Expanded(
-                    child: SfCalendar(
-                      controller: _calendarController,
-                      view: CalendarView.month,
-                      firstDayOfWeek: 1,
-                      showNavigationArrow: true,
-                      monthViewSettings: MonthViewSettings(
-                        appointmentDisplayMode:
-                            MonthAppointmentDisplayMode.appointment,
-                        appointmentDisplayCount: 2,
+                    child: RepaintBoundary(
+                      key: individualCalendarKey,
+                      child: SfCalendar(
+                        controller: _calendarController,
+                        view: CalendarView.month,
+                        firstDayOfWeek: 1,
+                        showNavigationArrow: true,
+                        monthViewSettings: MonthViewSettings(
+                          appointmentDisplayMode:
+                              MonthAppointmentDisplayMode.appointment,
+                          appointmentDisplayCount: 2,
+                        ),
+                        todayHighlightColor: AppColors.logo,
+                        dataSource: _CalendarDataSource(appointments, [employee]),
+                        appointmentBuilder: buildAppointmentWidget,
+                        headerStyle: CalendarHeaderStyle(
+                        backgroundColor: AppColors.pageBackground,),
                       ),
-                      todayHighlightColor: AppColors.logo,
-                      dataSource: _CalendarDataSource(appointments, [employee]),
-                      appointmentBuilder: buildAppointmentWidget,
-                      headerStyle: CalendarHeaderStyle(
-                      backgroundColor: AppColors.pageBackground,),
                     ),
                   ),
                 ],

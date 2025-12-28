@@ -5,12 +5,15 @@ import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/calendar_state_manager.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_exporter.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_generation_service.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_type.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
 import 'utils/appointment_builder.dart';
@@ -35,6 +38,8 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
   final RxList<String> _selectedTags = <String>[].obs;
 
   final LeaveController _leaveController = Get.find<LeaveController>(); 
+  final GlobalKey mainCalendarKey = GlobalKey();
+  final isExporting = false.obs; 
 
   @override
   void initState() {
@@ -66,6 +71,36 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
 
     await _leaveController.fetchLeaves();
   }
+
+  Future<void> _exportCalendar() async {
+  try {
+    final visibleDate = _calendarController.displayDate;
+    
+    await ScheduleExporter.exportToPdf(
+      type: ScheduleType.mainCalendar,
+      chartKey: mainCalendarKey,
+      title: 'Grafik ogólny - ${_formatWeekTitle(visibleDate!)}',
+      visibleDate: visibleDate,
+    );
+    
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Raport został pomyślnie zapisany.");
+    }
+  } catch (e) {
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Wystąpił błąd podczas eksportu raportu: $e");
+    }
+  } finally {
+    isExporting.value = false;
+  }
+}
+
+String _formatWeekTitle(DateTime date) {
+  final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+  final endOfWeek = startOfWeek.add(Duration(days: 6));
+  
+  return '${startOfWeek.day}.${startOfWeek.month} - ${endOfWeek.day}.${endOfWeek.month}.${date.year}';
+}
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +198,7 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
                                   const SizedBox(width: 10),
                                   Flexible(
                                     child: CustomButton(
-                                      onPressed: () => showExportDialog(context),
+                                      onPressed: () => showExportDialog(context, _exportCalendar),
                                       text: "Eksportuj",
                                       width: 125,
                                       icon: Icons.download,
@@ -251,49 +286,52 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
         );
       }
 
-      return SfCalendar(
-        controller: _calendarController,
-        view: CalendarView.timelineWeek,
-        showDatePickerButton: false,
-        showNavigationArrow: true,
-        headerStyle: CalendarHeaderStyle(
-          backgroundColor: AppColors.pageBackground,
-          textAlign: TextAlign.left,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+      return RepaintBoundary(
+        key: mainCalendarKey,
+        child: SfCalendar(
+          controller: _calendarController,
+          view: CalendarView.timelineWeek,
+          showDatePickerButton: false,
+          showNavigationArrow: true,
+          headerStyle: CalendarHeaderStyle(
+            backgroundColor: AppColors.pageBackground,
+            textAlign: TextAlign.left,
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-        firstDayOfWeek: 1,
-        dataSource: CustomCalendarDataSource(
-          appointments: appointments,
-          employees: _stateManager.filteredEmployees,
-        ),
-        specialRegions: _regionsBuilder.getSpecialRegions(),
-        timeSlotViewSettings: TimeSlotViewSettings(
-          startHour: 7,
-          endHour: 21,
-          numberOfDaysInView: 7,
-          timeIntervalHeight: 40,
-          timeIntervalWidth: intervalWidth,
-          timeInterval: const Duration(hours: 1),
-          timeFormat: 'HH:mm',
-          timeTextStyle: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
+          firstDayOfWeek: 1,
+          dataSource: CustomCalendarDataSource(
+            appointments: appointments,
+            employees: _stateManager.filteredEmployees,
           ),
-        ),
-        todayHighlightColor: AppColors.logo,
-        resourceViewSettings: const ResourceViewSettings(
-          visibleResourceCount: 10,
-          size: 170,
-          showAvatar: false,
-          displayNameTextStyle: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
+          specialRegions: _regionsBuilder.getSpecialRegions(),
+          timeSlotViewSettings: TimeSlotViewSettings(
+            startHour: 7,
+            endHour: 21,
+            numberOfDaysInView: 7,
+            timeIntervalHeight: 40,
+            timeIntervalWidth: intervalWidth,
+            timeInterval: const Duration(hours: 1),
+            timeFormat: 'HH:mm',
+            timeTextStyle: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
           ),
+          todayHighlightColor: AppColors.logo,
+          resourceViewSettings: const ResourceViewSettings(
+            visibleResourceCount: 10,
+            size: 170,
+            showAvatar: false,
+            displayNameTextStyle: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          appointmentBuilder: buildAppointmentWidget,
         ),
-        appointmentBuilder: buildAppointmentWidget,
       );
     });
   }
