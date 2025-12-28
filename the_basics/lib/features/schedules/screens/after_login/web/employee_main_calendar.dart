@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
+import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
@@ -35,85 +36,48 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
 
   final RxList<String> _selectedTags = <String>[].obs;
 
-  final RxBool _isScheduleLoading = false.obs;
-
   final CalendarStateManager _stateManager = CalendarStateManager();
 
+  final LeaveController _leaveController = Get.find<LeaveController>(); 
 
   @override
   void initState() {
     super.initState();
-
-    final userController = Get.find<UserController>();
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      userController.resetFilters();
-      //await _loadSchedule();
+      await _stateManager.initialize();
+      await _loadSchedule();
     });
 
     ever(_selectedTags, (tags) {
+      final userController = Get.find<UserController>();
       userController.filterEmployees(tags);
     });
-
   }
 
-  // Future<void> _loadSchedule() async {
-  //
-  //   final userController = Get.find<UserController>();
-  //   final schedulesController = Get.find<SchedulesController>();
-  //
-  //   if (schedulesController.publishedScheduleID.value.isEmpty) {
-  //     print('Brak opublikowanego grafiku');
-  //     return;
-  //   }
-  //
-  //   await _stateManager.loadSchedule(
-  //     marketId: userController.employee.value.marketId,
-  //     scheduleId: schedulesController.publishedScheduleID.value,
-  //   );
-  // }
+  Future<void> _loadSchedule() async {
+    final userController = Get.find<UserController>();
+    final schedulesController = Get.find<SchedulesController>();
 
-  List<Appointment> _getAppointments(List<UserModel> filteredEmployees) {
-    final scheduleController = Get.find<SchedulesController>();
-    List<Appointment> baseAppointments = [];
+    if (schedulesController.publishedScheduleID.value.isEmpty) {
+      print('Brak opublikowanego grafiku');
+      return;
+    }
 
-    baseAppointments = scheduleController.individualShifts.map((shift) {
+     await _stateManager.loadSchedule(
+      marketId: userController.employee.value.marketId,
+      scheduleId: schedulesController.publishedScheduleID.value,
+    );
 
-      final startDateTime = DateTime(
-        shift.shiftDate.year,
-        shift.shiftDate.month,
-        shift.shiftDate.day,
-        shift.start.hour,
-        shift.start.minute,
-      );
-
-      final endDateTime = DateTime(
-        shift.shiftDate.year,
-        shift.shiftDate.month,
-        shift.shiftDate.day,
-        shift.end.hour,
-        shift.end.minute,
-      );
-
-      return Appointment(
-        startTime: startDateTime,
-        endTime: endDateTime,
-        subject: 'Zmiana',
-        color: AppColors.logo,
-        resourceIds: <Object>[shift.employeeID],
-        notes: shift.tags.join(', '),
-      );
-
-    }).toList();
-
-    return baseAppointments;
+    await _leaveController.fetchLeaves();
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final totalHours = 13;
+
+    final totalHours = 14;
     final visibleDays = 8.5;
+    
     final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
 
     final userController = Get.find<UserController>();
@@ -185,7 +149,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                       ),
                       Expanded(
                         child: Obx(() {
-                          if (userController.isLoading.value || _isScheduleLoading.value) {
+                          if (_stateManager.isLoading.value || _stateManager.isScheduleLoading.value) {
                             return const Center(child: CircularProgressIndicator());
                           }
 
@@ -201,9 +165,10 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                               ),
                             );
                           }
+                          final allLeaves = _leaveController.allLeaveRequests;
 
                           // Get appointments from schedule
-                          final appointments = _appointmentConverter.getAppointments(userController.filteredEmployees);
+                          final appointments = _appointmentConverter.getAppointments(_stateManager.filteredEmployees, leaves: allLeaves);
 
                           if (appointments.isEmpty) {
                             return const Center(
@@ -221,8 +186,6 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                                 view: CalendarView.timelineWeek,
                                 showDatePickerButton: false,
                                 showNavigationArrow: true,
-                                // initialDisplayDate: DateTime(2026, 1, 5), // Set to your schedule start date
-                                // initialSelectedDate: DateTime(2026, 1, 5), // Set to your schedule start date
                                 headerStyle: CalendarHeaderStyle(
                                   backgroundColor: AppColors.pageBackground,
                                   textAlign: TextAlign.left,
@@ -235,12 +198,12 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                                 dataSource: _CalendarDataSource(
                                   /// Use appointments from actual schedule
                                   appointments,
-                                  userController.filteredEmployees,
+                                  _stateManager.filteredEmployees,
                                 ),
                                 specialRegions: _regionsBuilder.getSpecialRegions(),
                                 timeSlotViewSettings: TimeSlotViewSettings(
-                                  startHour: 5,
-                                  endHour: 22,
+                                  startHour: 7,
+                                  endHour: 21,
                                   timeIntervalHeight: 40,
                                   timeIntervalWidth: dynamicIntervalWidth,
                                   timeInterval: const Duration(hours: 1),
@@ -304,6 +267,11 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
         userController.filterEmployees(_selectedTags);
       },
     );
+  }
+  @override
+  void dispose() {
+    _stateManager.dispose();
+    super.dispose();
   }
 }
 
