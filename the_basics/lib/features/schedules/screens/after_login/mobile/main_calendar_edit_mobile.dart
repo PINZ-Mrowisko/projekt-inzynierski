@@ -104,6 +104,18 @@ class _MainCalendarEditMobileState extends State<MainCalendarEditMobile> {
     });
   }
 
+  String _getDateRangeText() {
+    final endDate = _visibleStartDate.add(Duration(days: _visibleDays - 1));
+    
+    if (_visibleStartDate.month == endDate.month) {
+      return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
+            '${endDate.day}.${endDate.month}';
+    } else {
+      return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
+            '${endDate.day}.${endDate.month}';
+    }
+  }
+
   void _handlePublishSchedule() {
     final scheduleController = Get.find<SchedulesController>();
 
@@ -386,8 +398,7 @@ class _MainCalendarEditMobileState extends State<MainCalendarEditMobile> {
                       onPressed: _goToPreviousRange,
                     ),
                     Text(
-                      '${_visibleStartDate.day}.${_visibleStartDate.month} - '
-                      '${_visibleStartDate.add(Duration(days: _visibleDays - 1)).day}.${_visibleStartDate.month}',
+                      _getDateRangeText(),
                       style: TextStyle(
                         fontSize: 18, 
                         fontWeight: FontWeight.bold,

@@ -86,6 +86,18 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
     });
   }
 
+  String _getDateRangeText() {
+    final endDate = _visibleStartDate.add(Duration(days: _visibleDays - 1));
+    
+    if (_visibleStartDate.month == endDate.month) {
+      return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
+            '${endDate.day}.${endDate.month}';
+    } else {
+      return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
+            '${endDate.day}.${endDate.month}';
+    }
+  }
+
   List<Appointment> _getAppointments(String userID) {
     final scheduleController = Get.find<SchedulesController>();
     final allLeaves = _leaveController.allLeaveRequests;
@@ -350,8 +362,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
                       onPressed: _goToPreviousRange,
                     ),
                     Text(
-                      '${_visibleStartDate.day}.${_visibleStartDate.month} - '
-                      '${_visibleStartDate.add(Duration(days: _visibleDays - 1)).day}.${_visibleStartDate.month}',
+                      _getDateRangeText(),
                       style: TextStyle(
                         fontSize: 18, 
                         fontWeight: FontWeight.bold,

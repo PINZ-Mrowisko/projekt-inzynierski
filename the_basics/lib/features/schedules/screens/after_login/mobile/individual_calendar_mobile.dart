@@ -84,6 +84,17 @@ void _goToNextRange() {
   });
 }
 
+String _getDateRangeText() {
+    final endDate = _visibleStartDate.add(Duration(days: _visibleDays - 1));
+    
+    if (_visibleStartDate.month == endDate.month) {
+      return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
+            '${endDate.day}.${endDate.month}';
+    } else {
+      return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
+            '${endDate.day}.${endDate.month}';
+    }
+  }
 
 /// generowanie harmonogramu dla zalogowanego użytkownika
 List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) {
@@ -305,8 +316,7 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
                       onPressed: _goToPreviousRange,
                     ),
                     Text(
-                      '${_visibleStartDate.day}.${_visibleStartDate.month} - '
-                      '${_visibleStartDate.add(Duration(days: _visibleDays - 1)).day}.${_visibleStartDate.month}',
+                      _getDateRangeText(),
                       style: TextStyle(
                         fontSize: 18, 
                         fontWeight: FontWeight.bold,
