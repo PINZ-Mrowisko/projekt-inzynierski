@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/features/templates/usecases/add_shift_dialog.dart';
-import 'package:the_basics/features/templates/usecases/edit_general_rules_dialog.dart';
 import 'package:the_basics/features/templates/usecases/edit_shift_dialog.dart';
 import 'package:the_basics/features/templates/usecases/save_edits_dialog.dart';
 import 'package:the_basics/features/templates/usecases/show_confirmations.dart';

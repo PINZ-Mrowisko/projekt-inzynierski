@@ -7,12 +7,9 @@ import 'package:the_basics/features/schedules/models/schedule_model.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
-import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
-import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../../../employees/controllers/user_controller.dart';
-import '../../../../tags/controllers/tags_controller.dart';
 import '../../../../leaves/controllers/leave_controller.dart';
 import '../../../controllers/schedule_controller.dart';
 
