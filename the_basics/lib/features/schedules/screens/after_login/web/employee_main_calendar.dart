@@ -16,7 +16,6 @@ import '../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../controllers/schedule_controller.dart';
-import '../../../models/schedule_model.dart';
 import 'main_calendar/utils/calendar_state_manager.dart';
 
 class EmployeeMainCalendar extends StatefulWidget {

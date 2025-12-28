@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:the_basics/data/repositiories/user/user_repo.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
-import '../../../data/repositiories/user/user_settings_repo.dart';
 import '../../../utils/common_widgets/notification_snackbar.dart';
 import '../../settings/models/user_settings_model.dart';
 
@@ -39,7 +38,7 @@ class UserController extends GetxController {
   Future<void> initialize() async {
     try {
       isLoading(true);
-      final user = await fetchCurrentUserRecord();
+      await fetchCurrentUserRecord();
       //loadSettings();
 
       await fetchAllEmployees();
