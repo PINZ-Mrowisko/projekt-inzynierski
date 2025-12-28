@@ -46,7 +46,6 @@ Widget buildAppointmentWidget(
             fontSize: 10,
             fontWeight: FontWeight.w600,
           ),
-          overflow: TextOverflow.ellipsis,
         ),
         
         // tags or leave comment
