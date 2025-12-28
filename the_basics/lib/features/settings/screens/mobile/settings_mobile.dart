@@ -160,16 +160,22 @@ class SettingsScreenMobile extends StatelessWidget {
         children: [
           _settingsSwitch(
             title: 'Powiadom mnie o nowych grafikach',
-            value: user.scheduleNotifs && notifController.systemPermissionGranted.value,
+            value: user.scheduleNotifs,
             onChanged: (val) async {
-
-              if (val == true && !notifController.systemPermissionGranted.value) {
-                await notifController.requestPermissions();
+              if (val == true) {
                 await notifController.checkSystemPermission();
 
                 if (!notifController.systemPermissionGranted.value) {
-                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach telefonu.");
-                  return;
+                  await notifController.requestPermissions();
+                  await notifController.checkSystemPermission();
+
+                  if (!notifController.systemPermissionGranted.value) {
+                    showCustomSnackbar(
+                      context,
+                      "Musisz włączyć powiadomienia w ustawieniach systemu.",
+                    );
+                    return;
+                  }
                 }
               }
 
@@ -183,19 +189,25 @@ class SettingsScreenMobile extends StatelessWidget {
           title: user.role == "admin"
               ? 'Powiadom mnie o nowych wnioskach do zatwierdzenia'
               : 'Powiadom mnie o zmianach statusów moich wniosków',
-          value: user.leaveNotifs && notifController.systemPermissionGranted.value,
-          onChanged: (val) async {
+            value: user.leaveNotifs,
+            onChanged: (val) async {
 
-              if (val == true && !notifController.systemPermissionGranted.value) {
-                await notifController.requestPermissions();
+              if (val == true) {
                 await notifController.checkSystemPermission();
 
                 if (!notifController.systemPermissionGranted.value) {
-                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach telefonu.");
-                  return;
+                  await notifController.requestPermissions();
+                  await notifController.checkSystemPermission();
+
+                  if (!notifController.systemPermissionGranted.value) {
+                    showCustomSnackbar(
+                      context,
+                      "Musisz włączyć powiadomienia w ustawieniach systemu.",
+                    );
+                    return;
+                  }
                 }
               }
-
               userController.updateSettings("leaveNotifs", val);
             },
           ),

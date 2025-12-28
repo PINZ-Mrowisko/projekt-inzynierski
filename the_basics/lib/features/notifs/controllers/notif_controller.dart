@@ -288,15 +288,15 @@ class NotificationController extends GetxController {
     }
   }
 
-  // need to modify this notif so it sends msg to all users in a schedule
-  Future<void> testSendScheduleNotification() async {
+// now with act implementatiotn
+    Future<void> sendNewScheduleNotification(String scheduleID) async {
     // we use the same function calling style as with the auth func previously
     final functions = FirebaseFunctions.instanceFor(region: 'europe-central2');
 
     try {
       final payload = <String, dynamic>{
         'marketId': _userController.employee.value.marketId,
-        'scheduleName': 'Nowy Grafik',
+        'scheduleId': scheduleID
       };
 
       final result = await functions.httpsCallable('sendScheduleNotification').call(payload);

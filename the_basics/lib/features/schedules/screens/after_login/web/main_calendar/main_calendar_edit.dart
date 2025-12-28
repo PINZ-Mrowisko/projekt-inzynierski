@@ -12,6 +12,7 @@ import '../../../../../../utils/platform_controller.dart';
 import '../../../../../auth/models/user_model.dart';
 import '../../../../../employees/controllers/user_controller.dart';
 import '../../../../../../utils/app_colors.dart';
+import '../../../../../notifs/controllers/notif_controller.dart';
 import '../../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
@@ -362,6 +363,8 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     final scheduleController = Get.find<SchedulesController>();
 
     scheduleController.publishSchedule(marketId: marketId, scheduleId: scheduleId);
+
+    Get.find<NotificationController>().sendNewScheduleNotification(scheduleId);
 
     showCustomSnackbar(
       context,
