@@ -15,7 +15,9 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  console.log('background message received:', payload);
+  //console.log('background message received:', payload);
+
+  const data = payload.data || {};
 
   const notificationTitle = payload.data?.title || 'Mrowisko';
   const notificationOptions = {
@@ -25,6 +27,46 @@ messaging.onBackgroundMessage((payload) => {
     data: payload.data,
   };
 
+  // zapisujemy typ zdarzenia = zeby moc robic refresh na bg notifs
+
+    self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'FCM_EVENT',
+          eventType: data.type,
+        });
+      });
+    });
+
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
+// obsługujemy klikniecie w powaidomienie:
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const eventType = event.notification.data?.type;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clients) => {
+        if (clients.length > 0) {
+          const client = clients[0];
+          client.focus();
+          client.postMessage({
+            type: 'FCM_CLICK',
+            eventType,
+          });
+          // if app not open then we need to openWidnow()
+        } else {
+          self.clients.openWindow('/').then((client) => {
+            client?.postMessage({
+              type: 'FCM_CLICK',
+              eventType,
+            });
+          });
+        }
+      })
+  );
+});

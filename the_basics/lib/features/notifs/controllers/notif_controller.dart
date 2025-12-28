@@ -1,4 +1,4 @@
-import 'dart:ui' as html;
+import 'dart:html' as html;
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -29,6 +29,28 @@ class NotificationController extends GetxController {
   final RxBool systemPermissionGranted = false.obs;
 
   Future<void> initializeFCM() async {
+    // this bit of code will help us register the need for a refresh after a bg notif
+    // it listens to messages left by SW
+
+    setupVisibilityRefresh();
+
+    if (kIsWeb) {
+      html.window.onMessage.listen((event) {
+        final data = event.data;
+        if (data is! Map) return;
+
+        switch (data['type']) {
+          case 'FCM_EVENT':
+            _handleBackgroundEvent(data['eventType']);
+            break;
+
+          case 'FCM_CLICK':
+            _handleNotificationClick(data['eventType']);
+            break;
+        }
+      });
+    }
+
     try {
       NotificationSettings settings = await _firebaseMessaging.requestPermission(
         alert: true,
@@ -87,6 +109,46 @@ class NotificationController extends GetxController {
     } else {
     }
   }
+
+  void _handleBackgroundEvent(String eventType) {
+    switch (eventType) {
+      case 'LEAVE_STATUS_CHANGE':
+        Get.find<LeaveController>().fetchLeaves();
+        break;
+
+      case 'NEW_SCHEDULE':
+      // ScheduleController.refresh()
+        break;
+    }
+  }
+
+  void setupVisibilityRefresh() {
+    if (!kIsWeb) return;
+
+    html.document.onVisibilityChange.listen((_) {
+      if (html.document.visibilityState == 'visible') {
+        Get.find<LeaveController>().fetchLeaves();
+      }
+    });
+  }
+
+  void _handleNotificationClick(String eventType) {
+    // odwiezazmy
+    _handleBackgroundEvent(eventType);
+
+    // nawigujemy do konkretnej strony
+    switch (eventType) {
+      case 'LEAVE_STATUS_CHANGE':
+        Get.toNamed('/wnioski-urlopowe-pracownicy');
+        break;
+
+      case 'NEW_SCHEDULE':
+        Get.toNamed('/schedule');
+        break;
+    }
+  }
+
+
 
 
   Future<void> checkSystemPermission() async {
