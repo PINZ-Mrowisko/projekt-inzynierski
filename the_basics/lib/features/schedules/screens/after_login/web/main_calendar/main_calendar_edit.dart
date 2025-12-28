@@ -267,8 +267,8 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       ),
       specialRegions: _regionsBuilder.getSpecialRegions(),
       timeSlotViewSettings: TimeSlotViewSettings(
-        startHour: 5, // Rozszerzamy zakres bo algorytm może generować wczesne zmiany
-        endHour: 22,
+        startHour: 7,
+        endHour: 21,
         timeIntervalHeight: 40,
         timeIntervalWidth: intervalWidth,
         timeInterval: const Duration(hours: 1),
@@ -318,6 +318,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
         shift.end.minute,
       );
 
+      // making sure tiles in every screen look the same
       final tagNames = _convertTagIdsToNames(shift.tags, tagsController);
       final displayTags = tagNames.isNotEmpty 
           ? tagNames.join(', ')
