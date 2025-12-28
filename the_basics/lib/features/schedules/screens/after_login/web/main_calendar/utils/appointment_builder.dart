@@ -34,6 +34,7 @@ Widget buildAppointmentWidget(
     margin: const EdgeInsets.all(1),
     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
     child: Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -56,7 +57,7 @@ Widget buildAppointmentWidget(
               fontSize: 9,
             ),
             overflow: TextOverflow.ellipsis,
-            maxLines: 2,
+            maxLines: 1,
           ),
       ],
     ),

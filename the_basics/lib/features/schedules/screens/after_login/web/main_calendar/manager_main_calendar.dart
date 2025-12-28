@@ -70,8 +70,10 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final totalHours = 13;
+    
+    final totalHours = 14;
     final visibleDays = 8.5;
+
     final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
 
     return PopScope(
@@ -251,6 +253,7 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
         timeSlotViewSettings: TimeSlotViewSettings(
           startHour: 7,
           endHour: 21,
+          numberOfDaysInView: 7,
           timeIntervalHeight: 40,
           timeIntervalWidth: intervalWidth,
           timeInterval: const Duration(hours: 1),

@@ -74,8 +74,10 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final totalHours = 13;
+
+    final totalHours = 14;
     final visibleDays = 8.5;
+    
     final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
 
     final userController = Get.find<UserController>();

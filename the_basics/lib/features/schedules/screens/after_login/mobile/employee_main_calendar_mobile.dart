@@ -212,6 +212,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
 
   Widget _buildEmployeeCalendar(UserModel employee, List<UserModel> filteredEmployees) {
     final appointments = _getAppointments(employee.id);
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,11 +247,11 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
             viewHeaderHeight: 30,
             todayHighlightColor: AppColors.logo,
             showCurrentTimeIndicator: true,
-            timeSlotViewSettings: const TimeSlotViewSettings(
+            timeSlotViewSettings: TimeSlotViewSettings(
               startHour: 7,
               endHour: 21,
-              timeInterval: Duration(hours: 1),
-              timeIntervalWidth: 12,
+              timeInterval: const Duration(hours: 1),
+              timeIntervalWidth: screenWidth / (3 * 14),
               timeTextStyle: TextStyle(color: AppColors.transparent, fontSize: 0),
               numberOfDaysInView: 3,
             ),
