@@ -4,6 +4,7 @@ import 'package:the_basics/features/schedules/screens/after_login/web/main_calen
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/confirm_schedule_publish_dialog.dart';
 import 'package:the_basics/features/schedules/usecases/show_confirmations.dart';
+import 'package:the_basics/features/schedules/widgets/shift_edit_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
@@ -31,7 +32,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
   final CalendarController _calendarController = CalendarController();
   final RxList<String> _selectedTags = <String>[].obs;
 
-  final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
+  final SpecialRegionsBuilderForEdit _regionsBuilder = SpecialRegionsBuilderForEdit();
 
 
   @override
@@ -56,6 +57,8 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
           marketId: marketId,
           scheduleId: scheduleId,
         );
+      } else {
+        scheduleController.createLocalSnapshot();
       }
     });
 
@@ -70,7 +73,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
     final totalHours = 14;
     final visibleDays = 8.5;
-    
+
     final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
 
     final userController = Get.find<UserController>();
@@ -92,6 +95,8 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
               child: SideMenu(
                 onNavigation: (route) {
                   showLeaveConfirmationDialog(() {
+                    final controller = Get.find<SchedulesController>();
+                    controller.discardLocalChanges();
                     Get.toNamed(route);
                   });
                 },
@@ -113,6 +118,8 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
                             icon: Icon(Icons.arrow_back, size: 28, color: AppColors.logo),
                             onPressed: () {
                               showLeaveConfirmationDialog(() {
+                                final controller = Get.find<SchedulesController>();
+                                controller.discardLocalChanges();
                                 Navigator.of(context).pop();
                               });
                             },
@@ -207,52 +214,37 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     );
   }
 
+  // 2. Zaktualizuj widget _buildCalendarBody
   Widget _buildCalendarBody({
     required double intervalWidth,
     required SchedulesController scheduleController,
     required UserController userController,
   }) {
-    // Jeśli nie ma załadowanych zmian
+    // ... (początek funkcji bez zmian - obsługa pustej listy)
     if (scheduleController.individualShifts.isEmpty) {
+      // ... (kod wyświetlania pustego stanu bez zmian)
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.schedule, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('Brak załadowanego grafiku'),
-            SizedBox(height: 8),
-
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () async {
-                await scheduleController.fetchAndParseGeneratedSchedule(
-                  marketId: marketId,
-                  scheduleId: scheduleId,
-                );
-              },
-              child: Text('Załaduj ponownie'),
-            ),
-          ],
-        ),
+        // ...
       );
     }
 
-    // Stwórz appointments z rzeczywistych danych
+    // Stwórz appointments z rzeczywistych danych (kod bez zmian)
     final appointments = _getAppointmentsFromSchedule(
       scheduleController.individualShifts,
       userController.filteredEmployees,
     );
 
-    if (appointments.isEmpty) {
-      return Center(child: Text('Brak zmian do wyświetlenia'));
-    }
+    // UWAGA: Usuwamy if (appointments.isEmpty), bo chcemy widzieć puste wiersze pracowników, żeby móc dodać zmianę!
 
     return SfCalendar(
       controller: _calendarController,
       view: CalendarView.timelineWeek,
       showDatePickerButton: false,
       showNavigationArrow: true,
+
+      // DODANO OBSŁUGĘ KLIKNIĘCIA
+      onTap: _handleCalendarTap,
+
       headerStyle: CalendarHeaderStyle(
         backgroundColor: AppColors.pageBackground,
         textAlign: TextAlign.left,
@@ -264,7 +256,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       firstDayOfWeek: 1,
       dataSource: _CalendarDataSource(
         appointments,
-        userController.filteredEmployees,
+        userController.filteredEmployees, // To zapewnia, że wiersze pracowników są widoczne nawet bez zmian
       ),
       specialRegions: _regionsBuilder.getSpecialRegions(),
       timeSlotViewSettings: TimeSlotViewSettings(
@@ -321,7 +313,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
       // making sure tiles in every screen look the same
       final tagNames = _convertTagIdsToNames(shift.tags, tagsController);
-      final displayTags = tagNames.isNotEmpty 
+      final displayTags = tagNames.isNotEmpty
           ? tagNames.join(', ')
           : 'Brak tagów';
 
@@ -356,19 +348,19 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
   List<String> _convertTagIdsToNames(List<String> tagIds, TagsController tagsController) {
     final List<String> tagNames = [];
-    
+
     for (final tagId in tagIds) {
       final tag = tagsController.allTags.firstWhere(
         (t) => t.id == tagId,
       );
-      
+
       if (tag != null && tag.tagName != null && tag.tagName!.isNotEmpty) {
         tagNames.add(tag.tagName!);
       } else {
         tagNames.add(tagId);
       }
     }
-    
+
     return tagNames;
   }
 
@@ -394,23 +386,122 @@ Color _getAppointmentColor(ScheduleModel shift) {
     );
   }
 
-  void _handlePublishSchedule() {
+  Future<void> _handlePublishSchedule() async {
     final scheduleController = Get.find<SchedulesController>();
 
-    scheduleController.publishSchedule(marketId: marketId, scheduleId: scheduleId);
+    try {
+      // Ustawiamy stan ładowania, aby zablokować UI
+      scheduleController.isLoading(true);
 
-    showCustomSnackbar(
-      context,
-      'Grafik został opublikowany!',
-    );
+      // KROK 1: Zapisz aktualny stan zmian (zmienne lokalne) do Firebase
+      // Dzięki temu zaktualizowana lista individualShifts trafi do pola 'generated_schedule' w bazie
+      await scheduleController.saveUpdatedScheduleDocument(
+        marketId: marketId,
+        scheduleId: scheduleId,
+        updatedShifts: scheduleController.individualShifts,
+      );
 
-    final routeName = '/grafik-ogolny-kierownik';
+      // KROK 2: Dopiero teraz opublikuj grafik
+      // Metoda ta zmienia status na published i pobiera świeże dane (które przed chwilą zapisaliśmy w kroku 1)
+      await scheduleController.publishSchedule(
+          marketId: marketId,
+          scheduleId: scheduleId
+      );
 
-    Get.offAllNamed(
-      routeName,
-      arguments: {},
-    );
+      if (mounted) {
+        showCustomSnackbar(
+          context,
+          'Grafik został zapisany i opublikowany!',
+        );
+      }
 
+      final routeName = '/grafik-ogolny-kierownik';
+
+      Get.offAllNamed(
+        routeName,
+        arguments: {},
+      );
+    } finally {
+      scheduleController.isLoading(false);
+    }
+  }
+
+  void _handleCalendarTap(CalendarTapDetails details) {
+    final scheduleController = Get.find<SchedulesController>();
+    final userController = Get.find<UserController>(); // Potrzebujemy dostępu do listy pracowników
+
+    // 1. EDYCJA ISTNIEJĄCEJ ZMIANY
+    if (details.targetElement == CalendarElement.appointment) {
+      final Appointment appointment = details.appointments!.first;
+
+      try {
+        final shiftToEdit = scheduleController.individualShifts.firstWhere((s) {
+          final apptId = '${s.employeeID}_${s.shiftDate.day}_${s.start.hour}:${s.start.minute}_${s.end.hour}:${s.end.minute}';
+          return apptId == appointment.id;
+        });
+
+        // Pobierz aktualne tagi pracownika z UserController
+        final employee = userController.allEmployees.firstWhereOrNull((u) => u.id == shiftToEdit.employeeID);
+        final List<String> currentEmployeeTags = employee?.tags ?? []; // Zakładam, że user.tags to List<String> (nazwy tagów)
+
+        showDialog(
+          context: context,
+          builder: (context) => ShiftEditDialog(
+            shift: shiftToEdit,
+            selectedDate: shiftToEdit.shiftDate,
+            employeeId: shiftToEdit.employeeID,
+            firstName: shiftToEdit.employeeFirstName,
+            lastName: shiftToEdit.employeeLastName,
+            employeeTags: currentEmployeeTags, // <--- PRZEKAZUJEMY TAGI
+            onSave: (updatedShift) {
+              scheduleController.updateLocalShift(shiftToEdit, updatedShift);
+            },
+            onDelete: (shiftToDelete) {
+              scheduleController.deleteLocalShift(shiftToDelete);
+            },
+          ),
+        );
+      } catch (e) {
+        print("Błąd dopasowania zmiany: $e");
+      }
+    }
+
+    // 2. DODAWANIE NOWEJ ZMIANY
+    else if (details.targetElement == CalendarElement.calendarCell) {
+      // ... Twoje zabezpieczenia (widma, index > 7) ...
+      if (details.resource != null && details.date != null) {
+
+        // Zabezpieczenie przed widmami
+        final clickedResourceId = details.resource!.id.toString();
+        final employee = userController.allEmployees.firstWhereOrNull((u) => u.id == clickedResourceId);
+
+        if (employee == null) return; // Jeśli nie znaleziono pracownika
+
+        // Normalizacja daty (jak ustaliliśmy wcześniej)
+        final DateTime clickedDate = details.date!;
+        final DateTime dayOnly = DateTime(clickedDate.year, clickedDate.month, clickedDate.day);
+
+        // Pobieramy tagi pracownika
+        final List<String> currentEmployeeTags = employee.tags;
+
+        _calendarController.selectedDate = null;
+
+        showDialog(
+          context: context,
+          builder: (context) => ShiftEditDialog(
+            shift: null,
+            selectedDate: dayOnly,
+            employeeId: employee.id,
+            firstName: employee.firstName,
+            lastName: employee.lastName,
+            employeeTags: currentEmployeeTags, // <--- PRZEKAZUJEMY TAGI
+            onSave: (newShift) {
+              scheduleController.addLocalShift(newShift);
+            },
+          ),
+        );
+      }
+    }
   }
 }
 

@@ -40,6 +40,8 @@ class SchedulesController extends GetxController {
   final RxString displayedScheduleID = ''.obs;
   final RxString publishedScheduleID = ''.obs;
 
+  List<ScheduleModel> _originalShiftsSnapshot = [];
+
   Future<void> initialize() async {
     try {
       isLoading(true);
@@ -171,6 +173,8 @@ class SchedulesController extends GetxController {
       // sort by date
       parsedShifts.sort((a, b) => a.shiftDate.compareTo(b.shiftDate));
 
+      _originalShiftsSnapshot = List.from(parsedShifts);
+
       individualShifts.assignAll(parsedShifts);
 
       print('[DEBUG] Successfully parsed ${parsedShifts.length} shifts');
@@ -181,6 +185,23 @@ class SchedulesController extends GetxController {
       rethrow;
     } finally {
       isLoading(false);
+    }
+  }
+
+  void createLocalSnapshot() {
+    // Tworzymy kopię aktualnej listy jako punkt odniesienia
+    _originalShiftsSnapshot = List.from(individualShifts);
+    print('Utworzono snapshot: ${_originalShiftsSnapshot.length} zmian');
+  }
+
+// 2. Upewnij się, że discardLocalChanges wygląda tak (już ją masz, ale dla pewności):
+  void discardLocalChanges() {
+    if (_originalShiftsSnapshot.isNotEmpty) {
+      individualShifts.assignAll(_originalShiftsSnapshot);
+    } else {
+      // Fallback: jeśli snapshot pusty, a coś było na liście, to czyścimy,
+      // ale lepiej żeby snapshot był utworzony przy wejściu.
+      if(individualShifts.isNotEmpty) individualShifts.clear();
     }
   }
   
@@ -260,6 +281,7 @@ class SchedulesController extends GetxController {
 
       // and lastly update local state
       individualShifts.assignAll(updatedShifts);
+      _originalShiftsSnapshot = List.from(updatedShifts);
 
       Get.snackbar('Sukces', 'Grafik zapisany');
     } catch (e) {
@@ -424,5 +446,28 @@ class SchedulesController extends GetxController {
     individualShifts.clear();
     errorMessage.value = '';
     isLoading(false);
+  }
+
+  // Dodaj te metody wewnątrz klasy SchedulesController
+
+  /// Dodaj nową zmianę do lokalnej listy
+  void addLocalShift(ScheduleModel newShift) {
+    individualShifts.add(newShift);
+    individualShifts.refresh(); // Wymusza odświeżenie GetX
+  }
+
+  /// Zaktualizuj istniejącą zmianę
+  void updateLocalShift(ScheduleModel oldShift, ScheduleModel updatedShift) {
+    final index = individualShifts.indexOf(oldShift);
+    if (index != -1) {
+      individualShifts[index] = updatedShift;
+      individualShifts.refresh();
+    }
+  }
+
+  /// Usuń zmianę z lokalnej listy
+  void deleteLocalShift(ScheduleModel shift) {
+    individualShifts.remove(shift);
+    individualShifts.refresh();
   }
 }
