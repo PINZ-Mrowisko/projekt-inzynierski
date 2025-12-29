@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
+import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
+import 'package:the_basics/features/schedules/models/schedule_model.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/generic_list.dart';
 import '../../../employees/controllers/user_controller.dart';
@@ -19,6 +21,8 @@ class ManagerDashboardScreen extends StatefulWidget {
 class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
   final UserController userController = Get.find<UserController>();
   final LeaveController leaveController = Get.find<LeaveController>();
+  final SchedulesController schedulesController =Get.find<SchedulesController>();
+
   final isLoading = true.obs;
   final readyToShow = false.obs;
 
@@ -33,6 +37,8 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
       try {
         await userController.fetchAllEmployees();
         await leaveController.fetchLeaves();
+        await schedulesController.initialize();
+
         await Future.delayed(const Duration(milliseconds: 50));
         
         readyToShow.value = true;
@@ -140,16 +146,32 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: _shiftTile(userController),
+                            child: Container(
+                              constraints: BoxConstraints(
+                                minHeight: 300,
+                                maxHeight: double.infinity,
+                              ),
+                              child: _shiftTile(userController, schedulesController),
+                            ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: Column(
-                              children: [
-                                Expanded(child: _leavesTile(leaveController)),
-                                const SizedBox(height: 16),
-                                Expanded(child: _importantTile()),
-                              ],
+                            child: Container(
+                              constraints: BoxConstraints(
+                                minHeight: 300,
+                                maxHeight: double.infinity,
+                              ),
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: _leavesTile(leaveController),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Expanded(
+                                    child: _importantTile(),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -166,60 +188,63 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
   }
 
   // TILE WITH CURRENT SHIFT
-  Widget _shiftTile(UserController userController) {
-    // for now: all employees are on the current shift, to change when schedules are available
-    final currentShiftEmployees = userController.allEmployees
-      .toList()
-      ..sort((a, b) => (a.firstName ?? '').compareTo(b.firstName ?? ''));
+  Widget _shiftTile(UserController userController, SchedulesController schedulesController) {
+    final now = DateTime.now();
+
+    final currentShifts = schedulesController.individualShifts
+        .where((shift) => isShiftNow(shift, now))
+        .toList()
+      ..sort((a, b) =>
+          a.employeeFirstName.compareTo(b.employeeFirstName));
+
     
     return _baseTile(
       title: "Aktualna zmiana",
-      child: currentShiftEmployees.isEmpty
+      child: currentShifts.isEmpty
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               _buildDateTimeWidget(),
               const SizedBox(height: 16),
-              Expanded(
-                child: Center(
-                  child: Text("Brak pracowników na zmianie",
-                  style: TextStyle(color: AppColors.textColor2),
+                Expanded(
+                  child: Center(
+                    child: Text("Brak aktywnej zmiany",
+                    style: TextStyle(color: AppColors.textColor2),
+                    ),
                   ),
                 ),
-              ),
             ],
           )
-        : Flexible(
-            child: Column(
+        : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildDateTimeWidget(),
                 const SizedBox(height: 16),
-                Flexible(
-                  child: GenericList<UserModel>(
-                    items: currentShiftEmployees,
-                    itemBuilder: (context, employee) {
+                Expanded(
+                  child: GenericList<ScheduleModel>(
+                    items: currentShifts,
+                    itemBuilder: (context, shift) {
                       return ListTile(
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
                         ),
                         title: Text(
-                          '${employee.firstName} ${employee.lastName}',
+                          '${shift.employeeFirstName} ${shift.employeeLastName}',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textColor1,
                           ),
                         ),
-                        subtitle: _buildEmployeeTags(employee.tags),
+                        subtitle: _buildEmployeeTags(shift.tags),
                       );
                     },
                   ),
                 ),
               ],
             ),
-          ),
     );
   }
 
@@ -257,6 +282,20 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
     );
   }
 
+  bool isShiftNow(ScheduleModel shift, DateTime now) {
+    if (shift.shiftDate.year != now.year ||
+        shift.shiftDate.month != now.month ||
+        shift.shiftDate.day != now.day) {
+      return false;
+    }
+
+    final startMinutes = shift.start.hour * 60 + shift.start.minute;
+    final endMinutes = shift.end.hour * 60 + shift.end.minute;
+    final nowMinutes = now.hour * 60 + now.minute;
+
+    return nowMinutes >= startMinutes && nowMinutes < endMinutes;
+  }
+
   // TILE WITH LEAVES TO APPROVE
   Widget _leavesTile(LeaveController leaveController) {
     final pending = leaveController.allLeaveRequests
@@ -267,16 +306,13 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
     return _baseTile(
       title: "Wnioski urlopowe do rozpatrzenia",
       child: pending.isEmpty
-          ? Expanded(
-            child: Center(
+          ? Center(
               child: Text(
                 "Brak wniosków oczekujących",
                 style: TextStyle(color: AppColors.textColor2),
               ),
-            ),
-          )
-          : Flexible(
-              child: GenericList<LeaveModel>(
+            )
+          : GenericList<LeaveModel>(
                 items: pending,
                 onItemTap: (leave) => Get.offNamed('/wnioski-urlopowe-kierownik'),
                 itemBuilder: (context, item) {
@@ -310,7 +346,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                   );
                 },
               ),
-            ),
+            
     );
   }
 
@@ -344,15 +380,12 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
     return _baseTile(
       title: "Ważne",
       child: warnings.isEmpty
-          ? Expanded(
-              child: Center(
+          ? Center(
                 child: Text("Brak ostrzeżeń",
                 style: TextStyle(color: AppColors.textColor2),
                 ),
-              ),
-            )
-          : Flexible(
-              child: GenericList<Map<String, dynamic>>(
+              )
+          : GenericList<Map<String, dynamic>>(
                 items: warnings,
                 onItemTap: (warning) => Get.offNamed('/grafik-ogolny-kierownik'),
                 itemBuilder: (context, warning) {
@@ -399,7 +432,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                   );
                 },
               ),
-            ),
+          
     );
   }
 
@@ -420,6 +453,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
         children: [
           Text(
             title,
@@ -430,10 +464,10 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
             ),
           ),
 
-          if (child != null) ...[
-            const SizedBox(height: 12),
-            child,
-          ]
+          if (child != null)
+            Expanded(
+              child: child,
+            ),
         ],
       ),
     );
