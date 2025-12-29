@@ -1,7 +1,6 @@
 // TILE WITH SCHEDULE WARNINGS
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:the_basics/features/dashboard/screens/web/dashboard_tiles/base_tile.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/generic_list.dart';

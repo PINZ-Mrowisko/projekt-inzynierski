@@ -1,63 +1,59 @@
-// TILE WITH LEAVES TO APPROVE
+// TAB WITH LEAVES TO APPROVE
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:the_basics/features/dashboard/screens/web/dashboard_tiles/base_tile.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/generic_list.dart';
 
-Widget leavesTile(LeaveController leaveController) {
+Widget leavesTab(LeaveController leaveController) {
     final pending = leaveController.allLeaveRequests
         .where((l) => l.status.toLowerCase() == 'oczekujący')
         .toList()
       ..sort((a, b) => b.startDate.compareTo(a.startDate));
 
-    return baseTile(
-      title: "Wnioski urlopowe do rozpatrzenia",
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
       child: pending.isEmpty
-          ? Center(
-              child: Text(
-                "Brak wniosków oczekujących",
-                style: TextStyle(color: AppColors.textColor2),
-              ),
-            )
-          : GenericList<LeaveModel>(
-                items: pending,
-                onItemTap: (leave) => Get.offNamed('/wnioski-urlopowe-kierownik'),
-                itemBuilder: (context, item) {
-                  final formattedDate = item.startDate == item.endDate
-                      ? DateFormat('dd.MM.yyyy').format(item.startDate)
-                      : '${DateFormat('dd.MM.yyyy').format(item.startDate)} - ${DateFormat('dd.MM.yyyy').format(item.endDate)}';
-
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    title: Text(
-                      (item.comment == "Brak komentarza" || item.comment == '')
-                          ? item.name
-                          : '${item.name} - ${item.comment}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textColor1,
+            ? const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text("Brak wniosków oczekujących"),
+              )
+            : GenericList<LeaveModel>(
+                  items: pending,
+                  onItemTap: (leave) => Get.offNamed('/wnioski-urlopowe-kierownik'),
+                  itemBuilder: (context, item) {
+                    final formattedDate = item.startDate == item.endDate
+                        ? DateFormat('dd.MM.yyyy').format(item.startDate)
+                        : '${DateFormat('dd.MM.yyyy').format(item.startDate)} - ${DateFormat('dd.MM.yyyy').format(item.endDate)}';
+      
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
-                    ),
-                    subtitle: Text(
-                      formattedDate,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textColor2,
+                      title: Text(
+                        (item.comment == "Brak komentarza" || item.comment == '')
+                            ? item.name
+                            : '${item.name} - ${item.comment}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textColor1,
+                        ),
                       ),
-                    ),
-                    trailing: _buildStatusChip(item.status),
-                  );
-                },
-              ),
-            
+                      subtitle: Text(
+                        formattedDate,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textColor2,
+                        ),
+                      ),
+                      trailing: _buildStatusChip(item.status),
+                    );
+                  },
+                ),
     );
   }
 
