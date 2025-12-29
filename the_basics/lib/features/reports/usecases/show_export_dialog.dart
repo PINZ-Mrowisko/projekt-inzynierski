@@ -23,6 +23,16 @@ void showExportDialog(BuildContext context, VoidCallback onConfirmExport) {
               color: AppColors.textColor2,
             ),
           ),
+          const SizedBox(height: 32),
+          Text(
+            "Wskazówka: Eksportuj w trybie jasnym dla najlepszej czytelności.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textColor2,
+            ),
+          ),
           const SizedBox(height: 48),
 
           Center(
