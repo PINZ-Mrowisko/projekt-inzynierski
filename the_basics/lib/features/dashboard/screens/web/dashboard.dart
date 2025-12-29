@@ -6,6 +6,7 @@ import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
 import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
 import 'package:the_basics/features/schedules/models/schedule_model.dart';
+import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/generic_list.dart';
 import '../../../employees/controllers/user_controller.dart';
@@ -22,6 +23,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
   final UserController userController = Get.find<UserController>();
   final LeaveController leaveController = Get.find<LeaveController>();
   final SchedulesController schedulesController =Get.find<SchedulesController>();
+  final TagsController tagsController =Get.find<TagsController>();
 
   final isLoading = true.obs;
   final readyToShow = false.obs;
@@ -190,7 +192,8 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
   // TILE WITH CURRENT SHIFT
   Widget _shiftTile(UserController userController, SchedulesController schedulesController) {
     final now = DateTime.now();
-
+    // use this to pass custom date to the datetime widget during testing
+    //final now = DateTime(2026, 1, 6, 10, 0);
     final currentShifts = schedulesController.individualShifts
         .where((shift) => isShiftNow(shift, now))
         .toList()
@@ -238,7 +241,8 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                             color: AppColors.textColor1,
                           ),
                         ),
-                        subtitle: _buildEmployeeTags(shift.tags),
+                        // we show tags assigned by the algorithm (so as which tag (role) is the employee working current shift)
+                        subtitle: _buildEmployeeTags(_convertTagIdsToNames(shift.tags, tagsController)),
                       );
                     },
                   ),
@@ -248,11 +252,14 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
     );
   }
 
-  Widget _buildDateTimeWidget() {
+  // for testing purposes - add an option to pass custom time to the widget
+  Widget _buildDateTimeWidget([DateTime? customNow]) {
     return StreamBuilder<DateTime>(
-      stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
+      stream: customNow == null 
+        ? Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now())
+        : Stream.value(customNow),
       builder: (context, snapshot) {
-        final now = snapshot.data ?? DateTime.now();
+        final now = snapshot.data ?? (customNow ?? DateTime.now());
         final formattedDate = DateFormat('dd.MM.yyyy').format(now);
         final formattedTime = DateFormat('HH:mm:ss').format(now);
 
@@ -294,6 +301,31 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
     final nowMinutes = now.hour * 60 + now.minute;
 
     return nowMinutes >= startMinutes && nowMinutes < endMinutes;
+  }
+
+  List<String> _convertTagIdsToNames(List<String> tagIds, TagsController tagsController) {
+    final List<String> tagNames = [];
+    
+    for (final tagId in tagIds) {
+      try {
+        final foundTags = tagsController.allTags.where((t) => t.id == tagId).toList();
+        
+        if (foundTags.isNotEmpty) {
+          final tag = foundTags.first;
+          if (tag.tagName != null && tag.tagName!.isNotEmpty) {
+            tagNames.add(tag.tagName!);
+          } else {
+            tagNames.add(tagId);
+          }
+        } else {
+          tagNames.add(tagId);
+        }
+      } catch (e) {
+        tagNames.add(tagId);
+      }
+    }
+    
+    return tagNames;
   }
 
   // TILE WITH LEAVES TO APPROVE
