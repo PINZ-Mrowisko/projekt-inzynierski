@@ -29,6 +29,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
   late DateTime initialDate;
   late String scheduleId;
   late String marketId;
+  late Rx<DateTime> _currentViewDate;
   final CalendarController _calendarController = CalendarController();
   final RxList<String> _selectedTags = <String>[].obs;
 
@@ -120,7 +121,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     marketId = args['marketId'] ?? '';
     initialDate = args['initialDate'] ?? DateTime.now();
 
-    _calendarController.displayDate = initialDate;
+    _currentViewDate = initialDate.obs;
 
     final userController = Get.find<UserController>();
     final scheduleController = Get.find<SchedulesController>();
@@ -318,6 +319,17 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       showDatePickerButton: false,
       showNavigationArrow: true,
 
+      onViewChanged: (ViewChangedDetails details) {
+        if (details.visibleDates.isNotEmpty) {
+          // Pobieramy pierwszy widoczny dzień (zazwyczaj poniedziałek w widoku tygodniowym)
+          // scheduler w microtask, aby uniknąć błędu "setState during build"
+          Future.microtask(() {
+            _currentViewDate.value = details.visibleDates.first;
+          });
+        }
+      },
+
+
       // --- SEKCJA DRAG AND DROP ---
       allowDragAndDrop: true, // 1. Włączamy drag and drop
       dragAndDropSettings: const DragAndDropSettings(
@@ -343,13 +355,15 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       firstDayOfWeek: 1,
       dataSource: _CalendarDataSource(
         appointments,
-        userController.filteredEmployees, // To zapewnia, że wiersze pracowników są widoczne nawet bez zmian
+        userController.filteredEmployees,
+        scheduleController,                // <--- Przekazujemy kontroler
+        _currentViewDate.value,
       ),
       specialRegions: _regionsBuilder.getSpecialRegions(),
       timeSlotViewSettings: TimeSlotViewSettings(
         startHour: 7,
         endHour: 21,
-        timeIntervalHeight: 40,
+        timeIntervalHeight: 70,
         timeIntervalWidth: intervalWidth,
         timeInterval: const Duration(hours: 1),
         timeFormat: 'HH:mm',
@@ -362,12 +376,59 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       resourceViewSettings: const ResourceViewSettings(
         visibleResourceCount: 10,
         size: 170,
-        showAvatar: false,
-        displayNameTextStyle: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-        ),
+        showAvatar: false, // Avatar wyłączony, bo zrobimy własny układ w builderze
       ),
+
+      // NOWY BUILDER NAGŁÓWKA PRACOWNIKA
+      resourceViewHeaderBuilder: (BuildContext context, ResourceViewHeaderDetails details) {
+        // Rozdzielamy nazwę od godzin (zakładamy format "Imię Nazwisko\n(32/40h)")
+        final parts = details.resource.displayName.split('\n');
+        final name = parts.isNotEmpty ? parts[0] : '';
+        final info = parts.length > 1 ? parts[1] : '';
+
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.blue,
+            border: Border(
+              right: BorderSide(color: Colors.grey.shade300, width: 1),
+              bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Imię i Nazwisko (pogrubione)
+              Text(
+                name,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              // 2. Godziny (mniejsze, szare)
+              if (info.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  info,
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+
       appointmentBuilder: buildAppointmentWidget,
     );
   }
@@ -593,12 +654,38 @@ Color _getAppointmentColor(ScheduleModel shift) {
 }
 
 class _CalendarDataSource extends CalendarDataSource {
-  _CalendarDataSource(List<Appointment> appointments, List<UserModel> employees) {
-    this.appointments = appointments ?? [];
-    this.resources = employees.map((employee) => CalendarResource(
-      displayName: '${employee.firstName ?? ''} ${employee.lastName ?? ''}'.trim(),
-      id: employee.id ?? '',
-      color: AppColors.blue,
-    )).toList() ?? [];
+  _CalendarDataSource(
+      List<Appointment> appointments,
+      List<UserModel> employees,
+      SchedulesController scheduleController, // <--- Dodano
+      DateTime currentWeekStart,              // <--- Dodano
+      ) {
+    this.appointments = appointments;
+
+    // Budujemy zasoby (nagłówki wierszy) z dynamicznym licznikiem godzin
+    this.resources = employees.map((employee) {
+
+      // Obliczamy godziny dla tego konkretnego pracownika
+      final workedHours = scheduleController.calculateWeeklyHours(
+          employee.id,
+          currentWeekStart
+      );
+
+      // Formatujemy tekst: "Jan Kowalski (32/40h)"
+      // Jeśli maxWeeklyHours nie jest ustawione, pokazujemy samo przepracowane
+      String hoursText = '${workedHours.toStringAsFixed(1)}h';
+      if (employee.maxWeeklyHours != null && employee.maxWeeklyHours! > 0) {
+        hoursText = '${workedHours.toStringAsFixed(1)} / ${employee.maxWeeklyHours}h';
+      }
+
+      // Kolorowanie na czerwono jeśli przekroczono normę (opcjonalny bajer)
+      // final isOvertime = employee.maxWeeklyHours != null && workedHours > employee.maxWeeklyHours!;
+
+      return CalendarResource(
+        displayName: '${employee.firstName} ${employee.lastName}\n($hoursText)', // <--- Zmiana wyświetlania
+        id: employee.id,
+        color: AppColors.blue,
+      );
+    }).toList();
   }
 }

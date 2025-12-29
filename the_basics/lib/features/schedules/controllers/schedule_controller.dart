@@ -78,6 +78,43 @@ class SchedulesController extends GetxController {
     }
   }
 
+  /// Oblicza liczbę godzin przepracowanych przez pracownika w zadanym tygodniu
+  double calculateWeeklyHours(String employeeId, DateTime weekStart) {
+    // Ustawiamy ramy czasowe tygodnia (od poniedziałku 00:00 do niedzieli 23:59)
+    // Zakładamy, że weekStart to poniedziałek (lub data, od której zaczynamy widok)
+
+    // Normalizacja daty startowej do początku dnia
+    final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
+    final end = start.add(const Duration(days: 7));
+
+    double totalHours = 0.0;
+
+    for (final shift in individualShifts) {
+      // 1. Sprawdź czy to ten pracownik
+      if (shift.employeeID != employeeId) continue;
+
+      // 2. Sprawdź czy zmiana nie jest usunięta
+      if (shift.isDeleted) continue;
+
+      // 3. Sprawdź czy data mieści się w zakresie
+      // Używamy samej daty (bez godzin) do porównania dni
+      final shiftDate = DateTime(shift.shiftDate.year, shift.shiftDate.month, shift.shiftDate.day);
+
+      if ((shiftDate.isAtSameMomentAs(start) || shiftDate.isAfter(start)) &&
+          shiftDate.isBefore(end)) {
+
+        // Obliczamy czas trwania na podstawie godzin start i end
+        // (Lepiej liczyć dynamicznie niż polegać na polu duration, które mogło nie być odświeżone)
+        double startDouble = shift.start.hour + shift.start.minute / 60.0;
+        double endDouble = shift.end.hour + shift.end.minute / 60.0;
+
+        totalHours += (endDouble - startDouble);
+      }
+    }
+
+    return totalHours;
+  }
+
   /// UPDATED
   /// fetch and parse a generated schedule into individual shifts
   /// this current logic implies 1 month being kept at all times in the controller
@@ -177,7 +214,7 @@ class SchedulesController extends GetxController {
       _originalShiftsSnapshot = List.from(parsedShifts);
 
       individualShifts.assignAll(parsedShifts);
-
+      print('[DEBUG] Raw schedule data loaded: $scheduleData');
       print('[DEBUG] Successfully parsed ${parsedShifts.length} shifts');
 
     } catch (e) {
