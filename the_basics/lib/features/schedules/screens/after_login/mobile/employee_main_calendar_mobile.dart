@@ -297,7 +297,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
                       ),
 
                       Positioned(
-                        left: 0,
+                        right: 0,
                         child: Row(
                           children: [
                             IconButton(
@@ -317,7 +317,6 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
                           ],
                         ),
                       ),
-
                     ],
                   ),
                 ),
