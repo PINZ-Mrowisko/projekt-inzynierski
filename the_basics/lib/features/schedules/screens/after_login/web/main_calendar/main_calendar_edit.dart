@@ -34,6 +34,72 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
   final SpecialRegionsBuilderForEdit _regionsBuilder = SpecialRegionsBuilderForEdit();
 
+  void _handleDragEnd(
+      AppointmentDragEndDetails details,
+      SchedulesController scheduleController,
+      UserController userController,
+      ) {
+    // Jeśli nie ma upuszczonego elementu lub czasu, nic nie rób
+    if (details.appointment == null || details.droppingTime == null) {
+      return;
+    }
+
+    final Appointment appointment = details.appointment as Appointment;
+
+    // 1. Pobieramy datę z miejsca upuszczenia (nowy dzień)
+    final DateTime dropDate = details.droppingTime!;
+
+    // 2. Szukamy ORYGINALNEJ zmiany w kontrolerze, aby pobrać starą godzinę.
+    // Dane w 'appointment' z details są już nadpisane przez kalendarz, więc nie możemy im ufać w kwestii czasu.
+    final String appointmentId = appointment.id.toString();
+
+    // Musimy odtworzyć logikę generowania ID, aby znaleźć odpowiedni element
+    // (lub jeśli masz pewność, że appointment.id jest unikalne, wystarczy wyszukać)
+    // Używamy firstWhereOrNull z pakietu 'get' lub 'collection'
+    final originalShift = scheduleController.individualShifts.firstWhereOrNull((s) {
+      final idToCheck = '${s.employeeID}_${s.shiftDate.day}_${s.start.hour}:${s.start.minute}_${s.end.hour}:${s.end.minute}';
+      return idToCheck == appointmentId;
+    });
+
+    if (originalShift == null) {
+      print("Błąd: Nie znaleziono oryginalnej zmiany w kontrolerze.");
+      return;
+    }
+
+    // 3. Pobieramy oryginalną godzinę startu z MODELU (nie z appointmentu)
+    final TimeOfDay originalTime = originalShift.start;
+
+    // 4. Tworzymy nowy czas startu: Data z upuszczenia + Godzina z oryginału
+    final DateTime newStartTime = DateTime(
+      dropDate.year,
+      dropDate.month,
+      dropDate.day,
+      originalTime.hour,
+      originalTime.minute,
+    );
+
+    // Sprawdź, na kogo upuszczono (Resource)
+    final CalendarResource? targetResource = details.targetResource;
+    String? newResourceId;
+    UserModel? newEmployeeData;
+
+    if (targetResource != null) {
+      newResourceId = targetResource.id.toString();
+      // Znajdź pełne dane pracownika w userController
+      newEmployeeData = userController.allEmployees.firstWhereOrNull(
+            (u) => u.id == newResourceId,
+      );
+    }
+
+    // Wywołaj metodę w kontrolerze
+    scheduleController.handleDragAndDropUpdate(
+      appointmentId: appointmentId,
+      newStartTime: newStartTime,
+      newResourceId: newResourceId,
+      newEmployeeData: newEmployeeData,
+    );
+  }
+
 
   @override
   void initState() {
@@ -241,6 +307,17 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       view: CalendarView.timelineWeek,
       showDatePickerButton: false,
       showNavigationArrow: true,
+
+      // --- SEKCJA DRAG AND DROP ---
+      allowDragAndDrop: true, // 1. Włączamy drag and drop
+      dragAndDropSettings: const DragAndDropSettings(
+        allowNavigation: true,
+        allowScroll: true,
+        showTimeIndicator: true,
+      ),
+      onDragEnd: (details) { // 2. Obsługa upuszczenia
+        _handleDragEnd(details, scheduleController, userController);
+      },
 
       // DODANO OBSŁUGĘ KLIKNIĘCIA
       onTap: _handleCalendarTap,

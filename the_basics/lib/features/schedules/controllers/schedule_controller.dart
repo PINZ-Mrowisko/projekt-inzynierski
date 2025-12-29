@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../../../data/repositiories/other/schedule_repo.dart';
+import '../../auth/models/user_model.dart';
 import '../../employees/controllers/user_controller.dart';
 import '../models/schedule_model.dart';
 
@@ -468,6 +469,64 @@ class SchedulesController extends GetxController {
   /// Usuń zmianę z lokalnej listy
   void deleteLocalShift(ScheduleModel shift) {
     individualShifts.remove(shift);
+    individualShifts.refresh();
+  }
+
+  /// Metoda obsługująca przeniesienie zmiany metodą Drag & Drop
+  void handleDragAndDropUpdate({
+    required String appointmentId,
+    required DateTime newStartTime,
+    required String? newResourceId,
+    required UserModel? newEmployeeData,
+  }) {
+    // 1. Znajdź oryginalną zmianę na podstawie ID przypisanego do Appointment
+    // ID w Appointment budujesz jako: '${employeeID}_${day}_${start}_${end}'
+    final index = individualShifts.indexWhere((s) {
+      final idToCheck = '${s.employeeID}_${s.shiftDate.day}_${s.start.hour}:${s.start.minute}_${s.end.hour}:${s.end.minute}';
+      return idToCheck == appointmentId;
+    });
+
+    if (index == -1) {
+      print("Nie znaleziono zmiany o ID: $appointmentId");
+      return;
+    }
+
+    final oldShift = individualShifts[index];
+
+    // 2. Oblicz nowe czasy
+    final durationInMinutes = (oldShift.end.hour * 60 + oldShift.end.minute) -
+        (oldShift.start.hour * 60 + oldShift.start.minute);
+
+    final newEndDateTime = newStartTime.add(Duration(minutes: durationInMinutes));
+
+    final newStart = TimeOfDay(hour: newStartTime.hour, minute: newStartTime.minute);
+    final newEnd = TimeOfDay(hour: newEndDateTime.hour, minute: newEndDateTime.minute);
+
+    // 3. Ustal dane pracownika (jeśli newResourceId jest null, to znaczy że pracownik się nie zmienił)
+    String targetEmployeeId = oldShift.employeeID;
+    String targetFirstName = oldShift.employeeFirstName;
+    String targetLastName = oldShift.employeeLastName;
+
+    // Sprawdź czy upuszczono na wiersz innego pracownika
+    if (newResourceId != null && newResourceId != oldShift.employeeID && newEmployeeData != null) {
+      targetEmployeeId = newEmployeeData.id;
+      targetFirstName = newEmployeeData.firstName;
+      targetLastName = newEmployeeData.lastName;
+    }
+
+    // 4. Stwórz zaktualizowany obiekt ScheduleModel
+    final updatedShift = oldShift.copyWith(
+      shiftDate: DateTime(newStartTime.year, newStartTime.month, newStartTime.day),
+      start: newStart,
+      end: newEnd,
+      employeeID: targetEmployeeId,
+      employeeFirstName: targetFirstName,
+      employeeLastName: targetLastName,
+      updatedAt: DateTime.now(),
+    );
+
+    // 5. Zaktualizuj listę (wymusi to przebudowanie kalendarza przez Obx w widoku)
+    individualShifts[index] = updatedShift;
     individualShifts.refresh();
   }
 }
