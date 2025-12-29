@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
@@ -53,7 +54,9 @@ void showChangeEmailDialogMobile(BuildContext context) {
         }
 
         try {
-          // LOGIC TO BE IMPLEMENTED
+          final _auth = FirebaseAuth.instance;
+          // this method sends the email to the new email addrress + to the previous mail also in case of change
+          await _auth.currentUser?.verifyBeforeUpdateEmail(email);
 
           Get.back();
           showCustomSnackbar(context, "Link do zmiany adresu e-mail został wysłany na: $email");
