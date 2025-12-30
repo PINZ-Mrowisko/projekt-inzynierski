@@ -320,11 +320,8 @@ class SchedulesController extends GetxController {
       // and lastly update local state
       individualShifts.assignAll(updatedShifts);
       _originalShiftsSnapshot = List.from(updatedShifts);
-
-      Get.snackbar('Sukces', 'Grafik zapisany');
     } catch (e) {
-      Get.snackbar('Błąd', 'Nie udało się zapisać: $e');
-      rethrow;
+      return Future.error('Failed to save updated schedule: $e');
     }
   }
 

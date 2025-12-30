@@ -307,7 +307,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
     final unknownUser = UserModel.empty().copyWith(
       id: 'Unknown',
-      firstName: '⚠️ Nieprzypisane', // Dodajemy ikonkę dla wyróżnienia
+      firstName: '⚠️ Brak obsady',
       lastName: '⚠️',
       marketId: marketId,
     );
@@ -386,7 +386,6 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       ),
       todayHighlightColor: AppColors.logo,
       resourceViewSettings: const ResourceViewSettings(
-        visibleResourceCount: 10,
         size: 170,
         showAvatar: false, // Avatar wyłączony, bo zrobimy własny układ w builderze
       ),
@@ -397,6 +396,31 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
         final parts = details.resource.displayName.split('\n');
         final name = parts.isNotEmpty ? parts[0] : '';
         final info = parts.length > 1 ? parts[1] : '';
+
+        Color infoColor = Colors.grey.shade700; // Domyślny kolor (szary)
+
+        final resourceId = details.resource.id.toString();
+
+        // Sprawdzamy warunek tylko dla prawdziwych pracowników (pomiń 'Unknown')
+        if (resourceId != 'Unknown') {
+          final employee = userController.allEmployees.firstWhereOrNull((u) => u.id == resourceId);
+
+          if (employee != null) {
+            // Musimy obliczyć godziny ponownie tutaj, aby sprawdzić warunek
+            // (korzystamy z tej samej metody co w DataSource)
+            final workedHours = scheduleController.calculateWeeklyHours(
+                resourceId,
+                _currentViewDate.value // Data początku tygodnia z widoku
+            );
+
+            // Jeśli pracownik ma limit i go przekroczył -> CZERWONY
+            if (employee.maxWeeklyHours != null &&
+                employee.maxWeeklyHours! > 0 &&
+                workedHours > employee.maxWeeklyHours!) {
+              infoColor = Colors.red;
+            }
+          }
+        }
 
         return Container(
           decoration: BoxDecoration(
@@ -428,7 +452,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
                 Text(
                   info,
                   style: TextStyle(
-                    color: Colors.grey.shade700,
+                    color: infoColor,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                   ),
@@ -694,29 +718,23 @@ class _CalendarDataSource extends CalendarDataSource {
   _CalendarDataSource(
       List<Appointment> appointments,
       List<UserModel> employees,
-      SchedulesController scheduleController, // <--- Dodano
-      DateTime currentWeekStart,              // <--- Dodano
+      SchedulesController scheduleController,
+      DateTime currentWeekStart,
       ) {
     this.appointments = appointments;
 
-    // Budujemy zasoby (nagłówki wierszy) z dynamicznym licznikiem godzin
     this.resources = employees.map((employee) {
 
-      // Obliczamy godziny dla tego konkretnego pracownika
       final workedHours = scheduleController.calculateWeeklyHours(
           employee.id,
           currentWeekStart
       );
 
-      // Formatujemy tekst: "Jan Kowalski (32/40h)"
-      // Jeśli maxWeeklyHours nie jest ustawione, pokazujemy samo przepracowane
       String hoursText = '${workedHours.toStringAsFixed(1)}h';
       if (employee.maxWeeklyHours != null && employee.maxWeeklyHours! > 0) {
         hoursText = '${workedHours.toStringAsFixed(1)} / ${employee.maxWeeklyHours}h';
       }
 
-      // Kolorowanie na czerwono jeśli przekroczono normę (opcjonalny bajer)
-      // final isOvertime = employee.maxWeeklyHours != null && workedHours > employee.maxWeeklyHours!;
 
       return CalendarResource(
         displayName: '${employee.firstName} ${employee.lastName}\n($hoursText)', // <--- Zmiana wyświetlania
