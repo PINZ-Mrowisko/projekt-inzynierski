@@ -119,7 +119,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                                         }
                                       });
                                     },
-                                    activeColor: AppColors.textColor1,
+                                    activeColor: AppColors.logo,
                                     checkColor: AppColors.pageBackground,
                                     controlAffinity: ListTileControlAffinity.leading,
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),

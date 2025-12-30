@@ -6,7 +6,7 @@ import 'package:the_basics/features/schedules/screens/after_login/web/main_calen
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/confirm_schedule_publish_dialog.dart';
 import 'package:the_basics/features/schedules/usecases/show_confirmations.dart';
-import 'package:the_basics/features/schedules/widgets/shift_edit_dialog.dart';
+import 'package:the_basics/features/schedules/usecases/shift_edit_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
@@ -184,137 +184,140 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     final scheduleController = Get.find<SchedulesController>();
     final tagsController = Get.find<TagsController>();
 
-    return Scaffold(
-      backgroundColor: AppColors.pageBackground,
-      body: Obx(() {
-        if (scheduleController.isLoading.value) {
-          return Center(child: CircularProgressIndicator());
+    return Obx(() {
+      if (scheduleController.isLoading.value) {
+        return Scaffold(
+          backgroundColor: AppColors.pageBackground,
+          body: Center(child: CircularProgressIndicator()),
+          );
         }
-
-        return Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
-              child: SideMenu(
-                onNavigation: (route) {
-                  showLeaveConfirmationDialog(() {
-                    final controller = Get.find<SchedulesController>();
-                    controller.discardLocalChanges();
-                    Get.toNamed(route);
-                  });
-                },
+      
+        return Scaffold(
+          backgroundColor: AppColors.pageBackground,
+          body: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
+                child: SideMenu(
+                  onNavigation: (route) {
+                    showLeaveConfirmationDialog(() {
+                      final controller = Get.find<SchedulesController>();
+                      controller.discardLocalChanges();
+                      Get.toNamed(route);
+                    });
+                  },
+                ),
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // HEADER
-                    SizedBox(
-                      height: 80,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.arrow_back, size: 28, color: AppColors.logo),
-                            onPressed: () {
-                              showLeaveConfirmationDialog(() {
-                                final controller = Get.find<SchedulesController>();
-                                controller.discardLocalChanges();
-                                Navigator.of(context).pop();
-                              });
-                            },
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Edycja grafiku',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.logo,
-                                  ),
-                                ),
-
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Flexible(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: _buildTagFilterDropdown(tagsController),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Flexible(
-                                  child: _buildSearchBar(),
-                                ),
-                                const SizedBox(width: 16),
-                                Flexible(
-                                  child: CustomButton(
-                                    onPressed: () => showPublishConfirmationDialog(_handlePublishSchedule),
-                                    text: "Opublikuj grafik",
-                                    width: 155,
-                                    icon: Icons.publish,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // INFO PANEL
-                    if (scheduleController.individualShifts.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // HEADER
+                      SizedBox(
+                        height: 80,
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Icon(Icons.info, size: 16, color: Colors.blue),
-                            SizedBox(width: 8),
-                            Text(
-                              'Wyświetlono ${scheduleController.individualShifts.length} zmian',
-                              style: TextStyle(color: Colors.grey),
+                            IconButton(
+                              icon: Icon(Icons.arrow_back, size: 28, color: AppColors.logo),
+                              onPressed: () {
+                                showLeaveConfirmationDialog(() {
+                                  final controller = Get.find<SchedulesController>();
+                                  controller.discardLocalChanges();
+                                  Navigator.of(context).pop();
+                                });
+                              },
                             ),
-                            Spacer(),
-                            Text(
-                              'Załadowany grafik',
-                              style: TextStyle(
-                                color: AppColors.logo,
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Edycja grafiku',
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.logo,
+                                    ),
+                                  ),
+      
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Flexible(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: _buildTagFilterDropdown(tagsController),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Flexible(
+                                    child: _buildSearchBar(),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Flexible(
+                                    child: CustomButton(
+                                      onPressed: () => showPublishConfirmationDialog(_handlePublishSchedule),
+                                      text: "Opublikuj grafik",
+                                      width: 155,
+                                      icon: Icons.publish,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-
-                    // CALENDAR
-                    Expanded(
-                      child: _buildCalendarBody(
-                        intervalWidth: dynamicIntervalWidth,
-                        scheduleController: scheduleController,
-                        userController: userController,
+      
+                      // INFO PANEL
+                      if (scheduleController.individualShifts.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info, size: 16, color: AppColors.logo),
+                              SizedBox(width: 8),
+                              Text(
+                                'Wyświetlono ${scheduleController.individualShifts.length} zmian',
+                                style: TextStyle(color: AppColors.textColor2),
+                              ),
+                              Spacer(),
+                              Text(
+                                'Załadowany grafik',
+                                style: TextStyle(
+                                  color: AppColors.logo,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+      
+                      // CALENDAR
+                      Expanded(
+                        child: _buildCalendarBody(
+                          intervalWidth: dynamicIntervalWidth,
+                          scheduleController: scheduleController,
+                          userController: userController,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
-      }),
-    );
+    });
   }
 
   Widget _buildCalendarBody({
@@ -348,8 +351,8 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     final leaveController = Get.find<LeaveController>();
 
     final leaveAppointments = _getAppointmentsFromLeaves(
-      leaveController.allLeaveRequests, // lub leaveController.allLeaves (zależnie jak masz nazwaną listę)
-      userController.filteredEmployees,
+      leaveController.allLeaveRequests,
+      userController.allEmployees
     );
 
     final allAppointments = [...shiftAppointments, ...leaveAppointments];
@@ -402,19 +405,24 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       timeSlotViewSettings: TimeSlotViewSettings(
         startHour: 7,
         endHour: 21,
-        timeIntervalHeight: 70,
+        timeIntervalHeight: 40,
         timeIntervalWidth: intervalWidth,
         timeInterval: const Duration(hours: 1),
         timeFormat: 'HH:mm',
         timeTextStyle: TextStyle(
           fontSize: 12,
-          color: Colors.grey.shade600,
+          color: AppColors.textColor2,
         ),
       ),
       todayHighlightColor: AppColors.logo,
       resourceViewSettings: const ResourceViewSettings(
+        visibleResourceCount: 10,
         size: 170,
         showAvatar: false,
+        displayNameTextStyle: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
       ),
 
       resourceViewHeaderBuilder: (BuildContext context, ResourceViewHeaderDetails details) {
@@ -423,11 +431,14 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
         final name = parts.isNotEmpty ? parts[0] : '';
         final info = parts.length > 1 ? parts[1] : '';
 
-        Color infoColor = Colors.grey.shade700;
+        Color infoColor = AppColors.textColor2;
 
         final resourceId = details.resource.id.toString();
 
-        if (resourceId != 'Unknown') {
+        final bool isUnknown = resourceId == 'Unknown';
+        final Color backgroundColor = isUnknown ? AppColors.warning : AppColors.blue;
+
+        if (!isUnknown) {
           final employee = userController.allEmployees.firstWhereOrNull((u) => u.id == resourceId);
 
           if (employee != null) {
@@ -439,29 +450,28 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
             if (employee.maxWeeklyHours != null &&
                 employee.maxWeeklyHours! > 0 &&
                 workedHours > employee.maxWeeklyHours!) {
-              infoColor = Colors.red;
+              infoColor = AppColors.warning;
             }
           }
         }
 
         return Container(
           decoration: BoxDecoration(
-            color: AppColors.blue,
+            color: backgroundColor,
             border: Border(
-              right: BorderSide(color: Colors.grey.shade300, width: 1),
-              bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+              right: BorderSide(color: AppColors.white, width: 1),
+              bottom: BorderSide(color: AppColors.white, width: 1),
             ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 1. Imię i Nazwisko (pogrubione)
               Text(
                 name,
-                style: const TextStyle(
-                  color: Colors.black87,
+                style: TextStyle(
+                  color: AppColors.black,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -543,7 +553,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       return Appointment(
         startTime: startDateTime,
         endTime: endDateTime,
-        subject: displayTags, // Czysty temat (bez emotikony, jeśli wolisz)
+        subject: displayTags,
         color: _getAppointmentColor(shift),
         resourceIds: <Object>[shift.employeeID],
         id: '${shift.employeeID}_${shift.shiftDate.day}_'
@@ -569,7 +579,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
         color: Colors.grey.shade400,
         resourceIds: <Object>[leave.userId],
         id: 'leave_${leave.id}',
-        notes: 'Urlop',
+        notes:'Urlop',
         isAllDay: true,
       );
     }).toList();
@@ -610,7 +620,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
 Color _getAppointmentColor(ScheduleModel shift) {
     if (shift.employeeID == 'Unknown') {
-      return Colors.redAccent;
+      return AppColors.warning;
     }
     if (shift.start.hour >= 12) {
       return AppColors.logolighter;
