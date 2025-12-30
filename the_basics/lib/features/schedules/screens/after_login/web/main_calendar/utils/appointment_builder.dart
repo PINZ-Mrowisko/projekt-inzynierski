@@ -37,17 +37,19 @@ Widget buildAppointmentWidget(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - '
-          '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
-          style: TextStyle(
-            color: AppColors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
+
+        if (!isLeave)
+          Text(
+            '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - '
+                '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
         
         // tags or leave comment
         if (appointment.notes != null && appointment.notes!.isNotEmpty)
@@ -55,7 +57,7 @@ Widget buildAppointmentWidget(
             appointment.notes!,
             style: TextStyle(
               color: AppColors.white,
-              fontSize: 9,
+              fontSize: 10,
             ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
+import 'package:the_basics/features/leaves/models/leave_model.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/confirm_schedule_publish_dialog.dart';
@@ -35,6 +37,23 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
   final SpecialRegionsBuilderForEdit _regionsBuilder = SpecialRegionsBuilderForEdit();
 
+  bool _isEmployeeOnLeave(String employeeId, DateTime date) {
+    if (employeeId == 'Unknown') return false; // Nie sprawdzamy urlopów dla Unknown
+
+    final leaveController = Get.find<LeaveController>();
+
+    return leaveController.allLeaveRequests.any((leave) {
+      if (leave.userId != employeeId) return false;
+
+      final checkDate = DateTime(date.year, date.month, date.day);
+      final start = DateTime(leave.startDate.year, leave.startDate.month, leave.startDate.day);
+      final end = DateTime(leave.endDate.year, leave.endDate.month, leave.endDate.day);
+
+      return (checkDate.isAtSameMomentAs(start) || checkDate.isAfter(start)) &&
+          (checkDate.isAtSameMomentAs(end) || checkDate.isBefore(end));
+    });
+  }
+
   void _handleDragEnd(
       AppointmentDragEndDetails details,
       SchedulesController scheduleController,
@@ -45,55 +64,63 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     }
 
     final Appointment appointment = details.appointment as Appointment;
-    final DateTime dropDate = details.droppingTime!;
-
-    // Szukamy ORYGINALNEJ zmiany
     final String appointmentId = appointment.id.toString();
+
+    if (appointmentId.startsWith('leave_')) {
+      scheduleController.individualShifts.refresh();
+      return;
+    }
+
     final originalShift = scheduleController.individualShifts.firstWhereOrNull((s) {
       final idToCheck = '${s.employeeID}_${s.shiftDate.day}_${s.start.hour}:${s.start.minute}_${s.end.hour}:${s.end.minute}';
       return idToCheck == appointmentId;
     });
 
     if (originalShift == null) {
+      scheduleController.individualShifts.refresh();
       return;
     }
 
-    // Sprawdź pracownika docelowego
     final CalendarResource? targetResource = details.targetResource;
     String? newResourceId;
     UserModel? newEmployeeData;
 
     if (targetResource != null) {
       newResourceId = targetResource.id.toString();
-      newEmployeeData = userController.allEmployees.firstWhereOrNull(
-            (u) => u.id == newResourceId,
-      );
+
+      if (newResourceId == 'Unknown') {
+      } else {
+        newEmployeeData = userController.allEmployees.firstWhereOrNull(
+              (u) => u.id == newResourceId,
+        );
+      }
     }
 
-    // Walidacja duplikatów
+    final DateTime dropDate = details.droppingTime!;
+
     final String targetEmployeeId = newResourceId ?? originalShift.employeeID;
 
-    final bool hasCollision = scheduleController.individualShifts.any((shift) {
-      if (shift == originalShift) return false;
-      if (shift.employeeID != targetEmployeeId) return false;
-      return shift.shiftDate.year == dropDate.year &&
-          shift.shiftDate.month == dropDate.month &&
-          shift.shiftDate.day == dropDate.day;
-    });
-
-    if (hasCollision) {
-      showCustomSnackbar(context, "Ten pracownik ma już inną zmianę w tym dniu!");
-
-      // --- DODANO: Wymuszenie odświeżenia widoku ---
-      // To sprawi, że GetX przebuduje kalendarz używając starych danych,
-      // co wizualnie cofnie kafelek na miejsce startowe.
+    if (_isEmployeeOnLeave(targetEmployeeId, dropDate)) {
       scheduleController.individualShifts.refresh();
-      // ---------------------------------------------
-
       return;
     }
 
-    // Obliczanie nowego czasu (zachowanie godziny)
+    if (targetEmployeeId != 'Unknown') {
+      final bool hasCollision = scheduleController.individualShifts.any((shift) {
+        if (shift == originalShift) return false;
+        if (shift.employeeID != targetEmployeeId) return false;
+        return shift.shiftDate.year == dropDate.year &&
+            shift.shiftDate.month == dropDate.month &&
+            shift.shiftDate.day == dropDate.day;
+      });
+
+      if (hasCollision) {
+        showCustomSnackbar(context, "Ten pracownik ma już inną zmianę w tym dniu!");
+        scheduleController.individualShifts.refresh();
+        return;
+      }
+    }
+
     final TimeOfDay originalTime = originalShift.start;
     final DateTime newStartTime = DateTime(
       dropDate.year,
@@ -160,7 +187,6 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Obx(() {
-        // Pokaż ładowanie jeśli schedule się ładuje
         if (scheduleController.isLoading.value) {
           return Center(child: CircularProgressIndicator());
         }
@@ -291,15 +317,12 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     );
   }
 
-  // 2. Zaktualizuj widget _buildCalendarBody
   Widget _buildCalendarBody({
     required double intervalWidth,
     required SchedulesController scheduleController,
     required UserController userController,
   }) {
-    // ... (początek funkcji bez zmian - obsługa pustej listy)
     if (scheduleController.individualShifts.isEmpty) {
-      // ... (kod wyświetlania pustego stanu bez zmian)
       return Center(
         // ...
       );
@@ -317,13 +340,19 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       ...userController.filteredEmployees
     ];
 
-    // Stwórz appointments z rzeczywistych danych (kod bez zmian)
-    final appointments = _getAppointmentsFromSchedule(
+    final shiftAppointments = _getAppointmentsFromSchedule(
       scheduleController.individualShifts,
       displayEmployees,
     );
 
-    // UWAGA: Usuwamy if (appointments.isEmpty), bo chcemy widzieć puste wiersze pracowników, żeby móc dodać zmianę!
+    final leaveController = Get.find<LeaveController>();
+
+    final leaveAppointments = _getAppointmentsFromLeaves(
+      leaveController.allLeaveRequests, // lub leaveController.allLeaves (zależnie jak masz nazwaną listę)
+      userController.filteredEmployees,
+    );
+
+    final allAppointments = [...shiftAppointments, ...leaveAppointments];
 
     return SfCalendar(
       controller: _calendarController,
@@ -342,18 +371,16 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       },
 
 
-      // --- SEKCJA DRAG AND DROP ---
       allowDragAndDrop: true, // 1. Włączamy drag and drop
       dragAndDropSettings: const DragAndDropSettings(
         allowNavigation: true,
         allowScroll: true,
         showTimeIndicator: true,
       ),
-      onDragEnd: (details) { // 2. Obsługa upuszczenia
+      onDragEnd: (details) {
         _handleDragEnd(details, scheduleController, userController);
       },
 
-      // DODANO OBSŁUGĘ KLIKNIĘCIA
       onTap: _handleCalendarTap,
 
       headerStyle: CalendarHeaderStyle(
@@ -366,9 +393,9 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       ),
       firstDayOfWeek: 1,
       dataSource: _CalendarDataSource(
-        appointments,
+        allAppointments,
         displayEmployees,
-        scheduleController,                // <--- Przekazujemy kontroler
+        scheduleController,
         _currentViewDate.value,
       ),
       specialRegions: _regionsBuilder.getSpecialRegions(),
@@ -387,33 +414,28 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       todayHighlightColor: AppColors.logo,
       resourceViewSettings: const ResourceViewSettings(
         size: 170,
-        showAvatar: false, // Avatar wyłączony, bo zrobimy własny układ w builderze
+        showAvatar: false,
       ),
 
-      // NOWY BUILDER NAGŁÓWKA PRACOWNIKA
       resourceViewHeaderBuilder: (BuildContext context, ResourceViewHeaderDetails details) {
         // Rozdzielamy nazwę od godzin (zakładamy format "Imię Nazwisko\n(32/40h)")
         final parts = details.resource.displayName.split('\n');
         final name = parts.isNotEmpty ? parts[0] : '';
         final info = parts.length > 1 ? parts[1] : '';
 
-        Color infoColor = Colors.grey.shade700; // Domyślny kolor (szary)
+        Color infoColor = Colors.grey.shade700;
 
         final resourceId = details.resource.id.toString();
 
-        // Sprawdzamy warunek tylko dla prawdziwych pracowników (pomiń 'Unknown')
         if (resourceId != 'Unknown') {
           final employee = userController.allEmployees.firstWhereOrNull((u) => u.id == resourceId);
 
           if (employee != null) {
-            // Musimy obliczyć godziny ponownie tutaj, aby sprawdzić warunek
-            // (korzystamy z tej samej metody co w DataSource)
             final workedHours = scheduleController.calculateWeeklyHours(
                 resourceId,
-                _currentViewDate.value // Data początku tygodnia z widoku
+                _currentViewDate.value
             );
 
-            // Jeśli pracownik ma limit i go przekroczył -> CZERWONY
             if (employee.maxWeeklyHours != null &&
                 employee.maxWeeklyHours! > 0 &&
                 workedHours > employee.maxWeeklyHours!) {
@@ -446,7 +468,6 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              // 2. Godziny (mniejsze, szare)
               if (info.isNotEmpty) ...[
                 const SizedBox(height: 2),
                 Text(
@@ -489,10 +510,8 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       bool hasMissingTags = false;
 
       if (shift.employeeID != 'Unknown' && shift.tags.isNotEmpty) {
-        // Zakładamy, że employee.tags to lista NAZW (skoro działa w popupie).
         final employeeTagNames = employee.tags.toSet();
 
-        // Porównujemy: Nazwy wymagane przez zmianę vs Nazwy posiadane przez pracownika
         hasMissingTags = tagNames.any((tagName) => !employeeTagNames.contains(tagName));
       }
 
@@ -530,9 +549,28 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
         id: '${shift.employeeID}_${shift.shiftDate.day}_'
             '${shift.start.hour}:${shift.start.minute}_'
             '${shift.end.hour}:${shift.end.minute}',
-        // Przekazujemy displaySubject (z emotikoną) jako notes, albo ustawiamy flagę
-        // Jeśli używasz mojego poprzedniego buildera z flagą 'WARNING', użyj tego:
         notes: displaySubject,
+      );
+    }).toList();
+  }
+
+  List<Appointment> _getAppointmentsFromLeaves(
+      List<LeaveModel> leaves,
+      List<UserModel> filteredEmployees,
+      ) {
+    final filteredEmployeeIds = filteredEmployees.map((e) => e.id).toSet();
+
+    return leaves.where((leave) => filteredEmployeeIds.contains(leave.userId)).map((leave) {
+
+      return Appointment(
+        startTime: leave.startDate,
+        endTime: leave.endDate,
+        subject: 'Urlop',
+        color: Colors.grey.shade400,
+        resourceIds: <Object>[leave.userId],
+        id: 'leave_${leave.id}',
+        notes: 'Urlop',
+        isAllDay: true,
       );
     }).toList();
   }
@@ -599,19 +637,14 @@ Color _getAppointmentColor(ScheduleModel shift) {
     final scheduleController = Get.find<SchedulesController>();
 
     try {
-      // Ustawiamy stan ładowania, aby zablokować UI
       scheduleController.isLoading(true);
 
-      // KROK 1: Zapisz aktualny stan zmian (zmienne lokalne) do Firebase
-      // Dzięki temu zaktualizowana lista individualShifts trafi do pola 'generated_schedule' w bazie
       await scheduleController.saveUpdatedScheduleDocument(
         marketId: marketId,
         scheduleId: scheduleId,
         updatedShifts: scheduleController.individualShifts,
       );
 
-      // KROK 2: Dopiero teraz opublikuj grafik
-      // Metoda ta zmienia status na published i pobiera świeże dane (które przed chwilą zapisaliśmy w kroku 1)
       await scheduleController.publishSchedule(
           marketId: marketId,
           scheduleId: scheduleId
@@ -642,6 +675,10 @@ Color _getAppointmentColor(ScheduleModel shift) {
     // 1. EDYCJA ISTNIEJĄCEJ ZMIANY
     if (details.targetElement == CalendarElement.appointment) {
       final Appointment appointment = details.appointments!.first;
+
+      if (appointment.id.toString().startsWith('leave_')) {
+        return;
+      }
 
       try {
         final shiftToEdit = scheduleController.individualShifts.firstWhere((s) {
@@ -675,22 +712,17 @@ Color _getAppointmentColor(ScheduleModel shift) {
       }
     }
 
-    // 2. DODAWANIE NOWEJ ZMIANY
     else if (details.targetElement == CalendarElement.calendarCell) {
-      // ... Twoje zabezpieczenia (widma, index > 7) ...
       if (details.resource != null && details.date != null) {
 
-        // Zabezpieczenie przed widmami
         final clickedResourceId = details.resource!.id.toString();
         final employee = userController.allEmployees.firstWhereOrNull((u) => u.id == clickedResourceId);
 
-        if (employee == null) return; // Jeśli nie znaleziono pracownika
+        if (employee == null) return;
 
-        // Normalizacja daty (jak ustaliliśmy wcześniej)
         final DateTime clickedDate = details.date!;
         final DateTime dayOnly = DateTime(clickedDate.year, clickedDate.month, clickedDate.day);
 
-        // Pobieramy tagi pracownika
         final List<String> currentEmployeeTags = employee.tags;
 
         _calendarController.selectedDate = null;
@@ -703,7 +735,7 @@ Color _getAppointmentColor(ScheduleModel shift) {
             employeeId: employee.id,
             firstName: employee.firstName,
             lastName: employee.lastName,
-            employeeTags: currentEmployeeTags, // <--- PRZEKAZUJEMY TAGI
+            employeeTags: currentEmployeeTags,
             onSave: (newShift) {
               scheduleController.addLocalShift(newShift);
             },

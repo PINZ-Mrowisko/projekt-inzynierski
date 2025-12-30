@@ -54,8 +54,6 @@ class SchedulesController extends GetxController {
         return;
       }
 
-      // 1. opublikowany grafik - chwilowo tylko 1 mozliwy
-      // pobieramy jego ID, aby następnie móc go sobie pobierać
       final ID = await _scheduleRepo.getPublishedScheduleID(marketId);
 
       if (ID != null) {
@@ -69,10 +67,8 @@ class SchedulesController extends GetxController {
           scheduleId: ID,
         );
       } else {
-        print('Brak opublikowanego grafiku');
       }
 
-    } catch (e) {
     } finally {
       isLoading(false);
     }
@@ -214,7 +210,6 @@ class SchedulesController extends GetxController {
       _originalShiftsSnapshot = List.from(parsedShifts);
 
       individualShifts.assignAll(parsedShifts);
-      print('[DEBUG] Raw schedule data loaded: $scheduleData');
       print('[DEBUG] Successfully parsed ${parsedShifts.length} shifts');
 
     } catch (e) {
@@ -483,8 +478,6 @@ class SchedulesController extends GetxController {
     isLoading(false);
   }
 
-  // Dodaj te metody wewnątrz klasy SchedulesController
-
   /// Dodaj nową zmianę do lokalnej listy
   void addLocalShift(ScheduleModel newShift) {
     individualShifts.add(newShift);
@@ -513,8 +506,7 @@ class SchedulesController extends GetxController {
     required String? newResourceId,
     required UserModel? newEmployeeData,
   }) {
-    // 1. Znajdź oryginalną zmianę na podstawie ID przypisanego do Appointment
-    // ID w Appointment budujesz jako: '${employeeID}_${day}_${start}_${end}'
+
     final index = individualShifts.indexWhere((s) {
       final idToCheck = '${s.employeeID}_${s.shiftDate.day}_${s.start.hour}:${s.start.minute}_${s.end.hour}:${s.end.minute}';
       return idToCheck == appointmentId;
@@ -527,7 +519,6 @@ class SchedulesController extends GetxController {
 
     final oldShift = individualShifts[index];
 
-    // 2. Oblicz nowe czasy
     final durationInMinutes = (oldShift.end.hour * 60 + oldShift.end.minute) -
         (oldShift.start.hour * 60 + oldShift.start.minute);
 
@@ -536,19 +527,16 @@ class SchedulesController extends GetxController {
     final newStart = TimeOfDay(hour: newStartTime.hour, minute: newStartTime.minute);
     final newEnd = TimeOfDay(hour: newEndDateTime.hour, minute: newEndDateTime.minute);
 
-    // 3. Ustal dane pracownika (jeśli newResourceId jest null, to znaczy że pracownik się nie zmienił)
     String targetEmployeeId = oldShift.employeeID;
     String targetFirstName = oldShift.employeeFirstName;
     String targetLastName = oldShift.employeeLastName;
 
-    // Sprawdź czy upuszczono na wiersz innego pracownika
     if (newResourceId != null && newResourceId != oldShift.employeeID && newEmployeeData != null) {
       targetEmployeeId = newEmployeeData.id;
       targetFirstName = newEmployeeData.firstName;
       targetLastName = newEmployeeData.lastName;
     }
 
-    // 4. Stwórz zaktualizowany obiekt ScheduleModel
     final updatedShift = oldShift.copyWith(
       shiftDate: DateTime(newStartTime.year, newStartTime.month, newStartTime.day),
       start: newStart,
@@ -559,7 +547,6 @@ class SchedulesController extends GetxController {
       updatedAt: DateTime.now(),
     );
 
-    // 5. Zaktualizuj listę (wymusi to przebudowanie kalendarza przez Obx w widoku)
     individualShifts[index] = updatedShift;
     individualShifts.refresh();
   }
