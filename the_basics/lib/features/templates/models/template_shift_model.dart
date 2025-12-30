@@ -71,7 +71,7 @@ class ShiftModel {
   return ShiftModel(
       day: day ?? this.day,
       start: start ?? this.start,
-      end: end ?? this.start,
+      end: end ?? this.end,
       tagId: tagId ?? this.tagId,
       tagName: tagName ?? this.tagName,
       count: count ?? this.count,
