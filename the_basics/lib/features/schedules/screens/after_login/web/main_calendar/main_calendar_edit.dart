@@ -305,10 +305,22 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       );
     }
 
+    final unknownUser = UserModel.empty().copyWith(
+      id: 'Unknown',
+      firstName: '⚠️ Nieprzypisane', // Dodajemy ikonkę dla wyróżnienia
+      lastName: '⚠️',
+      marketId: marketId,
+    );
+
+    final List<UserModel> displayEmployees = [
+      unknownUser,
+      ...userController.filteredEmployees
+    ];
+
     // Stwórz appointments z rzeczywistych danych (kod bez zmian)
     final appointments = _getAppointmentsFromSchedule(
       scheduleController.individualShifts,
-      userController.filteredEmployees,
+      displayEmployees,
     );
 
     // UWAGA: Usuwamy if (appointments.isEmpty), bo chcemy widzieć puste wiersze pracowników, żeby móc dodać zmianę!
@@ -355,7 +367,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       firstDayOfWeek: 1,
       dataSource: _CalendarDataSource(
         appointments,
-        userController.filteredEmployees,
+        displayEmployees,
         scheduleController,                // <--- Przekazujemy kontroler
         _currentViewDate.value,
       ),
@@ -438,11 +450,28 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       List<ScheduleModel> shifts,
       List<UserModel> filteredEmployees,
       ) {
-    final filteredEmployeeIds = filteredEmployees.map((e) => e.id).toSet();
-
+    final employeeMap = {for (var e in filteredEmployees) e.id: e};
     final tagsController = Get.find<TagsController>();
 
-    return shifts.where((shift) => filteredEmployeeIds.contains(shift.employeeID)).map((shift) {
+    return shifts.where((shift) => employeeMap.containsKey(shift.employeeID)).map((shift) {
+
+      final employee = employeeMap[shift.employeeID]!;
+
+      // KROK 1: Najpierw pobieramy NAZWY tagów dla tej zmiany
+      // (Przesuwamy to wyżej, żeby użyć tego do porównania)
+      final tagNames = _convertTagIdsToNames(shift.tags, tagsController);
+
+      // KROK 2: LOGIKA OSTRZEGANIA
+      bool hasMissingTags = false;
+
+      if (shift.employeeID != 'Unknown' && shift.tags.isNotEmpty) {
+        // Zakładamy, że employee.tags to lista NAZW (skoro działa w popupie).
+        final employeeTagNames = employee.tags.toSet();
+
+        // Porównujemy: Nazwy wymagane przez zmianę vs Nazwy posiadane przez pracownika
+        hasMissingTags = tagNames.any((tagName) => !employeeTagNames.contains(tagName));
+      }
+
       final startDateTime = DateTime(
         shift.shiftDate.year,
         shift.shiftDate.month,
@@ -459,22 +488,27 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
         shift.end.minute,
       );
 
-      // making sure tiles in every screen look the same
-      final tagNames = _convertTagIdsToNames(shift.tags, tagsController);
       final displayTags = tagNames.isNotEmpty
           ? tagNames.join(', ')
           : 'Brak tagów';
 
+      String displaySubject = displayTags;
+      if (hasMissingTags) {
+        displaySubject = '⚠️ $displayTags';
+      }
+
       return Appointment(
         startTime: startDateTime,
         endTime: endDateTime,
-        subject: displayTags,
+        subject: displayTags, // Czysty temat (bez emotikony, jeśli wolisz)
         color: _getAppointmentColor(shift),
         resourceIds: <Object>[shift.employeeID],
         id: '${shift.employeeID}_${shift.shiftDate.day}_'
             '${shift.start.hour}:${shift.start.minute}_'
             '${shift.end.hour}:${shift.end.minute}',
-        notes: displayTags,
+        // Przekazujemy displaySubject (z emotikoną) jako notes, albo ustawiamy flagę
+        // Jeśli używasz mojego poprzedniego buildera z flagą 'WARNING', użyj tego:
+        notes: displaySubject,
       );
     }).toList();
   }
@@ -513,11 +547,14 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
   }
 
 Color _getAppointmentColor(ScheduleModel shift) {
-  if (shift.start.hour >= 12) {
-    return AppColors.logolighter;
-  } else {
-    return AppColors.logo;
-  }
+    if (shift.employeeID == 'Unknown') {
+      return Colors.redAccent;
+    }
+    if (shift.start.hour >= 12) {
+      return AppColors.logolighter;
+    } else {
+      return AppColors.logo;
+    }
 }
 
   Widget _buildSearchBar() {

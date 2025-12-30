@@ -15,7 +15,7 @@ Widget buildAppointmentWidget(
     ) {
 
   final appointment = calendarAppointmentDetails.appointments.first;
-
+  final bool hasWarning = appointment.notes?.contains('⚠️') ?? false;
   final isLeave = appointment.subject.toLowerCase().contains('urlop');
 
   // get REAL start and end times
@@ -26,10 +26,9 @@ Widget buildAppointmentWidget(
     decoration: BoxDecoration(
       color: isLeave ? Colors.orangeAccent : appointment.color,
       borderRadius: BorderRadius.circular(3),
-      border: Border.all(
-        color: AppColors.white,
-        width: 0.5,
-      ),
+      border: hasWarning
+          ? Border.all(color: Colors.red, width: 2,)
+          : Border.all(color: AppColors.white, width: 0.5,),
     ),
     margin: const EdgeInsets.all(1),
     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
