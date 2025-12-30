@@ -7,7 +7,11 @@ import '../exceptions.dart';
 class LeaveRepo extends GetxController {
   static LeaveRepo get instance => Get.find();
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  //final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  final FirebaseFirestore _db;
+
+  LeaveRepo({FirebaseFirestore? firestore}): _db = firestore ?? FirebaseFirestore.instance;
 
   /// save a new leave request to a market's subcollection
   Future<void> saveLeave(LeaveModel leave) async {

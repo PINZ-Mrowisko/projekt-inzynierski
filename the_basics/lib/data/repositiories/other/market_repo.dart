@@ -9,24 +9,23 @@ import '../exceptions.dart';
 class MarketRepo extends GetxController {
   static MarketRepo get instance => Get.find();
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
+
+  // Konstruktor z możliwością podania mocka
+  MarketRepo({FirebaseFirestore? firestore}) : _db = firestore ?? FirebaseFirestore.instance;
 
   Future<void> saveMarket(MarketModel market, UserModel user, String id) async {
     try {
-      /// we save our market to the Markets collection
-      await _db
-          .collection("Markets")
-          .doc(market.id)
-          .set(market.toMap());
+      // Zapis rynku
+      await _db.collection("Markets").doc(market.id).set(market.toMap());
 
-      /// and then save the first user inside the market's `members/` subcollection
-      await FirebaseFirestore.instance
+      // Zapis pierwszego użytkownika w subkolekcji
+      await _db
           .collection('Markets')
           .doc(market.id)
           .collection('members')
           .doc(id)
           .set(user.toMap());
-
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -37,25 +36,4 @@ class MarketRepo extends GetxController {
       throw 'Coś poszło nie tak :(';
     }
   }
-
-  // Future<MarketModel> fetchCurrentMarketDetails() async {
-  //   try {
-  //     // pull the document with X user from firebase
-  //     final doc = await _db.collection("Markets").doc(AuthRepo.instance.authUser?).get();
-  //
-  //     if (doc.exists) {
-  //       return UserModel.fromMap(doc);
-  //     } else {
-  //       return UserModel.empty();
-  //     }
-  //   } on FirebaseException catch (e) {
-  //     throw MyFirebaseException(e.code).message;
-  //   } on FormatException catch (_) {
-  //     throw const MyFormatException();
-  //   } on PlatformException catch (e) {
-  //     throw MyPlatformException(e.code).message;
-  //   } catch (e) {
-  //     throw 'Coś poszło nie tak :(';
-  //   }
-  // }
 }

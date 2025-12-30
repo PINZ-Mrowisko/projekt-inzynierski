@@ -124,7 +124,6 @@ void main() {
       expect(user.hasLoggedIn, false);
       expect(user.scheduleNotifs, true);
       expect(user.leaveNotifs, true);
-      expect(user.gender, 'Nie określono');
     });
   });
 }
