@@ -352,7 +352,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
     final leaveAppointments = _getAppointmentsFromLeaves(
       leaveController.allLeaveRequests,
-      userController.allEmployees
+      userController.filteredEmployees
     );
 
     final allAppointments = [...shiftAppointments, ...leaveAppointments];
@@ -416,7 +416,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       ),
       todayHighlightColor: AppColors.logo,
       resourceViewSettings: const ResourceViewSettings(
-        visibleResourceCount: 10,
+        visibleResourceCount: 5,
         size: 170,
         showAvatar: false,
         displayNameTextStyle: TextStyle(
