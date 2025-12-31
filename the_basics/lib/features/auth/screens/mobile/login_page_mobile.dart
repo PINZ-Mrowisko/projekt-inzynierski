@@ -56,7 +56,7 @@ class LoginPageMobile extends StatelessWidget {
                           Get.isDarkMode 
                             ? 'assets/mrowisko_logo_blue_dark_mode.svg'
                             : 'assets/mrowisko_logo_blue.svg',
-                          height: 48,
+                          height: 60,
                         ),
 
                         const SizedBox(height: 40),
