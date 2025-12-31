@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/generation_overlay.dart';
 import 'package:the_basics/features/schedules/usecases/choose_existing_schedule.dart';
 import 'package:the_basics/features/schedules/usecases/choose_schedule_generation_type.dart';
 import 'package:the_basics/features/schedules/usecases/choose_template.dart';
@@ -173,6 +174,7 @@ class ScheduleGenerationService {
       BuildContext context,
       String sourceType,
       ) async {
+        SimpleLoadingOverlay.show(context, message: 'Generowanie grafiku...');
     try {
       _isGenerating = true;
 
@@ -202,6 +204,9 @@ class ScheduleGenerationService {
         scheduleController.fetchAndParseGeneratedSchedule(marketId: marketId, scheduleId: scheduleController.displayedScheduleID.value);
 
         // 2. proceed onto editing screen, where we wish to display our schedule.
+
+          // hide overlay
+          SimpleLoadingOverlay.hide();
 
           Navigator.of(context).pushNamed(
             '/grafik-ogolny-kierownik/edytuj-grafik',

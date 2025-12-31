@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
-import 'package:the_basics/features/leaves/models/leave_model.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter_for_edit.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/confirm_schedule_publish_dialog.dart';
 import 'package:the_basics/features/schedules/usecases/show_confirmations.dart';
@@ -18,7 +19,6 @@ import '../../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
-import '../../../../models/schedule_model.dart';
 
 class MainCalendarEdit extends StatefulWidget {
   const MainCalendarEdit({super.key});
@@ -138,6 +138,17 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     );
   }
 
+  final RxInt _unknownShiftsCount = 0.obs;
+
+  void _updateUnknownShiftsCount() {
+    final scheduleController = Get.find<SchedulesController>();
+    
+    final count = scheduleController.individualShifts
+        .where((shift) => shift.employeeID == 'Unknown')
+        .length;
+    
+    _unknownShiftsCount.value = count;
+  }
 
   @override
   void initState() {
@@ -169,7 +180,23 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     ever(_selectedTags, (tags) {
       userController.filterEmployees(tags);
     });
+
+    Get.find<SchedulesController>();
+    ever(scheduleController.individualShifts, (_) {
+      _updateUnknownShiftsCount();
+    });
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateUnknownShiftsCount();
+    });
   }
+
+  /// Pomocnicza metoda do polskiej odmiany
+String _getPolishWordForm(int count) {
+  if (count == 1) return 'zmiana';
+  if (count >= 2 && count <= 4) return 'zmiany';
+  return 'zmian';
+}
 
   @override
   Widget build(BuildContext context) {
@@ -277,7 +304,37 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
                           ],
                         ),
                       ),
-      
+                      // GLOBAL WARNING PANEL
+                      Obx(() {
+                        if (_unknownShiftsCount.value > 0) {
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withOpacity(0.1),
+                              border: Border.all(color: AppColors.warning, width: 1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.warning, color: AppColors.warning, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'UWAGA: ${_unknownShiftsCount.value} ${_getPolishWordForm(_unknownShiftsCount.value)} bez obsady!',
+                                  style: TextStyle(
+                                    color: AppColors.warning,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        return SizedBox.shrink();
+                      }),
                       // INFO PANEL
                       if (scheduleController.individualShifts.isNotEmpty)
                         Padding(
@@ -327,7 +384,26 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
   }) {
     if (scheduleController.individualShifts.isEmpty) {
       return Center(
-        // ...
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.schedule, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text('Brak załadowanego grafiku'),
+            SizedBox(height: 8),
+
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () async {
+                await scheduleController.fetchAndParseGeneratedSchedule(
+                  marketId: marketId,
+                  scheduleId: scheduleId,
+                );
+              },
+              child: Text('Załaduj ponownie'),
+            ),
+          ],
+        ),
       );
     }
 
@@ -343,19 +419,16 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       ...userController.filteredEmployees
     ];
 
-    final shiftAppointments = _getAppointmentsFromSchedule(
-      scheduleController.individualShifts,
-      displayEmployees,
-    );
-
     final leaveController = Get.find<LeaveController>();
+    final appointmentConverterForEdit = AppointmentConverterForEdit();
 
-    final leaveAppointments = _getAppointmentsFromLeaves(
-      leaveController.allLeaveRequests,
-      userController.filteredEmployees
+    final allAppointments= appointmentConverterForEdit.getAppointments(
+      userController.filteredEmployees,
+      leaves: leaveController.allLeaveRequests.where((l) => 
+        l.status.toLowerCase() == 'zaakceptowany' || 
+        l.status.toLowerCase() == 'mój urlop'
+      ).toList(),
     );
-
-    final allAppointments = [...shiftAppointments, ...leaveAppointments];
 
     return SfCalendar(
       controller: _calendarController,
@@ -500,91 +573,6 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     );
   }
 
-  /// Konwertuj ScheduleModel na Appointment
-  List<Appointment> _getAppointmentsFromSchedule(
-      List<ScheduleModel> shifts,
-      List<UserModel> filteredEmployees,
-      ) {
-    final employeeMap = {for (var e in filteredEmployees) e.id: e};
-    final tagsController = Get.find<TagsController>();
-
-    return shifts.where((shift) => employeeMap.containsKey(shift.employeeID)).map((shift) {
-
-      final employee = employeeMap[shift.employeeID]!;
-
-      // KROK 1: Najpierw pobieramy NAZWY tagów dla tej zmiany
-      // (Przesuwamy to wyżej, żeby użyć tego do porównania)
-      final tagNames = _convertTagIdsToNames(shift.tags, tagsController);
-
-      // KROK 2: LOGIKA OSTRZEGANIA
-      bool hasMissingTags = false;
-
-      if (shift.employeeID != 'Unknown' && shift.tags.isNotEmpty) {
-        final employeeTagNames = employee.tags.toSet();
-
-        hasMissingTags = tagNames.any((tagName) => !employeeTagNames.contains(tagName));
-      }
-
-      final startDateTime = DateTime(
-        shift.shiftDate.year,
-        shift.shiftDate.month,
-        shift.shiftDate.day,
-        shift.start.hour,
-        shift.start.minute,
-      );
-
-      final endDateTime = DateTime(
-        shift.shiftDate.year,
-        shift.shiftDate.month,
-        shift.shiftDate.day,
-        shift.end.hour,
-        shift.end.minute,
-      );
-
-      final displayTags = tagNames.isNotEmpty
-          ? tagNames.join(', ')
-          : 'Brak tagów';
-
-      String displaySubject = displayTags;
-      if (hasMissingTags) {
-        displaySubject = '⚠️ $displayTags';
-      }
-
-      return Appointment(
-        startTime: startDateTime,
-        endTime: endDateTime,
-        subject: displayTags,
-        color: _getAppointmentColor(shift),
-        resourceIds: <Object>[shift.employeeID],
-        id: '${shift.employeeID}_${shift.shiftDate.day}_'
-            '${shift.start.hour}:${shift.start.minute}_'
-            '${shift.end.hour}:${shift.end.minute}',
-        notes: displaySubject,
-      );
-    }).toList();
-  }
-
-  List<Appointment> _getAppointmentsFromLeaves(
-      List<LeaveModel> leaves,
-      List<UserModel> filteredEmployees,
-      ) {
-    final filteredEmployeeIds = filteredEmployees.map((e) => e.id).toSet();
-
-    return leaves.where((leave) => filteredEmployeeIds.contains(leave.userId)).map((leave) {
-
-      return Appointment(
-        startTime: leave.startDate,
-        endTime: leave.endDate,
-        subject: 'Urlop',
-        color: Colors.grey.shade400,
-        resourceIds: <Object>[leave.userId],
-        id: 'leave_${leave.id}',
-        notes:'Urlop',
-        isAllDay: true,
-      );
-    }).toList();
-  }
-
   Widget _buildTagFilterDropdown(TagsController tagsController) {
     return Obx(() {
       return CustomMultiSelectDropdown(
@@ -599,35 +587,6 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
       );
     });
   }
-
-  List<String> _convertTagIdsToNames(List<String> tagIds, TagsController tagsController) {
-    final List<String> tagNames = [];
-
-    for (final tagId in tagIds) {
-      final tag = tagsController.allTags.firstWhere(
-        (t) => t.id == tagId,
-      );
-
-      if (tag != null && tag.tagName != null && tag.tagName!.isNotEmpty) {
-        tagNames.add(tag.tagName!);
-      } else {
-        tagNames.add(tagId);
-      }
-    }
-
-    return tagNames;
-  }
-
-Color _getAppointmentColor(ScheduleModel shift) {
-    if (shift.employeeID == 'Unknown') {
-      return AppColors.warning;
-    }
-    if (shift.start.hour >= 12) {
-      return AppColors.logolighter;
-    } else {
-      return AppColors.logo;
-    }
-}
 
   Widget _buildSearchBar() {
     final userController = Get.find<UserController>();
@@ -763,10 +722,10 @@ class _CalendarDataSource extends CalendarDataSource {
       SchedulesController scheduleController,
       DateTime currentWeekStart,
       ) {
+    
     this.appointments = appointments;
 
     this.resources = employees.map((employee) {
-
       final workedHours = scheduleController.calculateWeeklyHours(
           employee.id,
           currentWeekStart
@@ -777,12 +736,12 @@ class _CalendarDataSource extends CalendarDataSource {
         hoursText = '${workedHours.toStringAsFixed(1)} / ${employee.maxWeeklyHours}h';
       }
 
-
       return CalendarResource(
-        displayName: '${employee.firstName} ${employee.lastName}\n($hoursText)', // <--- Zmiana wyświetlania
+        displayName: '${employee.firstName} ${employee.lastName}\n($hoursText)',
         id: employee.id,
         color: AppColors.blue,
       );
     }).toList();
   }
+  
 }
