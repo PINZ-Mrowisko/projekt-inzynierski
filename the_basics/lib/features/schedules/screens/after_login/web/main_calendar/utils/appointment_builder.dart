@@ -15,12 +15,25 @@ Widget buildAppointmentWidget(
     ) {
 
   final appointment = calendarAppointmentDetails.appointments.first;
+
+  // Pobieramy licznik ukrytych zmian (np. "(+2)") z pola location
+  final String extraCount = appointment.location ?? '';
+
   final bool hasWarning = appointment.notes?.contains('⚠️') ?? false;
   final isLeave = appointment.subject.toLowerCase().contains('urlop');
 
   // get REAL start and end times
   final startTime = appointment.startTime;
   final endTime = appointment.endTime;
+
+  String displayBottomText = appointment.notes ?? '';
+
+  if (!isLeave) {
+    displayBottomText = appointment.subject;
+    if (hasWarning && !displayBottomText.contains('⚠️')) {
+      displayBottomText = '⚠️ $displayBottomText';
+    }
+  }
 
   return Container(
     decoration: BoxDecoration(
@@ -39,22 +52,38 @@ Widget buildAppointmentWidget(
       children: [
 
         if (!isLeave)
-          Text(
-            '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - '
-                '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
-            style: TextStyle(
-              color: AppColors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
+          RichText(
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
+            text: TextSpan(
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Roboto',
+              ),
+              children: [
+                TextSpan(
+                  text: '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - '
+                      '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
+                ),
+                // Tutaj wyświetlamy licznik (+X) obok godziny
+                if (extraCount.isNotEmpty)
+                  TextSpan(
+                    text: '   $extraCount',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.black,
+                    ),
+                  ),
+              ],
+            ),
           ),
-        
+
         // tags or leave comment
-        if (appointment.notes != null && appointment.notes!.isNotEmpty)
+        if (displayBottomText.isNotEmpty)
           Text(
-            appointment.notes!,
+            displayBottomText,
             style: TextStyle(
               color: AppColors.white,
               fontSize: 10,

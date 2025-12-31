@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
-import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter_for_edit.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/confirm_schedule_publish_dialog.dart';
@@ -142,11 +141,11 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
   void _updateUnknownShiftsCount() {
     final scheduleController = Get.find<SchedulesController>();
-    
+
     final count = scheduleController.individualShifts
         .where((shift) => shift.employeeID == 'Unknown')
         .length;
-    
+
     _unknownShiftsCount.value = count;
   }
 
@@ -185,7 +184,7 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     ever(scheduleController.individualShifts, (_) {
       _updateUnknownShiftsCount();
     });
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateUnknownShiftsCount();
     });
@@ -218,7 +217,7 @@ String _getPolishWordForm(int count) {
           body: Center(child: CircularProgressIndicator()),
           );
         }
-      
+
         return Scaffold(
           backgroundColor: AppColors.pageBackground,
           body: Row(
@@ -271,7 +270,7 @@ String _getPolishWordForm(int count) {
                                       color: AppColors.logo,
                                     ),
                                   ),
-      
+
                                 ],
                               ),
                             ),
@@ -312,7 +311,7 @@ String _getPolishWordForm(int count) {
                             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
-                              color: AppColors.warning.withOpacity(0.1),
+                              color: AppColors.warning.withValues(alpha: 0.1),
                               border: Border.all(color: AppColors.warning, width: 1),
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -358,7 +357,7 @@ String _getPolishWordForm(int count) {
                             ],
                           ),
                         ),
-      
+
                       // CALENDAR
                       Expanded(
                         child: _buildCalendarBody(
@@ -424,8 +423,8 @@ String _getPolishWordForm(int count) {
 
     final allAppointments= appointmentConverterForEdit.getAppointments(
       userController.filteredEmployees,
-      leaves: leaveController.allLeaveRequests.where((l) => 
-        l.status.toLowerCase() == 'zaakceptowany' || 
+      leaves: leaveController.allLeaveRequests.where((l) =>
+        l.status.toLowerCase() == 'zaakceptowany' ||
         l.status.toLowerCase() == 'mój urlop'
       ).toList(),
     );
@@ -489,7 +488,7 @@ String _getPolishWordForm(int count) {
       ),
       todayHighlightColor: AppColors.logo,
       resourceViewSettings: const ResourceViewSettings(
-        visibleResourceCount: 5,
+        visibleResourceCount: 10,
         size: 170,
         showAvatar: false,
         displayNameTextStyle: TextStyle(
@@ -722,7 +721,7 @@ class _CalendarDataSource extends CalendarDataSource {
       SchedulesController scheduleController,
       DateTime currentWeekStart,
       ) {
-    
+
     this.appointments = appointments;
 
     this.resources = employees.map((employee) {
@@ -743,5 +742,5 @@ class _CalendarDataSource extends CalendarDataSource {
       );
     }).toList();
   }
-  
+
 }
