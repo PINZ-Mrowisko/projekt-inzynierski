@@ -316,42 +316,44 @@ class _ManagerDashboardMobileScreenState extends State<ManagerDashboardMobileScr
                 padding: EdgeInsets.only(top: 8),
                 child: Text("Brak wniosków oczekujących"),
               )
-            : Flexible(
-                child: GenericList<LeaveModel>(
-                  items: pending,
-                  onItemTap: (leave) => Get.offNamed('/wnioski-urlopowe-kierownik'),
-                  itemBuilder: (context, item) {
-                    final formattedDate = item.startDate == item.endDate
-                        ? DateFormat('dd.MM.yyyy').format(item.startDate)
-                        : '${DateFormat('dd.MM.yyyy').format(item.startDate)} - ${DateFormat('dd.MM.yyyy').format(item.endDate)}';
-      
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      title: Text(
-                        (item.comment == "Brak komentarza" || item.comment == '')
-                            ? item.name
-                            : '${item.name} - ${item.comment}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textColor1,
-                        ),
-                      ),
-                      subtitle: Text(
-                        formattedDate,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textColor2,
-                        ),
-                      ),
-                      trailing: _buildStatusChip(item.status),
-                    );
-                  },
+            : Column(
+        children: [
+          Expanded(child: GenericList<LeaveModel>(
+            items: pending,
+            onItemTap: (leave) => Get.offNamed('/wnioski-urlopowe-kierownik'),
+            itemBuilder: (context, item) {
+              final formattedDate = item.startDate == item.endDate
+                  ? DateFormat('dd.MM.yyyy').format(item.startDate)
+                  : '${DateFormat('dd.MM.yyyy').format(item.startDate)} - ${DateFormat('dd.MM.yyyy').format(item.endDate)}';
+
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-              ),
+                title: Text(
+                  (item.comment == "Brak komentarza" || item.comment == '')
+                      ? item.name
+                      : '${item.name} - ${item.comment}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textColor1,
+                  ),
+                ),
+                subtitle: Text(
+                  formattedDate,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textColor2,
+                  ),
+                ),
+                trailing: _buildStatusChip(item.status),
+              );
+            },
+          ),)
+        ],
+      )
     );
   }
 
@@ -389,8 +391,10 @@ class _ManagerDashboardMobileScreenState extends State<ManagerDashboardMobileScr
                 padding: EdgeInsets.only(top: 8),
                 child: Text("Brak ostrzeżeń"),
               )
-            : Flexible(
-                child: GenericList<Map<String, dynamic>>(
+            : Column(
+                children: [
+                  Expanded(
+                    child: GenericList<Map<String, dynamic>>(
                   items: warnings,
                   onItemTap: (warning) => Get.offNamed('/grafik-ogolny-kierownik'),
                   itemBuilder: (context, warning) {
@@ -436,7 +440,7 @@ class _ManagerDashboardMobileScreenState extends State<ManagerDashboardMobileScr
                       ),
                     );
                   },
-                ),
+                ),),],
               ),
     );
   }

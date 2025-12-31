@@ -53,8 +53,19 @@ dev_dependencies:
     sdk: flutter
   mockito: ^5.4.6
   rxdart: ^0.28.0
-
+  flutter_launcher_icons: ^0.13.1
   flutter_lints: ^5.0.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+    image_path: "assets/logo.png"
+    background_color: "#00529F"
+    theme_color: "#00529F"
+
+  image_path: "assets/logo.png"
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -98,5 +109,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
 
 
