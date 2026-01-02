@@ -5,9 +5,13 @@ import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
 import 'package:the_basics/features/schedules/models/schedule_model.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
-import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_exporter.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_type.dart';
+import 'package:the_basics/features/schedules/usecases/show_individual_calendar_export_dialog.dart';
+import 'package:the_basics/features/schedules/usecases/show_main_calendar_export_dialog.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../../../employees/controllers/user_controller.dart';
@@ -124,6 +128,8 @@ class IndividualCalendar extends StatefulWidget {
 
 class _IndividualCalendarState extends State<IndividualCalendar> {
   final CalendarController _calendarController = CalendarController();
+  final GlobalKey individualCalendarKey = GlobalKey();
+  final isExporting = false.obs;
 
   List<Appointment> _getAppointments(List<UserModel> filteredEmployees, List<LeaveModel> leaves) {
 
@@ -240,6 +246,50 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
     }
   }
 
+  Future<void> _exportCalendar() async {
+    isExporting.value = true;
+  try {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final visibleDate = _calendarController.displayDate;
+    final monthName = _getPolishMonthName(visibleDate!.month);
+    
+    await ScheduleExporter.exportToPdf(
+      type: ScheduleType.individualCalendar,
+      chartKey: individualCalendarKey,
+      title: 'Grafik indywidualny - $monthName ${visibleDate.year}',
+      visibleDate: visibleDate,
+    );
+    
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Grafik został pomyślnie zapisany.");
+    }
+  } catch (e) {
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Wystąpił błąd podczas eksportu grafiku: $e");
+    }
+  } finally {
+    isExporting.value = false;
+  }
+}
+
+String _getPolishMonthName(int month) {
+  switch (month) {
+    case 1: return 'Styczeń';
+    case 2: return 'Luty';
+    case 3: return 'Marzec';
+    case 4: return 'Kwiecień';
+    case 5: return 'Maj';
+    case 6: return 'Czerwiec';
+    case 7: return 'Lipiec';
+    case 8: return 'Sierpień';
+    case 9: return 'Wrzesień';
+    case 10: return 'Październik';
+    case 11: return 'Listopad';
+    case 12: return 'Grudzień';
+    default: return '';
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
@@ -286,94 +336,144 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
         nextVacation = upcomingVacations.first;
       }
 
-    return Obx(() => Scaffold(
-      backgroundColor: AppColors.pageBackground,
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SideMenu(),
-          ),
+          Scaffold(
+            backgroundColor: AppColors.pageBackground,
+            body: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SideMenu(),
+                ),
 
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 80,
-                child: Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Grafik indywidualny',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.logo,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 80,
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Grafik indywidualny',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.logo,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: SideInfoPanel(
+                        todayShift: todayShift,
+                        tomorrowShift: tomorrowShift,
+                        nextVacation: nextVacation,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 6),
-                child: SideInfoPanel(
-                  todayShift: todayShift,
-                  tomorrowShift: tomorrowShift,
-                  nextVacation: nextVacation,
-                ),
-              ),
-            ],
-          ),
 
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 80,
-                    child: Row(
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
                       children: [
-                        const Spacer(),
-                        CustomButton(
-                          onPressed: () => showExportDialog(context),
-                          text: "Eksportuj",
-                          width: 125,
-                          icon: Icons.download,
+                        SizedBox(
+                          height: 80,
+                          child: Row(
+                            children: [
+                              const Spacer(),
+                              CustomButton(
+                                onPressed: () => showIndividualCalendarExportDialog(context, _exportCalendar),
+                                text: "Eksportuj",
+                                width: 125,
+                                icon: Icons.download,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: RepaintBoundary(
+                            key: individualCalendarKey,
+                            child: SfCalendar(
+                              controller: _calendarController,
+                              view: CalendarView.month,
+                              firstDayOfWeek: 1,
+                              showNavigationArrow: true,
+                              monthViewSettings: MonthViewSettings(
+                                appointmentDisplayMode:
+                                    MonthAppointmentDisplayMode.appointment,
+                                appointmentDisplayCount: 2,
+                              ),
+                              todayHighlightColor: AppColors.logo,
+                              dataSource: _CalendarDataSource(appointments, [employee]),
+                              appointmentBuilder: buildAppointmentWidget,
+                              headerStyle: CalendarHeaderStyle(
+                              backgroundColor: AppColors.pageBackground,),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: SfCalendar(
-                      controller: _calendarController,
-                      view: CalendarView.month,
-                      firstDayOfWeek: 1,
-                      showNavigationArrow: true,
-                      monthViewSettings: MonthViewSettings(
-                        appointmentDisplayMode:
-                            MonthAppointmentDisplayMode.appointment,
-                        appointmentDisplayCount: 2,
-                      ),
-                      todayHighlightColor: AppColors.logo,
-                      dataSource: _CalendarDataSource(appointments, [employee]),
-                      appointmentBuilder: buildAppointmentWidget,
-                      headerStyle: CalendarHeaderStyle(
-                      backgroundColor: AppColors.pageBackground,),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+          
+          // LOADING OVERLAY
+          if (isExporting.value)
+            Container(
+              color: AppColors.pageBackground.withOpacity(0.8),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DefaultTextStyle.merge(
+                      style: TextStyle(
+                        decoration: TextDecoration.none,
+                        color: AppColors.logo,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Eksportowanie grafiku...\n',
+                              style: TextStyle(
+                                color: AppColors.logo,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'To może potrwać kilka sekund.\nProszę czekać.',
+                              style: TextStyle(
+                                color: AppColors.textColor2,
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
-      ),
-    )
-    );
+      );
     });
   }
 }

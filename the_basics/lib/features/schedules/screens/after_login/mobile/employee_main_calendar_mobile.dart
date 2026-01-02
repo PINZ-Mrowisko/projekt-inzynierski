@@ -8,7 +8,6 @@ import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_employee_search_dialog_mobile.dart';
-import 'package:the_basics/features/schedules/usecases/show_export_dialog_mobile.dart';
 import 'package:the_basics/features/schedules/usecases/show_tags_filtering_dialog_mobile.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
@@ -298,7 +297,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
                       ),
 
                       Positioned(
-                        left: 0,
+                        right: 0,
                         child: Row(
                           children: [
                             IconButton(
@@ -313,22 +312,6 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
                                 showEmployeeSearchDialog(context, _selectedTags);
                               },
                               icon: const Icon(Icons.search_outlined, size: 30),
-                              color: AppColors.logo,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      Positioned(
-                        right: 0,
-                        child: Row(
-                          children: [
-                            SizedBox(width: 4),
-                            IconButton(
-                              onPressed: () {
-                                showExportDialogMobile(context);
-                              },
-                              icon: const Icon(Icons.download_outlined, size: 30),
                               color: AppColors.logo,
                             ),
                           ],
