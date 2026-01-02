@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../../data/repositiories/other/schedule_repo.dart';
 import '../../auth/models/user_model.dart';
 import '../../employees/controllers/user_controller.dart';
+import '../../leaves/controllers/leave_controller.dart';
 import '../models/schedule_model.dart';
 
 
@@ -549,5 +550,60 @@ class SchedulesController extends GetxController {
 
     individualShifts[index] = updatedShift;
     individualShifts.refresh();
+  }
+
+  /// Ta funkcja sprawdza wszystkie załadowane zmiany pod kątem kolizji z urlopami.
+  /// Jeśli pracownik ma urlop w dniu zmiany -> zmiana staje się 'Unknown'.
+  Future<void> validateShiftsAgainstLeaves() async{
+    try {
+      final leaveController = Get.find<LeaveController>();
+
+      final activeLeaves = leaveController.allLeaveRequests.where((l) =>
+      l.status.toLowerCase() == 'zaakceptowany' ||
+          l.status.toLowerCase() == 'mój urlop'
+      ).toList();
+
+      if (activeLeaves.isEmpty) return;
+
+      bool hasChanges = false;
+      final List<ScheduleModel> updatedList = [];
+
+      for (var shift in individualShifts) {
+        if (shift.employeeID == 'Unknown') {
+          updatedList.add(shift);
+          continue;
+        }
+
+        final bool isOnLeave = activeLeaves.any((leave) {
+          if (leave.userId != shift.employeeID) return false;
+
+          final shiftDay = DateTime(shift.shiftDate.year, shift.shiftDate.month, shift.shiftDate.day);
+          final start = DateTime(leave.startDate.year, leave.startDate.month, leave.startDate.day);
+          final end = DateTime(leave.endDate.year, leave.endDate.month, leave.endDate.day);
+
+          return (shiftDay.isAtSameMomentAs(start) || shiftDay.isAfter(start)) &&
+              (shiftDay.isAtSameMomentAs(end) || shiftDay.isBefore(end));
+        });
+
+        if (isOnLeave) {
+          updatedList.add(shift.copyWith(
+            employeeID: 'Unknown',
+            employeeFirstName: 'Unknown',
+            employeeLastName: 'Unknown',
+          ));
+          hasChanges = true;
+        } else {
+          updatedList.add(shift);
+        }
+      }
+
+      if (hasChanges) {
+        individualShifts.assignAll(updatedList);
+        print("AUTOMATYCZNA KOREKTA: Zmieniono ${individualShifts.length - updatedList.length} zmian na Unknown z powodu urlopów.");
+      }
+
+    } catch (e) {
+      print("Błąd podczas walidacji urlopów: $e");
+    }
   }
 }

@@ -69,6 +69,8 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
     );
 
     await _leaveController.fetchLeaves();
+
+    Get.find<SchedulesController>().validateShiftsAgainstLeaves();
   }
 
   @override

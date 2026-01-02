@@ -83,6 +83,8 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
 
     await _leaveController.fetchLeaves();
 
+    await schedulesController.validateShiftsAgainstLeaves();
+
     _updateUnknownShiftsCount();
   }
   
