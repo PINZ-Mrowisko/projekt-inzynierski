@@ -361,10 +361,17 @@ class SettingsScreen extends StatelessWidget {
       );
     }
 
+
+    // resetowanie hasła
   void _sendResetEmail(BuildContext context, UserModel employee) async {
     try {
+      // mpozemy uzyc controllera z początku
       Get.put(ForgetPswdController());
+
+      // wysyłamy do usera maila z resetem hasła
+
       await ForgetPswdController.instance.resendPswdResetEmail(employee.email);
+
       showCustomSnackbar(context, "Link do resetowania hasła został wysłany.");
     } catch (e) {
       showCustomSnackbar(context, "Nie udało się wysłać e-maila: ${e.toString()}");

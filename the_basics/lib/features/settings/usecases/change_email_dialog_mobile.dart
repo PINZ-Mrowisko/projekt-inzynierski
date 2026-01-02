@@ -1,6 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/form_dialog.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
@@ -8,7 +8,6 @@ import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 void showChangeEmailDialogMobile(BuildContext context) {
   final newEmailController = TextEditingController();
   final errorMessage = RxString('');
-  final userController = Get.find<UserController>();
 
   final errorText = Obx(() {
     if (errorMessage.value.isEmpty) return const SizedBox.shrink();
@@ -53,12 +52,38 @@ void showChangeEmailDialogMobile(BuildContext context) {
         }
 
         try {
-          // LOGIC TO BE IMPLEMENTED
+          final _auth = FirebaseAuth.instance;
+
+          if (_auth.currentUser?.email?.toLowerCase() == email.toLowerCase()) {
+            showCustomSnackbar(context, "To już jest Twój adres e-mail");
+            return;
+          }
+
+          // this method sends the email to the new email addrress + to the previous mail also in case of change
+          await _auth.currentUser?.verifyBeforeUpdateEmail(email);
 
           Get.back();
           showCustomSnackbar(context, "Link do zmiany adresu e-mail został wysłany na: $email");
+        } on FirebaseAuthException catch (e) {
+          switch (e.code) {
+            case 'requires-recent-login':
+              showCustomSnackbar(
+                context,
+                "Zaloguj się ponownie, aby zmienić adres e-mail",
+              );
+              break;
+
+            default:
+              showCustomSnackbar(
+                context,
+                "Błąd zmiany e-maila: ${e.message}",
+              );
+          }
         } catch (e) {
-          showCustomSnackbar(context, "Błąd: ${e.toString()}");
+          showCustomSnackbar(
+            context,
+            "Nieoczekiwany błąd: $e",
+          );
         }
       },
     ),
