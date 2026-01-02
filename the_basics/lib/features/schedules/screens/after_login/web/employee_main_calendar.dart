@@ -212,6 +212,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
                                   ),
+                                    minimumAppointmentDuration: Duration(hours: 5, minutes: 15)
                                 ),
                                 todayHighlightColor: AppColors.logo,
                                 resourceViewSettings: const ResourceViewSettings(

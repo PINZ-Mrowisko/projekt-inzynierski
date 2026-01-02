@@ -209,7 +209,7 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
                             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
-                              color: AppColors.warning.withOpacity(0.1),
+                              color: AppColors.warning.withValues(alpha: 0.1),
                               border: Border.all(color: AppColors.warning, width: 1),
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -338,6 +338,7 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
             fontSize: 12,
             color: Colors.grey.shade600,
           ),
+            minimumAppointmentDuration: Duration(hours: 5, minutes: 15)
         ),
         todayHighlightColor: AppColors.logo,
         resourceViewSettings: const ResourceViewSettings(

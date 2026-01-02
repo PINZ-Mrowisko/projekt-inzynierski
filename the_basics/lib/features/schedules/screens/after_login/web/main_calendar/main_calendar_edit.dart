@@ -485,6 +485,7 @@ String _getPolishWordForm(int count) {
           fontSize: 12,
           color: AppColors.textColor2,
         ),
+        minimumAppointmentDuration: const Duration(hours: 5, minutes: 15),
       ),
       todayHighlightColor: AppColors.logo,
       resourceViewSettings: const ResourceViewSettings(
