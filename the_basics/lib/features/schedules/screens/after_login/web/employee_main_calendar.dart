@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
-import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
@@ -17,6 +16,7 @@ import '../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../controllers/schedule_controller.dart';
+import 'main_calendar/utils/appointment_builder_employee.dart';
 import 'main_calendar/utils/calendar_state_manager.dart';
 
 class EmployeeMainCalendar extends StatefulWidget {
@@ -224,7 +224,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                appointmentBuilder: buildAppointmentWidget,
+                                appointmentBuilder: employeeBuildAppointmentWidget,
                               ),
                             ],
                           );
