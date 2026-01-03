@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_exporter.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_type.dart';
@@ -253,6 +254,7 @@ String _formatWeekTitle(DateTime date) {
                                           fontSize: 12,
                                           color: Colors.grey.shade600,
                                         ),
+                                        minimumAppointmentDuration: Duration(hours: 5, minutes: 15),
                                       ),
                                       todayHighlightColor: AppColors.logo,
                                       resourceViewSettings: const ResourceViewSettings(
@@ -267,7 +269,6 @@ String _formatWeekTitle(DateTime date) {
                                       appointmentBuilder: buildAppointmentWidget,
                                     ),
                                   ),
-                                    minimumAppointmentDuration: Duration(hours: 5, minutes: 15)
                                 ],
                               );
                             }),
@@ -313,7 +314,6 @@ String _formatWeekTitle(DateTime date) {
                                   fontSize: 16,
                                   fontWeight: FontWeight.normal,
                                 ),
-                                appointmentBuilder: employeeBuildAppointmentWidget,
                               ),
                             ],
                           ),

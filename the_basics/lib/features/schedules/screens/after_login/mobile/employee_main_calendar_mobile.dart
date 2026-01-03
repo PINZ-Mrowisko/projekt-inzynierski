@@ -330,7 +330,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
                     ],
                   ),
                 ),
-
+                ),
                 Container(
                   color: AppColors.pageBackground,
                   height: 55,
