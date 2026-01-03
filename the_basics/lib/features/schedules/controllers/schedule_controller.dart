@@ -389,8 +389,8 @@ class SchedulesController extends GetxController {
 
       final uriWithParams = baseUri.replace(
         queryParameters: {
-          'month': monthPart,
-          'year': year,
+          'month': monthPart.toString(),
+          'year': year.toString(),
           'marketId': marketId,
         },
       );

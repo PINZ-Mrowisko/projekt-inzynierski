@@ -31,7 +31,7 @@ app.add_middleware(
 )
 
 @app.get("/run-algorithmv2/{template_id}")
-def run_algorithm(authorization: str = Header(...), template_id: str = ""):
+def run_algorithm(authorization: str = Header(...), template_id: str = "", year: int = 0, month: int = 0):
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=403, detail="Brak tokenu")
 
@@ -65,7 +65,7 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
 
         result = map_result_to_json(solver, all_variables, workers, template)
 
-        post_schedule(user_id, template.id, result, leave_requests, db)
+        post_schedule(user_id, template.id, year, month, result, leave_requests, db)
 
         return result
 

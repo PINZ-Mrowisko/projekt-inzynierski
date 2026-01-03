@@ -169,7 +169,7 @@ def expand_schedule_to_month(schedule_dict, year, month, leaves_req):
     return full_month_schedule
 
 
-def post_schedule(user_id: str, template_id, schedule_data: dict, leaves_req ,db):
+def post_schedule(user_id: str, template_id, year, month, schedule_data: dict, leaves_req ,db):
     try:
         docs = db.collection("Markets") \
             .where(filter=FieldFilter("createdBy", "==", user_id)) \
@@ -181,7 +181,6 @@ def post_schedule(user_id: str, template_id, schedule_data: dict, leaves_req ,db
 
         market_id = docs[0].id
 
-        year, month = get_next_month_year()
         days_in_month = calendar.monthrange(year, month)[1]
 
         full_month_data = expand_schedule_to_month(schedule_data, year, month, leaves_req)
