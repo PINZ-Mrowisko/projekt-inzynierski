@@ -119,13 +119,16 @@ class SchedulesController extends GetxController {
   Future<void> fetchAndParseGeneratedSchedule({
     required String marketId,
     required String scheduleId,
+    bool clearCurrentList = false,
   }) async {
     try {
       isLoading(true);
       errorMessage('');
-      individualShifts.clear();
-      rawScheduleData.clear();
 
+      if (clearCurrentList) {
+        individualShifts.clear();
+        rawScheduleData.clear();
+      }
 
       // fetch raw schedule data
       final scheduleData = await _scheduleRepo.getGeneratedScheduleById(
@@ -138,13 +141,10 @@ class SchedulesController extends GetxController {
         return;
       }
 
-
       // raw data for metadata display
       rawScheduleData.addAll(scheduleData);
 
       final generatedSchedule = scheduleData['generated_schedule'] as Map<String, dynamic>?;
-
-
 
       if (generatedSchedule == null || generatedSchedule.isEmpty) {
         errorMessage.value = 'No generated schedule data found';
@@ -156,19 +156,15 @@ class SchedulesController extends GetxController {
 
       for (final entry in generatedSchedule.entries) {
         final dateString = entry.key;
-        final dateShifts = entry.value as List<dynamic>?; // now LIST of assignments
+        final dateShifts = entry.value as List<dynamic>?;
 
         if (dateShifts == null || dateShifts.isEmpty) {
-          print('No shifts found for date $dateString');
           continue;
         }
 
         // extract each shift data
         for (final shiftData in dateShifts) {
-          if (shiftData is! Map<String, dynamic>) {
-            print('Shift data is not a Map, type: ${shiftData.runtimeType}');
-            continue;
-          }
+          if (shiftData is! Map<String, dynamic>) continue;
 
           final assignments = shiftData['assignments'] as List<dynamic>? ?? [];
           final startStr = shiftData['start'] as String? ?? '00:00';
@@ -178,12 +174,8 @@ class SchedulesController extends GetxController {
           final startTime = _parseTimeOfDay(startStr);
           final endTime = _parseTimeOfDay(endStr);
 
-          // for every assignment in assignments list
           for (final assignment in assignments) {
-            if (assignment is! Map<String, dynamic>) {
-              print('Assignment is not a Map, type: ${assignment.runtimeType}');
-              continue;
-            }
+            if (assignment is! Map<String, dynamic>) continue;
 
             final shift = ScheduleModel(
               shiftDate: DateTime.parse(dateString),
@@ -198,6 +190,8 @@ class SchedulesController extends GetxController {
               isDeleted: false,
               insertedAt: DateTime.now(),
               updatedAt: DateTime.now(),
+              // Ważne: Warto tutaj generować unikalne ID, jeśli model go wymaga do poprawnego działania w UI
+              // id: ...
             );
 
             parsedShifts.add(shift);
@@ -205,13 +199,30 @@ class SchedulesController extends GetxController {
         }
       }
 
-      // sort by date
-      parsedShifts.sort((a, b) => a.shiftDate.compareTo(b.shiftDate));
+      // 2. LOGIKA MERGE (ŁĄCZENIA)
+      if (parsedShifts.isNotEmpty) {
+        parsedShifts.sort((a, b) => a.shiftDate.compareTo(b.shiftDate));
+        final newStartDate = parsedShifts.first.shiftDate;
+        final newEndDate = parsedShifts.last.shiftDate;
 
-      _originalShiftsSnapshot = List.from(parsedShifts);
+        final List<ScheduleModel> currentList = List.from(individualShifts);
 
-      individualShifts.assignAll(parsedShifts);
-      print('[DEBUG] Successfully parsed ${parsedShifts.length} shifts');
+        currentList.removeWhere((existingShift) {
+          final date = existingShift.shiftDate;
+          return (date.isAtSameMomentAs(newStartDate) || date.isAfter(newStartDate)) &&
+              (date.isAtSameMomentAs(newEndDate) || date.isBefore(newEndDate));
+        });
+
+        currentList.addAll(parsedShifts);
+
+        currentList.sort((a, b) => a.shiftDate.compareTo(b.shiftDate));
+
+        individualShifts.assignAll(currentList);
+
+        print('[DEBUG] Merged schedules. Total shifts: ${individualShifts.length}');
+      } else {
+        print('[DEBUG] No shifts parsed to merge.');
+      }
 
     } catch (e) {
       errorMessage.value = 'Failed to load schedule: $e';
