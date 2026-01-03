@@ -362,6 +362,7 @@ class SchedulesController extends GetxController {
   /// wywolanie algorytmu dla wybranego templatu
   Future<String> generateScheduleFromTemplate({
     required String templateId,
+    required String targetDate,
     required String marketId,
   }) async {
     try {
@@ -375,10 +376,34 @@ class SchedulesController extends GetxController {
         throw Exception('Brak autoryzacji - użytkownik nie jest zalogowany');
       }
 
+      String year;
+      String monthPart;
+
+      if (targetDate.contains('-')) {
+        final parts = targetDate.split('-');
+        year = parts[0];      // np. "2026"
+        monthPart = parts[1]; // np. "02"
+      } else {
+        // Zabezpieczenie na wypadek błędnego formatu - bierzemy obecny czas
+        final now = DateTime.now();
+        year = now.year.toString();
+        monthPart = now.month.toString().padLeft(2, '0');
+      }
+
+      final baseUri = Uri.parse('https://xxx.europe-central2.run.app/run-algorithmv2/$templateId');
+
       // wykonujemy request - z tego co rozumiem nie mozemy tu pobrac w jakikolwiek sposob generated schedule ID
 
+      final uriWithParams = baseUri.replace(
+        queryParameters: {
+          'month': monthPart,
+          'year': year,
+          'marketId': marketId,
+        },
+      );
+
       final response = await http.get(
-        Uri.parse('https://scheduling-algorithm-166365589002.europe-central2.run.app/run-algorithmv2/$templateId'),
+        uriWithParams,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $idToken',
