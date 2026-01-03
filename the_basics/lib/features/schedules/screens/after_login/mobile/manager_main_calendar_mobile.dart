@@ -257,6 +257,7 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
               timeIntervalWidth: screenWidth / (3 * 14),
               timeTextStyle: const TextStyle(color: AppColors.transparent, fontSize: 0),
               numberOfDaysInView: 3,
+                minimumAppointmentDuration: Duration(hours: 8, minutes: 0)
             ),
           ),
         ),

@@ -254,6 +254,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
               timeIntervalWidth: screenWidth / (3 * 14),
               timeTextStyle: TextStyle(color: AppColors.transparent, fontSize: 0),
               numberOfDaysInView: 3,
+              minimumAppointmentDuration: Duration(hours: 8, minutes: 0)
             ),
           ),
         ),
