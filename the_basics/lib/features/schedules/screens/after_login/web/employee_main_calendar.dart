@@ -266,7 +266,7 @@ String _formatWeekTitle(DateTime date) {
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                      appointmentBuilder: buildAppointmentWidget,
+                                      appointmentBuilder: employeeBuildAppointmentWidget,
                                     ),
                                   ),
                                 ],
