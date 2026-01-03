@@ -23,7 +23,9 @@ Widget employeeBuildAppointmentWidget(
 
   String displayBottomText = appointment.notes ?? '';
 
-  if (!isLeave) {
+  if (isLeave) {
+    displayBottomText = 'Urlop';
+  } else {
     displayBottomText = appointment.subject;
     if (hasWarning && !displayBottomText.contains('⚠️')) {
       displayBottomText = '⚠️ $displayBottomText';
@@ -35,14 +37,29 @@ Widget employeeBuildAppointmentWidget(
       color: isLeave ? Colors.orangeAccent : appointment.color,
       borderRadius: BorderRadius.circular(3),
       border: hasWarning
-          ? Border.all(color: Colors.red, width: 2,)
+          ? Border.all(color: AppColors.warning, width: 2,)
           : Border.all(color: AppColors.white, width: 0.5,),
     ),
     margin: const EdgeInsets.all(1),
     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
     child: isLeave
-        ? null :
-        Column(
+        ? Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Urlop',
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        )
+       : Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,

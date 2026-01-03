@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:the_basics/utils/app_colors.dart';
 
 // UPDATED to overlay so that it always appears in the top layer
@@ -6,8 +7,21 @@ void showCustomSnackbar(BuildContext context, String message) {
   final screenWidth = MediaQuery.of(context).size.width;
   final snackbarWidth = screenWidth * 0.6;
 
-  final overlay = Overlay.of(context);
-  if (overlay == null) return;
+  BuildContext? safeContext = context;
+
+  OverlayState? overlay;
+  try {
+    overlay = Overlay.of(safeContext);
+  } catch (_) {
+    overlay = null;
+  }
+
+  if (overlay == null) {
+    safeContext = Get.overlayContext;
+    if (safeContext == null) return;
+    overlay = Overlay.of(safeContext);
+    if (overlay == null) return;
+  }
 
   late OverlayEntry overlayEntry;
   

@@ -35,7 +35,7 @@ Widget buildAppointmentWidget(
       color: isLeave ? Colors.orangeAccent : appointment.color,
       borderRadius: BorderRadius.circular(3),
       border: hasWarning
-          ? Border.all(color: Colors.red, width: 2,)
+          ? Border.all(color: AppColors.warning, width: 2,)
           : Border.all(color: AppColors.white, width: 0.5,),
     ),
     margin: const EdgeInsets.all(1),
