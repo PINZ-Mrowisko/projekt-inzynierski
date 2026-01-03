@@ -46,9 +46,13 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
         DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
 
     final userController = Get.find<UserController>();
+    final scheduleController = Get.find<SchedulesController>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       userController.resetFilters();
+
       await _leaveController.fetchLeaves();
+      await scheduleController.validateShiftsAgainstLeaves();
     });
     ever(_selectedTags, (tags) {
       userController.filterEmployees(tags);

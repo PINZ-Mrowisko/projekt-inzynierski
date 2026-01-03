@@ -44,9 +44,13 @@ void initState() {
   _calendarController.displayDate = _visibleStartDate;
 
   final userController = Get.find<UserController>();
+  final scheduleController = Get.find<SchedulesController>();
+
   WidgetsBinding.instance.addPostFrameCallback((_) async {
     userController.resetFilters();
+
     await _leaveController.fetchLeaves();
+    await scheduleController.validateShiftsAgainstLeaves();
   });
 }
 

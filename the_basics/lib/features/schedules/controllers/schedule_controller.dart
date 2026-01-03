@@ -599,7 +599,6 @@ class SchedulesController extends GetxController {
 
       if (hasChanges) {
         individualShifts.assignAll(updatedList);
-        print("AUTOMATYCZNA KOREKTA: Zmieniono ${individualShifts.length - updatedList.length} zmian na Unknown z powodu urlopów.");
       }
 
     } catch (e) {
