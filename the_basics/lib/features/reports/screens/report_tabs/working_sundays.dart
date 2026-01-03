@@ -1,13 +1,16 @@
 // WORKING SUNDAYS TAB 
-// TODO: implement actual data fetching and display ALSO SORT IT BY NUMBER OF WORKING SUNDAYS
 import 'dart:ui';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 
 Widget workingSundaysTab(UserController userController, sundaysChartKey) {
+      final scheduleController = Get.find<SchedulesController>();
       final currentYear = DateTime.now().year;
       final employees = userController.allEmployees.toList();
 
@@ -20,13 +23,22 @@ Widget workingSundaysTab(UserController userController, sundaysChartKey) {
         );
       }
 
-      // HARDCODED DATA - TO BE REPLACED WITH ACTUAL DATA FETCHING
+      // get from schedules
       final employeeSundays = employees.map((emp) {
-      final mockSundays = (emp.firstName?.length ?? 0) % 10;
-        
-      return {'employee': emp, 'sundays': mockSundays};
-      }).toList();
+        // count sundays worked this year
+        final sundays = scheduleController.individualShifts
+            .where((shift) {
+              return shift.employeeID == emp.id &&
+                    shift.shiftDate.year == currentYear &&
+                    shift.shiftDate.weekday == 7 &&
+                    !shift.isDeleted;
+            })
+            .length;
 
+        return {'employee': emp, 'sundays': sundays};
+          }).toList();
+      
+      //sort by sundays desc
       employeeSundays.sort((a, b) => (b['sundays'] as int).compareTo(a['sundays'] as int));
 
       // BAR CHART DATA

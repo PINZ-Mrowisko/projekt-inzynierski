@@ -8,7 +8,6 @@ import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_employee_search_dialog_mobile.dart';
-import 'package:the_basics/features/schedules/usecases/show_export_dialog_mobile.dart';
 import 'package:the_basics/features/schedules/usecases/show_tags_filtering_dialog_mobile.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
@@ -321,6 +320,43 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
                                 showEmployeeSearchDialog(context, _selectedTags);
                               },
                               icon: const Icon(Icons.search_outlined, size: 30),
+                              color: AppColors.logo,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Positioned(
+                        right: 0,
+                        child: Row(
+                          children: [
+                            SizedBox(width: 4),
+                            IconButton(
+                              onPressed: () {
+                                final userController = Get.find<UserController>();
+                                final scheduleController = Get.find<SchedulesController>();
+                                
+                                // get current schedule and market IDs
+                                final scheduleId = scheduleController.publishedScheduleID.value;
+                                final marketId = userController.employee.value.marketId;
+                                
+                                // error handling
+                                if (scheduleId.isEmpty || marketId.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Brak opublikowanego grafiku do edycji')),
+                                  );
+                                  return;
+                                }
+                                Get.toNamed(
+                                  '/grafik-ogolny-kierownik/edytuj-grafik',
+                                  arguments: {
+                                    'initialDate': _calendarController.displayDate,
+                                    'scheduleId': scheduleId,
+                                    'marketId': marketId,
+                                  },
+                                );
+                              },
+                              icon: const Icon(Icons.edit_outlined, size: 30),
                               color: AppColors.logo,
                             ),
                           ],

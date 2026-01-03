@@ -98,7 +98,7 @@ class AuthRepo extends GetxController {
             await userController.updateEmployee(employee.copyWith(hasLoggedIn: true));
             //print("Updated hasLoggedIn to true for first login.");
           }
-          print("here navigating");
+          //print("here navigating");
 
           _navigateToMainApp();
         } catch (e) {

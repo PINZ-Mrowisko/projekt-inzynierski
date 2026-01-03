@@ -5,7 +5,6 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
-import 'package:the_basics/features/schedules/usecases/show_export_dialog_mobile.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
@@ -278,14 +277,6 @@ List<Appointment> _getAppointments(UserModel employee, List<LeaveModel> leaves) 
                             color: AppColors.black,
                             letterSpacing: 0.4,
                           ),
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        child: IconButton(
-                          onPressed: () => showExportDialogMobile(context),
-                          icon: const Icon(Icons.download_outlined, size: 30),
-                          color: AppColors.logo,
                         ),
                       ),
                     ],
