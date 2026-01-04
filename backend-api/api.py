@@ -70,7 +70,7 @@ def run_algorithm(authorization: str = Header(...), template_id: str = "", year:
         return result
 
 @app.get("/generate_from_previous/{schedule_id}")
-def generate_from_previous(authorization: str = Header(...), schedule_id: str = ""):
+def generate_from_previous(authorization: str = Header(...), schedule_id: str = "", year: int = 0, month: int = 0):
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=403, detail="Brak tokenu")
 
@@ -86,6 +86,6 @@ def generate_from_previous(authorization: str = Header(...), schedule_id: str = 
     schedule, template_id = get_previous_schedule(user_id, schedule_id, db)
     leave_requests = get_leave_requests(user_id, db)
 
-    post_schedule(user_id, template_id, schedule, leave_requests, db)
+    post_schedule(user_id, template_id, year, month, schedule, leave_requests, db)
 
     return "Successfully generated new schedule from previous one."
