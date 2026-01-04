@@ -18,6 +18,7 @@ import '../../../features/schedules/screens/after_login/web/manager_main_calenda
 import '../../../features/tags/controllers/tags_controller.dart';
 import '../../../features/employees/controllers/user_controller.dart';
 import '../exceptions.dart';
+import 'package:the_basics/features/auth/screens/web/rodo_info.dart';
 
 /// how the process looks currently:
 /// auth repo gets initialized in Main
@@ -102,6 +103,12 @@ class AuthRepo extends GetxController {
             await userController.updateEmployee(employee.copyWith(hasLoggedIn: true));
             //print("Updated hasLoggedIn to true for first login.");
           }
+
+          if (!employee.rodoInfoSeen) { 
+            Get.offAll(() => RodoInfoPopup());
+            return; // ważne, żeby nie wchodzić do aplikacji
+      }
+
           _navigateToMainApp();
         } catch (e) {
           throw(e.toString());

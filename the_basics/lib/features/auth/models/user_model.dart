@@ -21,6 +21,8 @@ class UserModel {
   final bool hasLoggedIn;
   final bool leaveNotifs;
   final bool scheduleNotifs;
+  final bool rodoInfoSeen;
+
 
   UserModel({
     required this.id,
@@ -42,7 +44,9 @@ class UserModel {
     // this.onDemandDays = 4,
     this.hasLoggedIn = false,
     this.scheduleNotifs = true,
-    this.leaveNotifs = true
+    this.leaveNotifs = true,
+    this.rodoInfoSeen = false,
+
   });
 
   static UserModel empty() => UserModel(
@@ -60,7 +64,8 @@ class UserModel {
       numberOfLeaves: 0,
     hasLoggedIn: false,
     scheduleNotifs: true,
-    leaveNotifs: true
+    leaveNotifs: true,
+    rodoInfoSeen: false,
   );
 
   Map<String, dynamic> toMap() {
@@ -84,7 +89,9 @@ class UserModel {
       'numberOfLeaves': numberOfLeaves,
       'hasLoggedIn': hasLoggedIn,
       'scheduleNotifs': scheduleNotifs,
-      'leaveNotifs': leaveNotifs
+      'leaveNotifs': leaveNotifs,
+      'rodoInfoSeen': rodoInfoSeen,
+
     };
   }
 
@@ -112,6 +119,8 @@ class UserModel {
         hasLoggedIn: map['hasLoggedIn'] ?? false,
         scheduleNotifs: map['scheduleNotifs'] ?? true,
         leaveNotifs: map['leaveNotifs'] ?? true,
+        rodoInfoSeen: map['rodoInfoSeen'] ?? false,
+
       );
     } else {
       return UserModel.empty();
@@ -143,6 +152,8 @@ class UserModel {
       hasLoggedIn: data['hasLoggedIn'] ?? false,
       scheduleNotifs: data['scheduleNotifs'] ?? true,
       leaveNotifs: data['leaveNotifs'] ?? true,
+      rodoInfoSeen: data['rodoInfoSeen'] ?? false,
+
 
     );
   }
@@ -169,7 +180,8 @@ class UserModel {
     bool? hasLoggedIn,
     int? numberOfLeaves,
     bool? leaveNotifs,
-    bool? scheduleNotifs
+    bool? scheduleNotifs,
+    bool? rodoInfoSeen,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -191,7 +203,8 @@ class UserModel {
         numberOfLeaves: numberOfLeaves ?? this.numberOfLeaves,
       hasLoggedIn: hasLoggedIn ?? this.hasLoggedIn,
       scheduleNotifs: scheduleNotifs ?? this.scheduleNotifs,
-      leaveNotifs: leaveNotifs ?? this.leaveNotifs
+      leaveNotifs: leaveNotifs ?? this.leaveNotifs,
+      rodoInfoSeen: rodoInfoSeen ?? this.rodoInfoSeen,
     );
   }
 }

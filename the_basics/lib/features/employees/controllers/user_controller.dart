@@ -377,7 +377,12 @@ class UserController extends GetxController {
     filteredEmployees.assignAll(allEmployees);
   }
 
-
+  Future<void> markRodoInfoSeen() async {
+  final employee = this.employee.value;
+  await updateEmployee(
+    employee.copyWith(rodoInfoSeen: true),
+  );
+}
 
 
 }
