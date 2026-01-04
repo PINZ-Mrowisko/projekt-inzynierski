@@ -311,7 +311,6 @@ class SettingsScreenMobile extends StatelessWidget {
             buttonText: "Zmień e-mail",
             icon: Icons.email_outlined,
             onPressed: () {
-              // IMPLEMENT THERE
               showChangeEmailDialogMobile(context);
             },
           ),

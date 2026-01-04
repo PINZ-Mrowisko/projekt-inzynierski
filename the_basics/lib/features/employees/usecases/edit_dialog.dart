@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/utils/app_colors.dart';
@@ -45,7 +46,7 @@ void showEditEmployeeDialog(
 
     RowDialogField(
       children: [
-        DialogInputField(label: 'Email', controller: emailController),
+        DialogInputField(label: 'Email', controller: emailController, enabled: false),
         DialogInputField(label: 'Numer telefonu', controller: phoneController),
       ],
     ),

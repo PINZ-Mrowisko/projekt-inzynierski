@@ -98,7 +98,7 @@ class AuthRepo extends GetxController {
             await userController.updateEmployee(employee.copyWith(hasLoggedIn: true));
             //print("Updated hasLoggedIn to true for first login.");
           }
-          print("here navigating");
+          //print("here navigating");
 
           _navigateToMainApp();
         } catch (e) {
@@ -179,7 +179,7 @@ class AuthRepo extends GetxController {
       //Get.offAll(() => mainPage);
 
       final routeName = userController.isAdmin.value
-          ? '/grafik-ogolny-kierownik'
+          ? '/dashboard'
           : '/grafik-ogolny-pracownicy';
 
       Get.offAllNamed(

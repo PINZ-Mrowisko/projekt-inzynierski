@@ -219,6 +219,12 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
                 borderRadius: BorderRadius.circular(28),
                 borderSide: BorderSide.none,
               ),
+              disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(
+                color: AppColors.transparent,
+              ),
+            ),
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 16,
                 horizontal: 16,

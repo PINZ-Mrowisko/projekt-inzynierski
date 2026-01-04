@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/utils/app_colors.dart';
 
-Widget buildAppointmentWidget(
+Widget employeeBuildAppointmentWidget(
     BuildContext context,
     CalendarAppointmentDetails calendarAppointmentDetails,
     ) {
@@ -23,7 +23,9 @@ Widget buildAppointmentWidget(
 
   String displayBottomText = appointment.notes ?? '';
 
-  if (!isLeave) {
+  if (isLeave) {
+    displayBottomText = 'Urlop';
+  } else {
     displayBottomText = appointment.subject;
     if (hasWarning && !displayBottomText.contains('⚠️')) {
       displayBottomText = '⚠️ $displayBottomText';
@@ -40,49 +42,66 @@ Widget buildAppointmentWidget(
     ),
     margin: const EdgeInsets.all(1),
     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-
-        if (!isLeave)
-          RichText(
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-            text: TextSpan(
+    child: isLeave
+        ? Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Urlop',
               style: TextStyle(
                 color: AppColors.white,
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
-                fontFamily: 'Roboto',
               ),
-              children: [
-                TextSpan(text: timeText),
-                if (extraCount.isNotEmpty)
-                  TextSpan(
-                    text: ' $extraCount',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-              ],
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
+          ],
+        )
+       : Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
 
-        if (displayBottomText.isNotEmpty)
-          Text(
-            displayBottomText,
-            style: TextStyle(
-              color: AppColors.white,
-              fontSize: 10,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-      ],
-    ),
-  );
+            if (!isLeave)
+              RichText(
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                text: TextSpan(
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Roboto',
+                  ),
+                  children: [
+                    TextSpan(text: timeText),
+                    if (extraCount.isNotEmpty)
+                      TextSpan(
+                        text: ' $extraCount',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+            if (displayBottomText.isNotEmpty)
+              Text(
+                displayBottomText,
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontSize: 10,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+          ],
+        ),
+      );
 
   if (isLeave) {
     return tileContent;

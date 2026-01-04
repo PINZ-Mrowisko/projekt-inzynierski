@@ -29,7 +29,7 @@ class UserModel {
     required this.marketId,
     this.phoneNumber = "123",
     this.contractType = "Umowa o pracę",
-    this.maxWeeklyHours = 40,
+    this.maxWeeklyHours = 0,
     this.shiftPreference = "Brak preferencji",
     this.tags = const [],
     this.role = 'employee', // default role
