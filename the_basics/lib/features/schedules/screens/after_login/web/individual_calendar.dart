@@ -131,6 +131,22 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
   final GlobalKey individualCalendarKey = GlobalKey();
   final isExporting = false.obs;
 
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final scheduleController = Get.find<SchedulesController>();
+      final leaveController = Get.find<LeaveController>();
+
+      if (leaveController.allLeaveRequests.isEmpty) {
+        await leaveController.fetchLeaves();
+      }
+
+      await scheduleController.validateShiftsAgainstLeaves();
+    });
+  }
+
   List<Appointment> _getAppointments(List<UserModel> filteredEmployees, List<LeaveModel> leaves) {
 
     final DateTime now = DateTime.now();

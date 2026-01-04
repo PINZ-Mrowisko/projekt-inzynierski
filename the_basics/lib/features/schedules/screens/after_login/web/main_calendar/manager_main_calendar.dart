@@ -41,6 +41,18 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
   final GlobalKey mainCalendarKey = GlobalKey();
   final isExporting = false.obs; 
 
+  final RxInt _unknownShiftsCount = 0.obs;
+
+  void _updateUnknownShiftsCount() {
+    final scheduleController = Get.find<SchedulesController>();
+    
+    final count = scheduleController.individualShifts
+        .where((shift) => shift.employeeID == 'Unknown')
+        .length;
+    
+    _unknownShiftsCount.value = count;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +64,11 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
     ever(_selectedTags, (tags) {
       final userController = Get.find<UserController>();
       userController.filterEmployees(tags);
+    });
+
+    final scheduleController = Get.find<SchedulesController>();
+    ever(scheduleController.individualShifts, (_) {
+      _updateUnknownShiftsCount();
     });
   }
 
@@ -70,6 +87,16 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
     );
 
     await _leaveController.fetchLeaves();
+
+    await schedulesController.validateShiftsAgainstLeaves();
+
+    _updateUnknownShiftsCount();
+  }
+  
+  String _getPolishWordForm(int count) {
+    if (count == 1) return 'zmiana';
+    if (count >= 2 && count <= 4) return 'zmiany';
+    return 'zmian';
   }
 
   Future<void> _exportCalendar() async {
@@ -212,9 +239,40 @@ String _formatWeekTitle(DateTime date) {
                                     ],
                                   ),
                                 ),
+                            ],
+                        ),
+                      ),
+                      // GLOBAL WARNING PANEL
+                      Obx(() {
+                        if (_unknownShiftsCount.value > 0) {
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withValues(alpha: 0.1),
+                              border: Border.all(color: AppColors.warning, width: 1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.warning, color: AppColors.warning, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'UWAGA: ${_unknownShiftsCount.value} ${_getPolishWordForm(_unknownShiftsCount.value)} bez obsady!',
+                                  style: TextStyle(
+                                    color: AppColors.warning,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ],
                             ),
-                          ),
+                          );
+                        }
+                        return SizedBox.shrink();
+                      }),
 
                           // CALENDAR
                           Expanded(
@@ -369,15 +427,16 @@ String _formatWeekTitle(DateTime date) {
               fontSize: 12,
               color: Colors.grey.shade600,
             ),
-          ),
-          todayHighlightColor: AppColors.logo,
-          resourceViewSettings: const ResourceViewSettings(
-            visibleResourceCount: 10,
-            size: 170,
-            showAvatar: false,
-            displayNameTextStyle: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
+          minimumAppointmentDuration: Duration(hours: 5, minutes: 15),
+        ),
+        todayHighlightColor: AppColors.logo,
+        resourceViewSettings: const ResourceViewSettings(
+          visibleResourceCount: 10,
+          size: 170,
+          showAvatar: false,
+          displayNameTextStyle: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
             ),
           ),
           appointmentBuilder: buildAppointmentWidget,

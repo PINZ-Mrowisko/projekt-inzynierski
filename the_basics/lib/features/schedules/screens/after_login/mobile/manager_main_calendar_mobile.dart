@@ -45,9 +45,13 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
         DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
 
     final userController = Get.find<UserController>();
+    final scheduleController = Get.find<SchedulesController>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       userController.resetFilters();
+
       await _leaveController.fetchLeaves();
+      await scheduleController.validateShiftsAgainstLeaves();
     });
     ever(_selectedTags, (tags) {
       userController.filterEmployees(tags);
@@ -256,6 +260,7 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
               timeIntervalWidth: screenWidth / (3 * 14),
               timeTextStyle: const TextStyle(color: AppColors.transparent, fontSize: 0),
               numberOfDaysInView: 3,
+                minimumAppointmentDuration: Duration(hours: 8, minutes: 0)
             ),
           ),
         ),
@@ -300,7 +305,7 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
                       ),
 
                       Positioned(
-                        left: 0,
+                        right: 0,
                         child: Row(
                           children: [
                             IconButton(
@@ -315,43 +320,6 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
                                 showEmployeeSearchDialog(context, _selectedTags);
                               },
                               icon: const Icon(Icons.search_outlined, size: 30),
-                              color: AppColors.logo,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      Positioned(
-                        right: 0,
-                        child: Row(
-                          children: [
-                            SizedBox(width: 4),
-                            IconButton(
-                              onPressed: () {
-                                final userController = Get.find<UserController>();
-                                final scheduleController = Get.find<SchedulesController>();
-                                
-                                // get current schedule and market IDs
-                                final scheduleId = scheduleController.publishedScheduleID.value;
-                                final marketId = userController.employee.value.marketId;
-                                
-                                // error handling
-                                if (scheduleId.isEmpty || marketId.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Brak opublikowanego grafiku do edycji')),
-                                  );
-                                  return;
-                                }
-                                Get.toNamed(
-                                  '/grafik-ogolny-kierownik/edytuj-grafik',
-                                  arguments: {
-                                    'initialDate': _calendarController.displayDate,
-                                    'scheduleId': scheduleId,
-                                    'marketId': marketId,
-                                  },
-                                );
-                              },
-                              icon: const Icon(Icons.edit_outlined, size: 30),
                               color: AppColors.logo,
                             ),
                           ],

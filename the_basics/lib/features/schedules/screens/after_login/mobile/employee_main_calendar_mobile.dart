@@ -5,7 +5,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
-import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder_employee.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
 import 'package:the_basics/features/schedules/usecases/show_employee_search_dialog_mobile.dart';
 import 'package:the_basics/features/schedules/usecases/show_tags_filtering_dialog_mobile.dart';
@@ -29,12 +29,12 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
 
   DateTime _visibleStartDate = DateTime.now();
   final int _visibleDays = 3;
-  
+
   final CalendarController _calendarController = CalendarController();
   final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
   final LeaveController _leaveController = Get.find<LeaveController>();
   final TagsController _tagsController = Get.find<TagsController>();
- 
+
   @override
   void initState() {
     super.initState();
@@ -42,10 +42,15 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
         DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
 
     final userController = Get.find<UserController>();
+    final scheduleController = Get.find<SchedulesController>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       userController.resetFilters();
+
       await _leaveController.fetchLeaves();
+      await scheduleController.validateShiftsAgainstLeaves();
     });
+
     ever(_selectedTags, (tags) {
       userController.filterEmployees(tags);
     });
@@ -67,33 +72,32 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
     return true;
   }
 
-  // handling global calendar view change
   void _goToPreviousRange() {
     setState(() {
       _visibleStartDate =
           _visibleStartDate.subtract(Duration(days: _visibleDays));
       _calendarController.displayDate =
-        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
+          DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
     });
   }
 
   void _goToNextRange() {
     setState(() {
       _visibleStartDate = _visibleStartDate.add(Duration(days: _visibleDays));
-    _calendarController.displayDate =
-        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
+      _calendarController.displayDate =
+          DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
     });
   }
 
   String _getDateRangeText() {
     final endDate = _visibleStartDate.add(Duration(days: _visibleDays - 1));
-    
+
     if (_visibleStartDate.month == endDate.month) {
       return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
-            '${endDate.day}.${endDate.month}';
+          '${endDate.day}.${endDate.month}';
     } else {
       return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
-            '${endDate.day}.${endDate.month}';
+          '${endDate.day}.${endDate.month}';
     }
   }
 
@@ -123,7 +127,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
       );
 
       final tagNames = _convertTagIdsToNames(shift.tags);
-      final displayTags = tagNames.isNotEmpty 
+      final displayTags = tagNames.isNotEmpty
           ? tagNames.join(', ')
           : 'Brak tagów';
 
@@ -139,9 +143,9 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
     }).toList();
 
     final userLeaves = allLeaves.where((leave) =>
-        leave.userId == userID &&
+    leave.userId == userID &&
         (leave.status.toLowerCase() == 'zaakceptowany' ||
-         leave.status.toLowerCase() == 'mój urlop')).toList();
+            leave.status.toLowerCase() == 'mój urlop')).toList();
 
     for (final leave in userLeaves) {
       final startDateTime = DateTime(
@@ -160,15 +164,20 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
         0,
       );
 
+      final visualEndDateTime = leave.startDate.isAtSameMomentAs(leave.endDate)
+          ? startDateTime.add(const Duration(hours: 8))
+          : endDateTime;
+
       baseAppointments.add(
         Appointment(
           startTime: startDateTime,
-          endTime: endDateTime,
+          endTime: visualEndDateTime,
           subject: 'Urlop',
           color: Colors.orangeAccent,
-          notes: leave.comment?.isNotEmpty == true 
+          notes: leave.comment?.isNotEmpty == true
               ? leave.comment!
               : 'Urlop',
+          isAllDay: true,
         ),
       );
     }
@@ -178,11 +187,11 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
 
   List<String> _convertTagIdsToNames(List<String> tagIds) {
     final List<String> tagNames = [];
-    
+
     for (final tagId in tagIds) {
       try {
         final foundTags = _tagsController.allTags.where((t) => t.id == tagId).toList();
-        
+
         if (foundTags.isNotEmpty) {
           final tag = foundTags.first;
           if (tag.tagName != null && tag.tagName!.isNotEmpty) {
@@ -197,7 +206,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
         tagNames.add(tagId);
       }
     }
-    
+
     return tagNames;
   }
 
@@ -240,19 +249,20 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
             firstDayOfWeek: 1,
             dataSource: _CalendarDataSource(appointments),
             specialRegions: _regionsBuilder.getSpecialRegions(),
-            appointmentBuilder: buildAppointmentWidget,
+            appointmentBuilder: employeeBuildAppointmentWidget,
             allowedViews: const [],
             allowViewNavigation: true,
             viewHeaderHeight: 30,
             todayHighlightColor: AppColors.logo,
             showCurrentTimeIndicator: true,
             timeSlotViewSettings: TimeSlotViewSettings(
-              startHour: 7,
-              endHour: 21,
-              timeInterval: const Duration(hours: 1),
-              timeIntervalWidth: screenWidth / (3 * 14),
-              timeTextStyle: TextStyle(color: AppColors.transparent, fontSize: 0),
-              numberOfDaysInView: 3,
+                startHour: 7,
+                endHour: 21,
+                timeInterval: const Duration(hours: 1),
+                timeIntervalWidth: screenWidth / (3 * 14),
+                timeTextStyle: TextStyle(color: AppColors.transparent, fontSize: 0),
+                numberOfDaysInView: 3,
+                minimumAppointmentDuration: Duration(hours: 8, minutes: 0)
             ),
           ),
         ),
@@ -267,34 +277,34 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
     final userController = Get.find<UserController>();
 
     return PopScope(
-      canPop: false,
-      onPopInvoked: (_) => _onWillPop(),
-      child: Obx(() => Scaffold(
-        backgroundColor: AppColors.pageBackground,
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(140),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                color: AppColors.pageBackground,
-                padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 14),
-                child: SafeArea(
-                  bottom: false,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Center(
-                        child: Text(
-                          'Grafik ogólny',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.black,
-                            letterSpacing: 0.4,
+        canPop: false,
+        onPopInvoked: (_) => _onWillPop(),
+        child: Obx(() => Scaffold(
+          backgroundColor: AppColors.pageBackground,
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(140),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  color: AppColors.pageBackground,
+                  padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 14),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Center(
+                          child: Text(
+                            'Grafik ogólny',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.black,
+                              letterSpacing: 0.4,
+                            ),
                           ),
                         ),
-                      ),
 
                       Positioned(
                         right: 0,
@@ -320,77 +330,76 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
                     ],
                   ),
                 ),
-              ),
-
-              Container(
-                color: AppColors.pageBackground,
-                height: 55,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        DateFormat('MMM yyyy', 'pl').format(_visibleStartDate),
+                ),
+                Container(
+                  color: AppColors.pageBackground,
+                  height: 55,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          DateFormat('MMM yyyy', 'pl').format(_visibleStartDate),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.black,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios, size: 22),
+                        color: AppColors.logo,
+                        onPressed: _goToPreviousRange,
+                      ),
+                      Text(
+                        _getDateRangeText(),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.black,
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, size: 22),
-                      color: AppColors.logo,
-                      onPressed: _goToPreviousRange,
-                    ),
-                    Text(
-                      _getDateRangeText(),
-                      style: TextStyle(
-                        fontSize: 18, 
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.black,
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios, size: 22),
+                        color: AppColors.logo,
+                        onPressed: _goToNextRange,
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios, size: 22),
-                      color: AppColors.logo,
-                      onPressed: _goToNextRange,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        body: Obx(() {
-          if (userController.isLoading.value) {
-            return Center(child: CircularProgressIndicator(color: AppColors.logo));
-          }
-          final employees = userController.filteredEmployees;
-          if (employees.isEmpty) {
-            return const Center(
-              child: Text(
-                'Brak dopasowań',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            );
-          }
+          body: Obx(() {
+            if (userController.isLoading.value) {
+              return Center(child: CircularProgressIndicator(color: AppColors.logo));
+            }
+            final employees = userController.filteredEmployees;
+            if (employees.isEmpty) {
+              return const Center(
+                child: Text(
+                  'Brak dopasowań',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              );
+            }
 
-          return ListView.builder(
-            itemCount: employees.length,
-            itemBuilder: (context, index) =>
-                _buildEmployeeCalendar(employees[index], employees),
-          );
-        }),
-        bottomNavigationBar: MobileBottomMenu(currentIndex: _currentMenuIndex),
-      ),
-      )
+            return ListView.builder(
+              itemCount: employees.length,
+              itemBuilder: (context, index) =>
+                  _buildEmployeeCalendar(employees[index], employees),
+            );
+          }),
+          bottomNavigationBar: MobileBottomMenu(currentIndex: _currentMenuIndex),
+        ),
+        )
     );
   }
 }
-  
+
 class _CalendarDataSource extends CalendarDataSource {
   _CalendarDataSource(List<Appointment> appointments) {
     this.appointments = appointments;

@@ -20,6 +20,7 @@ import '../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../controllers/schedule_controller.dart';
+import 'main_calendar/utils/appointment_builder_employee.dart';
 import 'main_calendar/utils/calendar_state_manager.dart';
 
 class EmployeeMainCalendar extends StatefulWidget {
@@ -75,6 +76,8 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
     );
 
     await _leaveController.fetchLeaves();
+
+    Get.find<SchedulesController>().validateShiftsAgainstLeaves();
   }
 
   Future<void> _exportCalendar() async {
@@ -251,6 +254,7 @@ String _formatWeekTitle(DateTime date) {
                                           fontSize: 12,
                                           color: Colors.grey.shade600,
                                         ),
+                                        minimumAppointmentDuration: Duration(hours: 5, minutes: 15),
                                       ),
                                       todayHighlightColor: AppColors.logo,
                                       resourceViewSettings: const ResourceViewSettings(
@@ -262,7 +266,7 @@ String _formatWeekTitle(DateTime date) {
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                      appointmentBuilder: buildAppointmentWidget,
+                                      appointmentBuilder: employeeBuildAppointmentWidget,
                                     ),
                                   ),
                                 ],
