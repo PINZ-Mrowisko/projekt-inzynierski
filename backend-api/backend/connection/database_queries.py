@@ -127,7 +127,22 @@ def is_on_leave(worker_id, check_date_str, leaves_req):
                 return True
     return False
 
-def expand_schedule_to_month(schedule_dict, year, month, leaves_req):
+def get_holidays_from_database(db):
+
+    try:
+        docs = db.collection("Holidays").get()
+        holidays_list = []
+        for doc in docs:
+            holiday_date = doc.get("date")
+            holidays_list.append(holiday_date)
+        return holidays_list
+    except Exception as e:
+        return None
+
+
+def expand_schedule_to_month(schedule_dict, year, month, leaves_req, holidays=None):
+
+    holidays_set = set(holidays) if holidays else set()
     grouped_template = defaultdict(list)
     iterator = schedule_dict.values() if isinstance(schedule_dict, dict) else schedule_dict
 
@@ -146,6 +161,9 @@ def expand_schedule_to_month(schedule_dict, year, month, leaves_req):
     for day_num in range(1, days_in_month + 1):
         current_date = date(year, month, day_num)
         date_str = current_date.strftime("%Y-%m-%d")
+
+        if date_str in holidays_set:
+            continue
 
         day_of_week_index = current_date.weekday()
         day_name_pl = WEEKDAYS_MAP[day_of_week_index]
@@ -170,7 +188,7 @@ def expand_schedule_to_month(schedule_dict, year, month, leaves_req):
     return full_month_schedule
 
 
-def post_schedule(user_id: str, template_id, year, month, schedule_data: dict, leaves_req ,db):
+def post_schedule(user_id: str, template_id, year, month, schedule_data: dict, leaves_req, db):
     try:
         docs = db.collection("Markets") \
             .where(filter=FieldFilter("createdBy", "==", user_id)) \
@@ -183,8 +201,9 @@ def post_schedule(user_id: str, template_id, year, month, schedule_data: dict, l
         market_id = docs[0].id
 
         days_in_month = calendar.monthrange(year, month)[1]
+        holidays_list = get_holidays_from_database(db)
 
-        full_month_data = expand_schedule_to_month(schedule_data, year, month, leaves_req)
+        full_month_data = expand_schedule_to_month(schedule_data, year, month, leaves_req, holidays_list)
         schedules_ref = db.collection("Markets").document(market_id).collection("Schedules")
         new_schedule_ref = schedules_ref.document()
 

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
 from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule, \
-    get_previous_schedule, get_leave_requests, post_holidays
+    get_previous_schedule, get_leave_requests, post_holidays, get_holidays_from_database
 from backend.algorithm.algorithm import main
 from backend.connection.mapping import map_result_to_json
 
