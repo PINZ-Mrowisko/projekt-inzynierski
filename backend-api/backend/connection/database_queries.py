@@ -5,6 +5,7 @@ from firebase_admin import firestore
 
 from backend.connection.mapping import *
 from google.cloud.firestore_v1 import FieldFilter
+from backend.connection.holidays_creation import *
 
 
 def get_workers(user_id: str, tags_list, db):
@@ -268,4 +269,28 @@ def get_leave_requests(user_id: str, db):
     except Exception as e:
         print(f"An error occurred while fetching leave requests: {e}")
         return []
+
+def post_holidays(db):
+    try:
+        pl_holidays = get_holidays()
+
+        for holiday in pl_holidays:
+
+            name = holiday["name"]
+            date = holiday["date"]
+
+            doc_ref = db.collection("Holidays").document(date)
+            doc_data = {
+                "name": name,
+                "date": date,
+                "last_updated": firestore.SERVER_TIMESTAMP
+            }
+
+            doc_ref.set(doc_data)
+
+        return "success"
+    except Exception as e:
+        print(f"An error occurred while posting holidays: {e}")
+
+
 

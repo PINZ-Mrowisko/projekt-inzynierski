@@ -7,6 +7,8 @@ services:
       - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/serviceAccountKey.json
+    env_file:
+      - .env
   tests:
     build: ./backend-api
     command: [ "python", "-m", "unittest", "discover", "-s", "backend/tests", "-t", "." ]

@@ -4,9 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
 from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule, \
-    get_previous_schedule, get_leave_requests
+    get_previous_schedule, get_leave_requests, post_holidays
 from backend.algorithm.algorithm import main
 from backend.connection.mapping import map_result_to_json
+
+import os
+from dotenv import load_dotenv
 
 # === Inicjalizacja Firebase Admin SDK dla Cloud Run ===
 if not firebase_admin._apps:
@@ -89,3 +92,16 @@ def generate_from_previous(authorization: str = Header(...), schedule_id: str = 
     post_schedule(user_id, template_id, year, month, schedule, leave_requests, db)
 
     return "Successfully generated new schedule from previous one."
+
+@app.post("/admin/sync_holidays")
+def sync_holidays(gcloud_scheduler_secret: str = Header(...)):
+
+    load_dotenv()
+    secret = os.getenv("CRON_PASSWORD")
+
+    if gcloud_scheduler_secret is None or gcloud_scheduler_secret != secret:
+        raise HTTPException(status_code=403, detail="Nieautoryzowany dostęp")
+
+    response = post_holidays(db)
+    return response
+
