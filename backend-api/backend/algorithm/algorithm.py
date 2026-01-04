@@ -31,6 +31,7 @@ def main(workers, template: Template):
     worker_hour_worked_on_shift = {w.id: [] for w in workers}
     assignments_for_worker_per_day = {}
     no_tag_worker_working_var = []
+    kierownik_working_other_role = []
 
     for shift in all_shifts:
 
@@ -69,6 +70,16 @@ def main(workers, template: Template):
                     if len(rule.tags) > 0 and len(worker.tags) == 0:
                         no_tag_worker_working_var.append(var)
 
+                    is_worker_kierownik = any(tag.name == "Kierownik" for tag in worker.tags)
+
+                    if is_worker_kierownik:
+                        kierownik_tag_id = [tag.id for tag in worker.tags if tag.name == "Kierownik"][0]
+
+                        is_rule_not_kierownik = not any(tag_id == kierownik_tag_id for tag_id in rule.tags)
+
+                        if is_worker_kierownik and is_rule_not_kierownik:
+                            kierownik_working_other_role.append(var)
+
                     if shift.type == worker.work_time_preference:
 
                         preference_vars.append(var)
@@ -95,6 +106,7 @@ def main(workers, template: Template):
     WEIGHT_TIME = 1  # Bonus za każdą przepracowaną minutę
     WEIGHT_ACTIVATION_PENALTY = 1000  # Kara za aktywację pracownika
     WEIGHT_NO_TAG_WORKER_PENALTY = 2000  # Kara za przydzielenie zmiany pracownikowi bez wymaganych tagów
+    WEIGHT_KIEROWNIK_ON_DUTY = 5000 # Kara za pracę kierownika na zmianie innej niż z tagiem kierownik
 
     total_time_working = []
     activation_vars = {}
@@ -115,7 +127,8 @@ def main(workers, template: Template):
         sum(preference_vars) * WEIGHT_PREFERENCE +
         sum(total_time_working) * WEIGHT_TIME -
         sum(activation_vars.values()) * WEIGHT_ACTIVATION_PENALTY -
-        sum(no_tag_worker_working_var) * WEIGHT_NO_TAG_WORKER_PENALTY
+        sum(no_tag_worker_working_var) * WEIGHT_NO_TAG_WORKER_PENALTY -
+        sum(kierownik_working_other_role) * WEIGHT_KIEROWNIK_ON_DUTY
     )
 
 

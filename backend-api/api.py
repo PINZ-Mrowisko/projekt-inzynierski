@@ -4,9 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
 from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule, \
-    get_previous_schedule, get_leave_requests
+    get_previous_schedule, get_leave_requests, post_holidays, get_holidays_from_database
 from backend.algorithm.algorithm import main
 from backend.connection.mapping import map_result_to_json
+
+import os
+from dotenv import load_dotenv
 
 # === Inicjalizacja Firebase Admin SDK dla Cloud Run ===
 if not firebase_admin._apps:
@@ -70,7 +73,7 @@ def run_algorithm(authorization: str = Header(...), template_id: str = "", year:
         return result
 
 @app.get("/generate_from_previous/{schedule_id}")
-def generate_from_previous(authorization: str = Header(...), schedule_id: str = ""):
+def generate_from_previous(authorization: str = Header(...), schedule_id: str = "", year: int = 0, month: int = 0):
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=403, detail="Brak tokenu")
 
@@ -86,6 +89,19 @@ def generate_from_previous(authorization: str = Header(...), schedule_id: str = 
     schedule, template_id = get_previous_schedule(user_id, schedule_id, db)
     leave_requests = get_leave_requests(user_id, db)
 
-    post_schedule(user_id, template_id, schedule, leave_requests, db)
+    post_schedule(user_id, template_id, year, month, schedule, leave_requests, db)
 
     return "Successfully generated new schedule from previous one."
+
+@app.post("/admin/sync_holidays")
+def sync_holidays(gcloud_scheduler_secret: str = Header(...)):
+
+    load_dotenv()
+    secret = os.getenv("CRON_PASSWORD")
+
+    if gcloud_scheduler_secret is None or gcloud_scheduler_secret != secret:
+        raise HTTPException(status_code=403, detail="Nieautoryzowany dostęp")
+
+    response = post_holidays(db)
+    return response
+
