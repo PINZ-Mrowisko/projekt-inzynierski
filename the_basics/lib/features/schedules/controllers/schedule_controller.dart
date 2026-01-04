@@ -75,6 +75,28 @@ class SchedulesController extends GetxController {
     }
   }
 
+  /// POBIERAMY INFO DO DISPLAYU WARNINGÓW
+  int get unknownShiftsCount {
+    return individualShifts
+        .where((shift) => shift.employeeID == 'Unknown')
+        .length;
+  }
+
+  bool get hasUnknownShifts => unknownShiftsCount > 0;
+
+  String get unknownShiftsWarningText {
+    final count = unknownShiftsCount;
+    if (count == 0) return '';
+
+    return 'UWAGA: $count ${_getPolishWordForm(count)} bez obsady!';
+  }
+
+  String _getPolishWordForm(int count) {
+    if (count == 1) return 'zmiana';
+    if (count >= 2 && count <= 4) return 'zmiany';
+    return 'zmian';
+  }
+
   /// Oblicza liczbę godzin przepracowanych przez pracownika w zadanym tygodniu
   double calculateWeeklyHours(String employeeId, DateTime weekStart) {
     // Ustawiamy ramy czasowe tygodnia (od poniedziałku 00:00 do niedzieli 23:59)

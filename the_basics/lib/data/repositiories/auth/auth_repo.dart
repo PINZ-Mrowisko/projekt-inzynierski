@@ -179,7 +179,7 @@ class AuthRepo extends GetxController {
       //Get.offAll(() => mainPage);
 
       final routeName = userController.isAdmin.value
-          ? '/grafik-ogolny-kierownik'
+          ? '/dashboard'
           : '/grafik-ogolny-pracownicy';
 
       Get.offAllNamed(
