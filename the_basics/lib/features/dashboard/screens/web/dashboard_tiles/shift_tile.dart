@@ -12,9 +12,10 @@ import 'package:the_basics/utils/common_widgets/generic_list.dart';
 Widget shiftTile(UserController userController, SchedulesController schedulesController, TagsController tagsController) {
     final now = DateTime.now();
     // use this to pass custom date to the datetime widget during testing
-    //final now = DateTime(2026, 1, 6, 10, 0);
+    //final now = DateTime(2026, 1, 20, 13, 31);
     final currentShifts = schedulesController.individualShifts
-        .where((shift) => isShiftNow(shift, now))
+        .where((shift) => isShiftNow(shift, now)
+          && shift.employeeFirstName != 'Unknown')
         .toList()
       ..sort((a, b) =>
           a.employeeFirstName.compareTo(b.employeeFirstName));
