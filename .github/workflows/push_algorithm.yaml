@@ -35,6 +35,7 @@ jobs:
 
       - name: Docker Auth
         run: |
+          cd backend-api
           gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
       - name: Build and Push Container
