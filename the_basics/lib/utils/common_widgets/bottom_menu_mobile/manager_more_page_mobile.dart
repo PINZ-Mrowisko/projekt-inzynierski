@@ -56,7 +56,7 @@ class ManagerMorePageMobile extends StatelessWidget {
                 Divider(height: 1, color: AppColors.divider),
                 _buildMenuRow(Icons.settings, 'Ustawienia', () => _navigateTo('/ustawienia')),
                 Divider(height: 1, color: AppColors.divider),
-                _buildMenuRow(Icons.logout, 'Logout', () => _navigateTo('/login')),
+                _buildMenuRow(Icons.logout, 'Wyloguj się', () => _navigateTo('/login')),
               ],
             ),
           ),
