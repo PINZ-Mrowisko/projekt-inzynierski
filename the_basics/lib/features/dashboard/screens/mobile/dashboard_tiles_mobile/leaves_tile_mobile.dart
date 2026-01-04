@@ -16,44 +16,46 @@ Widget leavesTab(LeaveController leaveController) {
     return Padding(
       padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
       child: pending.isEmpty
-            ? const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text("Brak wniosków oczekujących"),
-              )
-            : GenericList<LeaveModel>(
-                  items: pending,
-                  onItemTap: (leave) => Get.offNamed('/wnioski-urlopowe-kierownik'),
-                  itemBuilder: (context, item) {
-                    final formattedDate = item.startDate == item.endDate
-                        ? DateFormat('dd.MM.yyyy').format(item.startDate)
-                        : '${DateFormat('dd.MM.yyyy').format(item.startDate)} - ${DateFormat('dd.MM.yyyy').format(item.endDate)}';
-      
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      title: Text(
-                        (item.comment == "Brak komentarza" || item.comment == '')
-                            ? item.name
-                            : '${item.name} - ${item.comment}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textColor1,
-                        ),
-                      ),
-                      subtitle: Text(
-                        formattedDate,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textColor2,
-                        ),
-                      ),
-                      trailing: _buildStatusChip(item.status),
-                    );
-                  },
+              ? Center(
+                child: Text(
+                  "Brak wniosków oczekujących",
+                  style: TextStyle(color: AppColors.textColor2),
                 ),
+              )
+              : GenericList<LeaveModel>(
+                    items: pending,
+                    onItemTap: (leave) => Get.offNamed('/wnioski-urlopowe-kierownik'),
+                    itemBuilder: (context, item) {
+                      final formattedDate = item.startDate == item.endDate
+                          ? DateFormat('dd.MM.yyyy').format(item.startDate)
+                          : '${DateFormat('dd.MM.yyyy').format(item.startDate)} - ${DateFormat('dd.MM.yyyy').format(item.endDate)}';
+        
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        title: Text(
+                          (item.comment == "Brak komentarza" || item.comment == '')
+                              ? item.name
+                              : '${item.name} - ${item.comment}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textColor1,
+                          ),
+                        ),
+                        subtitle: Text(
+                          formattedDate,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textColor2,
+                          ),
+                        ),
+                        trailing: _buildStatusChip(item.status),
+                      );
+                    },
+      ),
     );
   }
 
