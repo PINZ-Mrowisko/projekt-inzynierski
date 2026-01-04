@@ -52,9 +52,24 @@ class UserController extends GetxController {
   Future<UserModel> fetchCurrentUserRecord() async{
     try {
       isLoading(true);
+
+      final authUser = FirebaseAuth.instance.currentUser;
+
       final user = await userRepo.fetchCurrentUserDetails();
       // assign the curr user to the observable var
       employee.value = user;
+
+      // check if employee changed email before refresh
+      if (authUser?.email != employee.value.email) {
+
+        final updatedUser = employee.value.copyWith(
+          email: authUser?.email,
+        );
+        updateEmployee(updatedUser);
+
+        final user = await userRepo.fetchCurrentUserDetails();
+        employee.value = user;
+      }
 
       _setAdminStatus(user);
 

@@ -16,6 +16,8 @@ env:
   REPO_NAME: algorytm-generowania-grafikow
   SERVICE_NAME: scheduling-algorithm
   TAG: latest
+  REGION: europe-central2
+  ARTIFACT_NAME: algorithm
 
 jobs:
   build-and-deploy:
@@ -37,15 +39,17 @@ jobs:
 
       - name: Build and Push Container
         run: |
+          ARTIFACT_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.ARTIFACT_NAME }}
           IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}
           
-          docker build -t $IMAGE_URI .
-          docker push $IMAGE_URI
+          docker build -t algorithm .
+          docker tag algorithm $ARTIFACT_URI
+          docker push $ARTIFACT_URI
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ env.IMAGE_TAG }}:{{ env.TAG }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ env.TAG }}
           flags: '--allow-unauthenticated'
