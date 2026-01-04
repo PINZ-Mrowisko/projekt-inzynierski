@@ -22,7 +22,7 @@ class _ManagerDashboardMobileScreenState extends State<ManagerDashboardMobileScr
   final LeaveController leaveController = Get.find<LeaveController>();
   final SchedulesController schedulesController =Get.find<SchedulesController>();
   final TagsController tagsController =Get.find<TagsController>();
-  
+
   final isLoading = true.obs;
   final readyToShow = false.obs;
 

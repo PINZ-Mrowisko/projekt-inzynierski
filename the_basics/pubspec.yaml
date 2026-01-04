@@ -37,6 +37,7 @@ dependencies:
   shared_preferences: ^2.5.3
   syncfusion_flutter_calendar: ^29.2.5
   syncfusion_flutter_datepicker: ^29.2.7
+  flutter_localization: ^0.3.3
   intl: 0.19.0
   cloud_functions: ^5.5.1
   http: ^1.4.0
@@ -46,15 +47,25 @@ dependencies:
   fl_chart: ^0.66.0
   pdf: ^3.11.3
   printing: ^5.14.2
-  flutter_localization: ^0.3.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   mockito: ^5.4.6
   rxdart: ^0.28.0
-
+  flutter_launcher_icons: ^0.13.1
   flutter_lints: ^5.0.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+    image_path: "assets/logo.png"
+    background_color: "#00529F"
+    theme_color: "#00529F"
+
+  image_path: "assets/logo.png"
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -98,5 +109,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
 
 

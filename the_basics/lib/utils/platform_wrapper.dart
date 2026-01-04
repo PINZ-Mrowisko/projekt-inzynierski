@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/utils/platform_controller.dart';
 
-// for readability - USE IN ROUTING!
 class PlatformWrapper extends StatelessWidget {
   final Widget mobile;
   final Widget web;
@@ -15,14 +14,12 @@ class PlatformWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final platformController = PlatformController.instance;
+    final pc = PlatformController.instance;
 
     return Obx(() {
-      if (platformController.isMobile.value) {
-        return mobile;
-      } else {
-        return web;
-      }
+      return pc.isMobile.value
+          ? mobile
+          : web;
     });
   }
 }

@@ -13,7 +13,7 @@ class TokenRepo extends GetxController {
   /// Token is saved in Users/{userId}/FCMTokens/{token} subcollection
   Future<void> saveToken(TokenModel token, String marketId) async {
     try {
-      print("here saving");
+      print("here saving - in repo");
       await _db
           .collection('Markets')
           .doc(marketId)

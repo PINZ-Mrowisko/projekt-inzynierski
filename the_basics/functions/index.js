@@ -30,11 +30,6 @@ setGlobalOptions({region: "europe-central2"});
 
 exports.createAuthUser = onCall(async (request) => {
   try {
-    // DEBUGOWANIE - sprawdź co dociera
-//    console.log("=== DEBUG START ===");
-//    console.log("request:", request.data);
-//    console.log("=== DEBUG END ===");
-
   const data = request.data;
 //  console.log("data.password:", data.password);
 //  console.log("data.email:", data.email);
@@ -55,8 +50,6 @@ exports.createAuthUser = onCall(async (request) => {
           // console.log(`Password reset email sent to: ${data.email}`);
         } catch (emailError) {
           console.error("Error sending password reset email:", emailError);
-          console.error("Error sending password reset email:", emailError);
-          // Możesz zdecydować czy rzucić błąd czy nie
           throw new functions.https.HttpsError(
             "internal",
             "nie udało się wysłać emaila: " + emailError.message,
@@ -74,113 +67,120 @@ exports.createAuthUser = onCall(async (request) => {
     });
 
 /// SECOND FUNCTION : sending notifs after creating new schedule to all included users
+/// now modified to actually include all the members and schedules
 
-exports.sendScheduleNotification = onCall(async (request) =>
-{
-  const data = request.data;
-  const marketId = data.marketId;
-  const scheduleName = data.scheduleName || "Nowy grafik";
+exports.sendScheduleNotification = onCall(async (request) => {
+  const { marketId, scheduleId } = request.data;
 
-  if (!marketId) {
+  if (!marketId || !scheduleId) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "marketId is required"
+      "marketId and scheduleId are required!!!!!"
     );
   }
 
   try {
-    const title = "Nowy grafik opublikowany";
-    const body = "Kierownik opublikował nowy grafik";
-
-    // Step 1: we fetch all active tokens for all members
-    const membersSnapshot = await admin
+    // 1 grab specified schedule
+    const scheduleSnap = await admin
       .firestore()
       .collection("Markets")
       .doc(marketId)
-      .collection("members")
+      .collection("Schedules")
+      .doc(scheduleId)
       .get();
 
-    let tokens = [];
-
-    for (const memberDoc of membersSnapshot.docs) {
-      const tokensSnapshot = await memberDoc.ref
-        .collection("FCMTokens")
-        .where("isActive", "==", true)
-        .get();
-
-      tokensSnapshot.forEach((t) => tokens.push(t.data().token));
+    if (!scheduleSnap.exists) {
+      throw new functions.https.HttpsError("not-found", "Schedule not found");
     }
 
-    if (tokens.length === 0)
-    {console.log(`No active tokens found for market ${marketId}`);
-      return { success: false, message: "No active tokens found" };}
+    const scheduleData = scheduleSnap.data();
+    const generatedSchedule = scheduleData.generated_schedule;
 
-    // Step 2: Create the notif payload
-    const payload = {
-      notification: {
-        title,
-        body,
-      },
-      data: {
-        type: "NEW_SCHEDULE",
-        marketId,
-      },
-    };
+    if (!generatedSchedule) {
+      return { success: false, message: "No generated_schedule found" };
+    }
 
-    // Step 3: send notification
-    const response = await admin.messaging().sendEachForMulticast({
-      tokens,
-      notification: payload.notification,
-      data: payload.data,
+    // get emps ids into a set
+    const employeeIds = new Set();
+
+    Object.values(generatedSchedule).forEach((dayShifts) => {
+      if (!Array.isArray(dayShifts)) return;
+
+      dayShifts.forEach((shift) => {
+        const assignments = shift.assignments || [];
+        assignments.forEach((a) => {
+          if (a.workerId) employeeIds.add(a.workerId);
+        });
+      });
     });
 
-    console.log(`Notifications sent: ${response.successCount}`);
+    if (employeeIds.size === 0) {
+      return { success: false, message: "No employees in schedule" };
+    }
 
-    // Step 4: clean up invalid tokens
-    const invalidTokens = [];
-    response.responses.forEach((res, idx) => {
-      if (!res.success) {
-        const error = res.error;
-        if (
-          error.code === "messaging/invalid-registration-token" ||
-          error.code === "messaging/registration-token-not-registered"
-        ) {
-          invalidTokens.push(tokens[idx]);
-        }
-      }
-    });
+    // 3 get their tokens
+    const tokens = [];
+    const tokenRefs = [];
 
-    // and at the end delete invalid tokens from Firestore
-    for (const invalidToken of invalidTokens) {
-      const memberDocs = await admin
+    for (const employeeId of employeeIds) {
+      const memberRef = admin
         .firestore()
         .collection("Markets")
         .doc(marketId)
         .collection("members")
+        .doc(employeeId);
+
+      const memberSnap = await memberRef.get();
+      if (!memberSnap.exists) continue;
+
+      if (memberSnap.data().scheduleNotifs !== true) continue;
+
+      const tokensSnap = await memberRef
+        .collection("FCMTokens")
+        .where("isActive", "==", true)
         .get();
 
-      for (const memberDoc of memberDocs.docs) {
-        const tokenDoc = await memberDoc.ref
-          .collection("FCMTokens")
-          .doc(invalidToken)
-          .get();
-
-        if (tokenDoc.exists) {
-          await tokenDoc.ref.delete();
-          console.log(`Deleted invalid token: ${invalidToken}`);
-        }
-      }
+      tokensSnap.forEach((doc) => {
+        tokens.push(doc.data().token);
+        tokenRefs.push(doc.ref);
+      });
     }
 
-    return { success: true, sent: response.successCount };
+    if (tokens.length === 0) {
+      return { success: false, message: "No active tokens for members !!!" };
+    }
+
+    // 4 and send the notif
+    const payload = {
+      data: {
+        title: "Nowy grafik",
+        body: "Został opublikowany nowy grafik, w którym uczestniczysz",
+        type: "NEW_SCHEDULE",
+        marketId,
+        scheduleId,
+      },
+    };
+
+    const response = await admin.messaging().sendEachForMulticast({
+      tokens,
+      data: payload.data,
+    });
+
+    return {
+      success: true,
+      sent: response.successCount,
+      failed: response.failureCount,
+    };
+
   } catch (error) {
-    console.error("Error sending notifications:", error);
+    console.error("sendScheduleNotification error:", error);
     throw new functions.https.HttpsError(
       "internal",
-      "Error sending notifications: " + error.message
+      error.message || "Failed to send notifications"
     );
   }
 });
+
 
 
 // third function : notify user when their leave request status changes
@@ -248,12 +248,10 @@ exports.sendLeaveStatusNotification = onCall(async (request) => {
     const tokens = tokensSnapshot.docs.map((doc) => doc.data().token);
 
     const payload = {
-      notification: {
-        title,
-        body,
-      },
       data: {
         type: "LEAVE_STATUS_CHANGE",
+        title: title,
+        body: body,
         decision,
         marketId,
         userId,
@@ -367,22 +365,20 @@ exports.notifyNewLeaveRequest = onDocumentCreated(
       return;
     }
 
-    // Send FCM notification
+// modiffyied data !!
     const payload = {
-      notification: {
-        title: "Nowa prośba o nieobecność",
-        body: "Jeden z pracowników wysłał nową prośbę o nieobecność.",
-      },
       data: {
         type: "NEW_LEAVE_REQUEST",
+        title: "Nowa prośba o nieobecność",
+        body: "Jeden z pracowników wysłał nową prośbę o nieobecność.",
         marketId,
         leaveId: event.params.leaveId,
       },
     };
 
+    // remove notif from here
     const response = await admin.messaging().sendEachForMulticast({
       tokens,
-      notification: payload.notification,
       data: payload.data,
     });
 

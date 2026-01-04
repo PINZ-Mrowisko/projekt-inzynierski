@@ -14,6 +14,7 @@ import '../../../../utils/common_widgets/side_menu.dart';
 import '../../../employees/controllers/user_controller.dart';
 
 
+import '../../../notifs/controllers/notif_controller.dart';
 import '../../usecases/add_dialog_manager.dart';
 
 class ManagerLeavesManagementPage extends StatelessWidget {

@@ -67,6 +67,10 @@ class LeaveController extends GetxController {
   /// fetch all non-deleted leave requests
   Future<void> fetchLeaves() async {
     try {
+      allLeaveRequests.clear();
+      filteredLeaves.clear();
+      acceptedRequests.clear();
+
       isLoading(true);
       errorMessage('');
       final marketId = userController.employee.value.marketId;

@@ -1,48 +1,99 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:flutter/widgets.dart';
+import 'package:the_basics/utils/pwa_install_utils.dart';
+import 'package:the_basics/utils/pwa_utils.dart';
+import 'dart:html' as html;
+import 'dart:ui' as ui;
+
 
 class PlatformController extends GetxController {
   static PlatformController get instance => Get.find();
 
-  final Rx<AppPlatform> currentPlatform = AppPlatform.web.obs;
+  // we dont really check whether app is mobile or desktop, rather whether we want to display view for mobile or PC
   final RxBool isMobile = false.obs;
-  final RxBool isTablet = false.obs;
   final RxBool isDesktop = false.obs;
+
+  final RxBool isStandalonePWA = false.obs;
+  final RxBool canInstallPWA = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _detectPlatform();
-  }
 
-  void _detectPlatform() {
     if (kIsWeb) {
-      currentPlatform.value = AppPlatform.web;
-      isMobile.value = false;
-      isDesktop.value = true;
+      _initWeb();
     } else {
-      if (Platform.isAndroid || Platform.isIOS) {
-        currentPlatform.value = AppPlatform.mobile;
-        isMobile.value = true;
-        isDesktop.value = false;
-      } else if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
-        currentPlatform.value = AppPlatform.desktop;
-        isMobile.value = false;
-        isDesktop.value = true;
-        print("iphone user detected shutting down the app");
-      }
+      _initNative();
     }
   }
 
-  // Helper methods
-  bool get isWeb => currentPlatform.value == AppPlatform.web;
-  bool get isAndroid => !kIsWeb && Platform.isAndroid;
-  bool get isIOS => !kIsWeb && Platform.isIOS;
-}
+  void _initWeb() {
+    // check whether we will be displaying PC or phone size
+    _detectLayout();
+    _detectPWAMode();
+    _initPWAInstallListener();
+  }
 
-enum AppPlatform {
-  web,
-  mobile,
-  desktop,
+  void _initNative() {
+    isMobile.value = true;
+    isDesktop.value = false;
+    isStandalonePWA.value = false;
+    canInstallPWA.value = false;
+  }
+
+  void _detectLayout() {
+    _updateLayout();
+
+    WidgetsBinding.instance.platformDispatcher.onMetricsChanged = () {
+      _updateLayout();
+    };
+  }
+
+
+  void _updateLayout() {
+
+    final double screenWidth = ui.window.physicalSize.width / ui.window.devicePixelRatio;
+    const double mobileBreakpoint = 600.0;
+
+    bool isPhone = screenWidth < mobileBreakpoint;
+
+    //print('Screen width: $screenWidth, Detected as mobile: $isPhone');
+
+    isMobile.value = isPhone;
+    isDesktop.value = !isMobile.value;
+  }
+
+
+
+  void _detectPWAMode() {
+    isStandalonePWA.value = isRunningAsPWA();
+  }
+
+  void _initPWAInstallListener() {
+    canInstallPWA.value = canInstallPWA();
+
+    if (kIsWeb) {
+      _listenForInstallEvent();
+    }
+  }
+
+  void _listenForInstallEvent() {
+
+    html.window.addEventListener(
+      'pwa-install-available',
+          (_) => canInstallPWA.value = true,
+    );
+  }
+
+  Future<void> installPWA() async {
+    if (!kIsWeb || !canInstallPWA.value) return;
+
+    final accepted = await triggerInstallPWA();
+    canInstallPWA.value = false;
+
+    if (accepted) {
+      isStandalonePWA.value = true;
+    }
+  }
 }
