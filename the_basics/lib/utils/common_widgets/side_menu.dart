@@ -258,7 +258,7 @@ class SideMenu extends StatelessWidget {
               SizedBox(height: 4 * _scaleFactor),
               _buildMenuItem(
                 icon: Icons.logout,
-                text: 'Logout',
+                text: 'Wyloguj się',
                 route: '/login',
               ),
             ],
