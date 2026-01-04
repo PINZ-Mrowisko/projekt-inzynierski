@@ -137,18 +137,6 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
     );
   }
 
-  final RxInt _unknownShiftsCount = 0.obs;
-
-  void _updateUnknownShiftsCount() {
-    final scheduleController = Get.find<SchedulesController>();
-
-    final count = scheduleController.individualShifts
-        .where((shift) => shift.employeeID == 'Unknown')
-        .length;
-
-    _unknownShiftsCount.value = count;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -182,20 +170,11 @@ class _MainCalendarEditState extends State<MainCalendarEdit> {
 
     Get.find<SchedulesController>();
     ever(scheduleController.individualShifts, (_) {
-      _updateUnknownShiftsCount();
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateUnknownShiftsCount();
     });
   }
-
-  /// Pomocnicza metoda do polskiej odmiany
-String _getPolishWordForm(int count) {
-  if (count == 1) return 'zmiana';
-  if (count >= 2 && count <= 4) return 'zmiany';
-  return 'zmian';
-}
 
   @override
   Widget build(BuildContext context) {
@@ -305,7 +284,7 @@ String _getPolishWordForm(int count) {
                       ),
                       // GLOBAL WARNING PANEL
                       Obx(() {
-                        if (_unknownShiftsCount.value > 0) {
+                        if (scheduleController.hasUnknownShifts) {
                           return Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -321,7 +300,7 @@ String _getPolishWordForm(int count) {
                                 Icon(Icons.warning, color: AppColors.warning, size: 20),
                                 SizedBox(width: 8),
                                 Text(
-                                  'UWAGA: ${_unknownShiftsCount.value} ${_getPolishWordForm(_unknownShiftsCount.value)} bez obsady!',
+                                  scheduleController.unknownShiftsWarningText,
                                   style: TextStyle(
                                     color: AppColors.warning,
                                     fontWeight: FontWeight.bold,
