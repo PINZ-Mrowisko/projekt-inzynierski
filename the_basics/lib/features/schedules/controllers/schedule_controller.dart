@@ -75,6 +75,37 @@ class SchedulesController extends GetxController {
     }
   }
 
+  Future<void> refreshPublished() async {
+    try {
+      isLoading(true);
+
+      final userController = Get.find<UserController>();
+      final marketId = userController.employee.value.marketId;
+
+      if (marketId.isEmpty) {
+        return;
+      }
+
+      final ID = await _scheduleRepo.getPublishedScheduleID(marketId);
+
+      if (ID != null) {
+        publishedScheduleID.value = ID;
+        displayedScheduleID.value = ID;
+
+
+        // 2. ładujemy do kontrolera
+        await fetchAndParseGeneratedSchedule(
+          marketId: marketId,
+          scheduleId: ID,
+        );
+      } else {
+      }
+
+    } finally {
+      isLoading(false);
+    }
+  }
+
   /// POBIERAMY INFO DO DISPLAYU WARNINGÓW
   int get unknownShiftsCount {
     return individualShifts
