@@ -75,7 +75,7 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
       scheduleId: schedulesController.publishedScheduleID.value,
     );
 
-    await _leaveController.fetchLeaves();
+    //await _leaveController.fetchLeaves();
 
     Get.find<SchedulesController>().validateShiftsAgainstLeaves();
   }

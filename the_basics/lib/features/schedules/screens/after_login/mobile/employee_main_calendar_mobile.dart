@@ -47,7 +47,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       userController.resetFilters();
 
-      await _leaveController.fetchLeaves();
+      //await _leaveController.fetchLeaves();
       await scheduleController.validateShiftsAgainstLeaves();
     });
 
