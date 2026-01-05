@@ -20,6 +20,8 @@ class UserModel {
   final bool leaveNotifs;
   final bool scheduleNotifs;
   final String gender;
+  final bool rodoInfoSeen;
+
 
   UserModel({
     required this.id,
@@ -41,6 +43,8 @@ class UserModel {
     this.scheduleNotifs = true,
     this.leaveNotifs = true,
     this.gender = 'Nie określono',
+    this.rodoInfoSeen = false,
+
   });
 
   static UserModel empty() => UserModel(
@@ -58,6 +62,7 @@ class UserModel {
     scheduleNotifs: true,
     leaveNotifs: true,
     gender: 'Nie określono',
+    rodoInfoSeen: false,
   );
 
   Map<String, dynamic> toMap() {
@@ -81,6 +86,9 @@ class UserModel {
       'scheduleNotifs': scheduleNotifs,
       'leaveNotifs': leaveNotifs,
       'gender': gender,
+      'leaveNotifs': leaveNotifs,
+      'rodoInfoSeen': rodoInfoSeen,
+
     };
   }
 
@@ -107,6 +115,8 @@ class UserModel {
         scheduleNotifs: map['scheduleNotifs'] ?? true,
         leaveNotifs: map['leaveNotifs'] ?? true,
         gender: map['gender'] ?? 'Nie określono',
+        rodoInfoSeen: map['rodoInfoSeen'] ?? false,
+
       );
     } else {
       return UserModel.empty();
@@ -137,10 +147,12 @@ class UserModel {
       scheduleNotifs: data['scheduleNotifs'] as bool? ?? true,
       leaveNotifs: data['leaveNotifs'] as bool? ?? true,
       gender: data['gender']?.toString() ?? 'Nie określono',
+      rodoInfoSeen: data['rodoInfoSeen'] ?? false,
+
+
     );
   }
 
-/// TODO : fix this method
   UserModel copyWithUpdatedTags(String oldTagName, String newTagName) {
     final updatedTags = tags.map((tag) => tag == oldTagName ? newTagName : tag).toList();
     return copyWith(tags: updatedTags);
@@ -163,6 +175,7 @@ class UserModel {
     bool? leaveNotifs,
     bool? scheduleNotifs,
     String? gender,
+    bool? rodoInfoSeen,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -184,6 +197,7 @@ class UserModel {
       scheduleNotifs: scheduleNotifs ?? this.scheduleNotifs,
       leaveNotifs: leaveNotifs ?? this.leaveNotifs,
       gender: gender ?? this.gender,
+      rodoInfoSeen: rodoInfoSeen ?? this.rodoInfoSeen,
     );
   }
 }

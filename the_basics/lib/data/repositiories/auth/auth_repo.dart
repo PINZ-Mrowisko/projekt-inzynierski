@@ -14,6 +14,9 @@ import '../../../features/auth/screens/web/verify_email.dart';
 import '../../../features/tags/controllers/tags_controller.dart';
 import '../../../features/employees/controllers/user_controller.dart';
 import '../exceptions.dart';
+import 'package:the_basics/features/auth/widgets/rodo_info_dialog.dart';
+import 'package:the_basics/features/auth/widgets/rodo_info_dialog_mobile.dart';
+
 
 /// how the process looks currently:
 /// auth repo gets initialized in Main
@@ -98,7 +101,18 @@ class AuthRepo extends GetxController {
             await userController.updateEmployee(employee.copyWith(hasLoggedIn: true));
             //print("Updated hasLoggedIn to true for first login.");
           }
-          //print("here navigating");
+
+          if (!employee.rodoInfoSeen && employee.role != "admin") {
+            Get.dialog(
+              PlatformWrapper(
+                mobile: const RodoInfoMobileDialog(),
+                web: const RodoInfoDialog(),
+              ),
+              barrierDismissible: false,
+            );
+
+            return;
+          }
 
           _navigateToMainApp();
         } catch (e) {

@@ -7,18 +7,19 @@ import '../exceptions.dart';
 class TagsRepo extends GetxController {
   static TagsRepo get instance => Get.find();
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
+
+  // Konstruktor z możliwością wstrzykiwania mocka Firestore
+  TagsRepo({FirebaseFirestore? firestore}) : _db = firestore ?? FirebaseFirestore.instance;
 
   Future<void> saveTag(TagsModel tag) async {
     try {
-      //await _db.collection("Tags").doc(tag.id).set(tag.toMap());
       await _db
           .collection("Markets")
           .doc(tag.marketId)
           .collection("Tags")
           .doc(tag.id)
           .set(tag.toMap());
-
     } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -30,14 +31,8 @@ class TagsRepo extends GetxController {
     }
   }
 
-  /// get all available tags specific to the market
   Future<List<TagsModel>> getAllTags(String marketId) async {
-    try{
-      // final snapshot = await _db.collection('Tags')
-      //     .where('marketId', isEqualTo: marketId)
-      //     .where('isDeleted', isEqualTo: false)
-      //     .get();
-
+    try {
       final snapshot = await _db
           .collection('Markets')
           .doc(marketId)
@@ -45,39 +40,30 @@ class TagsRepo extends GetxController {
           .where('isDeleted', isEqualTo: false)
           .get();
 
-      if (snapshot.docs.isEmpty) {
-        //print('No tags found for marketId: $marketId');
-        return [];
-      }
+      if (snapshot.docs.isEmpty) return [];
 
-        // go through each of the tag docs and format them using our method
-        final list = snapshot.docs.map((e) => TagsModel.fromSnapshot(e)).toList();
-        return list;
-    }on FirebaseException catch (e) {
+      return snapshot.docs.map((e) => TagsModel.fromSnapshot(e)).toList();
+    } on FirebaseException catch (e) {
       throw MyFirebaseException(e.code).message;
     } on FormatException catch (_) {
       throw const MyFormatException();
     } on PlatformException catch (e) {
       throw MyPlatformException(e.code).message;
-    }catch (e) {
+    } catch (e) {
       throw 'Coś poszło nie tak :(';
     }
   }
 
-  /// pobiera konkretny tag po ID i zwraca juz go w ladnie sformatowanej formie - NOT USED
   Future<TagsModel?> getTagById(String tagId) async {
     try {
       final doc = await _db.collection('Tags').doc(tagId).get();
-      if (doc.exists) {
-        return TagsModel.fromSnapshot(doc);
-      }
+      if (doc.exists) return TagsModel.fromSnapshot(doc);
       return null;
     } catch (e) {
       throw 'Nie udało się pobrać tagu: ${e.toString()}';
     }
   }
 
-  /// Aktualizuje tag o konkretnym id
   Future<void> updateTag(TagsModel tag) async {
     try {
       await _db.collection('Tags').doc(tag.id).update(tag.toMap());
@@ -93,6 +79,7 @@ class TagsRepo extends GetxController {
   /// wiec nie ma co ich oznaczac isDeleted czy cos
   /// TO DO:
   /// usunac isDeleted i deletedAt z modelu tagow
+
   Future<void> deleteTag(String tagId) async {
     try {
       await _db.collection('Tags').doc(tagId).delete();

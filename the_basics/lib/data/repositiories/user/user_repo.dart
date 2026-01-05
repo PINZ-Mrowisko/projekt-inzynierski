@@ -9,7 +9,10 @@ import '../exceptions.dart';
 class UserRepo extends GetxController {
   static UserRepo get instance => Get.find();
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  //final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  final FirebaseFirestore _db;
+  UserRepo({FirebaseFirestore? firestore}) : _db = firestore ?? FirebaseFirestore.instance;
 
   Future<void> saveUser(UserModel user) async {
     try {
