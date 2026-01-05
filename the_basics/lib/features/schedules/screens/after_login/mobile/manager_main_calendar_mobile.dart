@@ -50,7 +50,7 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       userController.resetFilters();
 
-      await _leaveController.fetchLeaves();
+      //await _leaveController.fetchLeaves();
       await scheduleController.validateShiftsAgainstLeaves();
     });
     ever(_selectedTags, (tags) {

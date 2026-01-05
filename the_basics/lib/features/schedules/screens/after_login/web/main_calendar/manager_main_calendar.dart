@@ -73,7 +73,7 @@ class _ManagerMainCalendarState extends State<ManagerMainCalendar> {
       scheduleId: schedulesController.publishedScheduleID.value,
     );
 
-    await _leaveController.fetchLeaves();
+    //await _leaveController.fetchLeaves();
 
     await schedulesController.validateShiftsAgainstLeaves();
   }

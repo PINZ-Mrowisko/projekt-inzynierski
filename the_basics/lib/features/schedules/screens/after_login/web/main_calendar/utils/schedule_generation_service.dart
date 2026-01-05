@@ -6,6 +6,7 @@ import 'package:the_basics/features/schedules/screens/after_login/web/main_calen
 import 'package:the_basics/features/schedules/usecases/choose_existing_schedule.dart';
 import 'package:the_basics/features/schedules/usecases/choose_schedule_generation_type.dart';
 import 'package:the_basics/features/schedules/usecases/choose_template.dart';
+import '../../../../../../../utils/common_widgets/notification_snackbar.dart';
 import '../../../../../../employees/controllers/user_controller.dart';
 import '../../../../../controllers/schedule_controller.dart';
 
@@ -154,9 +155,12 @@ class ScheduleGenerationService {
       }
 
     } catch (e) {
-      _showError(context, 'Błąd podczas generowania: ${e.toString()}');
+      showCustomSnackbar(context, "Wystąpił błąd podczas generowania grafiku. Nie znaleziono rozwiązania.");
+      _isGenerating = false;
     } finally {
       _isGenerating = false;
+      // hide the loading widget after everyhting is joever
+      SimpleLoadingOverlay.hide();
     }
   }
 
