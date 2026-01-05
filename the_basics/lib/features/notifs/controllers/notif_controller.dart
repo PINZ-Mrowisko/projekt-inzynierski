@@ -1,5 +1,4 @@
 import 'dart:html' as html;
-
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -24,8 +23,6 @@ class NotificationController extends GetxController {
   final RxBool isTokenSaved = false.obs;
   final RxString errorMessage = ''.obs;
 
-  // we will use this to handle local notifications in the app (when its in the foreground, so user active using)
-  // nvm - local notifs work only for android apparently?
 
   final RxBool systemPermissionGranted = false.obs;
 
@@ -33,8 +30,12 @@ class NotificationController extends GetxController {
     // this bit of code will help us register the need for a refresh after a bg notif
     // it listens to messages left by SW
 
+
+    // this is the thing we use for refreshing views after receiving notifs
     setupVisibilityRefresh();
 
+
+    // methods working both web and pwa
     if (kIsWeb) {
       html.window.onMessage.listen((event) {
         final data = event.data;
@@ -66,6 +67,7 @@ class NotificationController extends GetxController {
         // set this up so our settings page shows correct values
         systemPermissionGranted.value = true;
 
+        // key genereated in firebase console
         final String? vapidKey = kIsWeb ? 'BEZWrpAoThiHDnceouh-VGXXrJjwuISfnI2_NNCgvCwtzwCTuz4s9MIJMxyJcshKXzW5TFFV3_QUb0ZGZxhT9s0' : null;
         final token = await _firebaseMessaging.getToken(vapidKey: vapidKey);
 
@@ -94,11 +96,11 @@ class NotificationController extends GetxController {
       if (data.isEmpty) return;
 
       final type = data['type'];
-      print(type);
 
       switch (type) {
         case 'NEW_SCHEDULE':
-          Get.find<SchedulesController>().initialize();
+          // tells our controller to refresh with all the published schedules data
+          Get.find<SchedulesController>().refreshPublished();
           break;
 
         case 'LEAVE_STATUS_CHANGE':
@@ -123,7 +125,7 @@ class NotificationController extends GetxController {
         break;
 
       case 'NEW_SCHEDULE':
-        Get.find<SchedulesController>().initialize();
+        Get.find<SchedulesController>().refreshPublished();
         break;
 
       case 'NEW_LEAVE_REQUEST':
