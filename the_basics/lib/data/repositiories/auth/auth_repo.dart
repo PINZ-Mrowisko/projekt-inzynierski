@@ -21,6 +21,7 @@ import '../exceptions.dart';
 import 'package:the_basics/features/auth/widgets/rodo_info_dialog.dart';
 import 'package:the_basics/features/auth/widgets/rodo_info_dialog_mobile.dart';
 
+
 /// how the process looks currently:
 /// auth repo gets initialized in Main
 /// App Bindings get called: it creates all the Repos and Controllers, but doesnt initialize it yet with data
