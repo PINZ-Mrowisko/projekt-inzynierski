@@ -41,8 +41,6 @@ class EmployeeMorePageMobile extends StatelessWidget {
               children: [
                 _buildMenuRow(Icons.sunny, 'Wnioski urlopowe', () => _navigateTo('/wnioski-urlopowe-pracownicy')),
                 Divider(height: 1, color: AppColors.divider),
-                _buildMenuRow(Icons.change_circle_outlined, 'Giełda', () => _navigateTo('/gielda')),
-                Divider(height: 1, color: AppColors.divider),
                 _buildMenuRow(Icons.person, 'Twój profil', () => _navigateTo('/twoj-profil')),
 
                 const SizedBox(height: 30),
@@ -55,7 +53,7 @@ class EmployeeMorePageMobile extends StatelessWidget {
                 Divider(height: 1, color: AppColors.divider),
                 _buildMenuRow(Icons.settings, 'Ustawienia', () => _navigateTo('/ustawienia')),
                 Divider(height: 1, color: AppColors.divider),
-                _buildMenuRow(Icons.logout, 'Logout', () => _navigateTo('/login')),
+                _buildMenuRow(Icons.logout, 'Wyloguj się', () => _navigateTo('/login')),
               ],
             ),
           ),

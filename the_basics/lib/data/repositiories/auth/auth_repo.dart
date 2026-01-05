@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -7,14 +6,11 @@ import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/features/auth/screens/mobile/verify_email_mobile.dart';
 import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
-import 'package:the_basics/features/schedules/screens/after_login/mobile/employee_main_calendar_mobile.dart';
-import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
-import 'package:the_basics/features/schedules/screens/after_login/web/employee_main_calendar.dart';
+import 'package:the_basics/features/schedules/controllers/schedule_controller.dart';
 import 'package:the_basics/features/templates/controllers/template_controller.dart';
 import 'package:the_basics/utils/platform_wrapper.dart';
 import '../../../features/notifs/controllers/notif_controller.dart';
 import '../../../features/auth/screens/web/verify_email.dart';
-import '../../../features/schedules/screens/after_login/web/manager_main_calendar.dart';
 import '../../../features/tags/controllers/tags_controller.dart';
 import '../../../features/employees/controllers/user_controller.dart';
 import '../exceptions.dart';
@@ -163,8 +159,9 @@ class AuthRepo extends GetxController {
       final templateController = Get.find<TemplateController>();
       await templateController.initialize();
 
-      final notifController = Get.find<NotificationController>();
-      await notifController.initializeFCM();
+
+      final scheduleController = Get.find<SchedulesController>();
+      await scheduleController.initialize();
 
     } catch (e) {
       throw(e.toString());
@@ -172,23 +169,28 @@ class AuthRepo extends GetxController {
   }
 
   void _navigateToMainApp() {
-    Future.delayed(Duration.zero, () {
+    Future.delayed(Duration.zero, () async {
       //Get.offAll(() => const MainCalendar());
       final userController = Get.find<UserController>();
 
-      final Widget mainPage = PlatformWrapper(
-        mobile: userController.isAdmin.value
-            ? ManagerMainCalendarMobile()
-            : EmployeeMainCalendarMobile(),
-        web: userController.isAdmin.value
-            ? ManagerMainCalendar()
-            : EmployeeMainCalendar(),
+      // add fake delay to ensure main view loads
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      if (userController.isLoading.value) {
+        await userController.initialize();
+      }
+
+      final routeName = userController.isAdmin.value
+          ? '/dashboard'
+          : '/grafik-ogolny-pracownicy';
+
+      Get.offAllNamed(
+        routeName,
+        arguments: {},
       );
 
-      Get.offAll(() => PopScope(
-        canPop: false,
-        child: mainPage,
-      ));
+      final notifController = Get.find<NotificationController>();
+      await notifController.initializeFCM();
     });
   }
 
@@ -244,6 +246,7 @@ class AuthRepo extends GetxController {
 
       // if user logs in successfully, we can start the controllers
       afterLogin();
+      // comment out as this is already called once in repo
 
       return userCredential;
     }on FirebaseAuthException catch (e) {

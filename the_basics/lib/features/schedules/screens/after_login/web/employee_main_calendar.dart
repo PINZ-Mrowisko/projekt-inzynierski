@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
-import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
+import 'package:the_basics/features/leaves/controllers/leave_controller.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_converter.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_exporter.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_type.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/special_regions_builder.dart';
+import 'package:the_basics/features/schedules/usecases/show_main_calendar_export_dialog.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/multi_select_dropdown.dart';
+import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/search_bar.dart';
 import '../../../../../utils/common_widgets/side_menu.dart';
 import '../../../../../utils/platform_controller.dart';
@@ -11,6 +18,10 @@ import '../../../../employees/controllers/user_controller.dart';
 import '../../../../../utils/app_colors.dart';
 import '../../../../tags/controllers/tags_controller.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+
+import '../../../controllers/schedule_controller.dart';
+import 'main_calendar/utils/appointment_builder_employee.dart';
+import 'main_calendar/utils/calendar_state_manager.dart';
 
 class EmployeeMainCalendar extends StatefulWidget {
   const EmployeeMainCalendar({super.key});
@@ -21,289 +32,303 @@ class EmployeeMainCalendar extends StatefulWidget {
 
 class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
   final CalendarController _calendarController = CalendarController();
-
+  final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
+  final AppointmentConverter _appointmentConverter = AppointmentConverter();
+  
   final platformController = Get.find<PlatformController>();
   // use method from this to detect device!
 
-  DateTime? _lastBackPressTime;
   final RxList<String> _selectedTags = <String>[].obs;
+
+  final CalendarStateManager _stateManager = CalendarStateManager();
+
+  final LeaveController _leaveController = Get.find<LeaveController>(); 
+
+  final GlobalKey mainCalendarKey = GlobalKey();
+  final isExporting = false.obs;
 
   @override
   void initState() {
     super.initState();
-    final userController = Get.find<UserController>();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      userController.resetFilters();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _stateManager.initialize();
+      await _loadSchedule();
     });
 
     ever(_selectedTags, (tags) {
+      final userController = Get.find<UserController>();
       userController.filterEmployees(tags);
     });
   }
 
-  Future<bool> _onWillPop() async {
-    final now = DateTime.now();
-    final bool mustWait = _lastBackPressTime == null ||
-        now.difference(_lastBackPressTime!) > const Duration(seconds: 2);
+  Future<void> _loadSchedule() async {
+    final userController = Get.find<UserController>();
+    final schedulesController = Get.find<SchedulesController>();
 
-    if (mustWait) {
-      _lastBackPressTime = now;
-      Get.snackbar(
-        'Naciśnij ponownie, aby wyjść',
-        'Naciśnij przycisk "Wstecz" jeszcze raz, aby zamknąć aplikację',
-        duration: const Duration(seconds: 2),
-      );
-      return false;
-    }
-    return true;
-  }
-
-
-  List<Appointment> _getAppointments(List<UserModel> filteredEmployees) {
-    final DateTime now = DateTime.now();
-    final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
-
-    List<Appointment> appointments = [];
-    for (final employee in filteredEmployees) {
-      for (int day = 0; day < 5; day++) {
-        final isMorningShift = day % 2 == 0;
-        final startHour = isMorningShift ? 8 : 12;
-        final endHour = isMorningShift ? 16 : 20;
-
-        appointments.add(
-          Appointment(
-            startTime: DateTime(monday.year, monday.month, monday.day + day, startHour, 0),
-            endTime: DateTime(monday.year, monday.month, monday.day + day, endHour, 0),
-            subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
-            color: isMorningShift ? AppColors.logo : AppColors.logolighter,
-            resourceIds: <Object>[employee.id],
-          ),
-        );
-      }
+    if (schedulesController.publishedScheduleID.value.isEmpty) {
+      print('Brak opublikowanego grafiku');
+      return;
     }
 
-    List<Appointment> repeatedAppointments = [];
-    for (int week = 0; week < 4; week++) {
-      Duration weekOffset = Duration(days: 7 * week);
-      for (var appointment in appointments) {
-        repeatedAppointments.add(
-          Appointment(
-            startTime: appointment.startTime.add(weekOffset),
-            endTime: appointment.endTime.add(weekOffset),
-            subject: appointment.subject,
-            color: appointment.color,
-            resourceIds: appointment.resourceIds,
-          ),
-        );
-      }
+     await _stateManager.loadSchedule(
+      marketId: userController.employee.value.marketId,
+      scheduleId: schedulesController.publishedScheduleID.value,
+    );
+
+    //await _leaveController.fetchLeaves();
+
+    Get.find<SchedulesController>().validateShiftsAgainstLeaves();
+  }
+
+  Future<void> _exportCalendar() async {
+    isExporting.value = true;
+  try {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final visibleDate = _calendarController.displayDate;
+    
+    await ScheduleExporter.exportToPdf(
+      type: ScheduleType.mainCalendar,
+      chartKey: mainCalendarKey,
+      title: 'Grafik ogólny - ${_formatWeekTitle(visibleDate!)}',
+      visibleDate: visibleDate,
+    );
+    
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Grafik został pomyślnie zapisany.");
     }
-
-    return repeatedAppointments;
+  } catch (e) {
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Wystąpił błąd podczas eksportu grafiku: $e");
+    }
+  } finally {
+    isExporting.value = false;
   }
+}
 
-  List<TimeRegion> _getSpecialRegions() {
-    final DateTime now = DateTime.now();
-    final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
-
-    return List.generate(365, (index) {
-      final day = monday.subtract(const Duration(days: 180)).add(Duration(days: index));
-      return TimeRegion(
-        startTime: DateTime(day.year, day.month, day.day, 8, 0),
-        endTime: DateTime(day.year, day.month, day.day, 20, 59),
-        enablePointerInteraction: false,
-        color: day.weekday.isEven ? AppColors.lightBlue : Colors.transparent,
-        text: '',
-      );
-    });
-  }
+String _formatWeekTitle(DateTime date) {
+  final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+  final endOfWeek = startOfWeek.add(Duration(days: 6));
+  
+  return '${startOfWeek.day}.${startOfWeek.month} - ${endOfWeek.day}.${endOfWeek.month}.${date.year}';
+}
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final totalHours = 13;
+
+    final totalHours = 14;
     final visibleDays = 8.5;
+    
     final dynamicIntervalWidth = screenWidth / (totalHours * visibleDays);
 
     final userController = Get.find<UserController>();
     final tagsController = Get.find<TagsController>();
-    
+    final scheduleController = Get.find<SchedulesController>();
+
     return PopScope(
-    canPop: false,
+      canPop: false,
       child: Obx(() {
-      return Scaffold(
-        backgroundColor: AppColors.pageBackground,
-        body: Row(
+        return Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
-              child: SideMenu(),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 80,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+            Scaffold(
+              backgroundColor: AppColors.pageBackground,
+              body: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
+                    child: SideMenu(),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Grafik ogólny',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.logo,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          
-                          Expanded(
+                          SizedBox(
+                            height: 80,
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Flexible(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: _buildTagFilterDropdown(tagsController),
+                                Text(
+                                  'Grafik ogólny',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.logo,
                                   ),
                                 ),
                                 const SizedBox(width: 16),
-                                Flexible(
-                                  child: _buildSearchBar(),
-                                ),
-                                const SizedBox(width: 16),
-                                Flexible(
-                                  child: CustomButton(
-                                    onPressed: () => showExportDialog(context),
-                                    text: "Eksportuj",
-                                    width: 125,
-                                    icon: Icons.download,
-                                    backgroundColor: AppColors.lightBlue,
+
+                                Expanded(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+
+                                      Flexible(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(top: 10.0),
+                                          child: _buildTagFilterDropdown(tagsController),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Flexible(
+                                        child: _buildSearchBar(),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Flexible(
+                                        child: CustomButton(
+                                          onPressed: () => showMainCalendarExportDialog(context, _exportCalendar),
+                                          text: "Eksportuj",
+                                          width: 125,
+                                          icon: Icons.download,
+                                          backgroundColor: AppColors.lightBlue,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                          Expanded(
+                            child: Obx(() {
+                              if (_stateManager.isLoading.value || _stateManager.isScheduleLoading.value) {
+                                return const Center(child: CircularProgressIndicator());
+                              }
+
+                              if (scheduleController.individualShifts.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('Brak opublikowanego grafiku'),
+                                      SizedBox(height: 16),
+
+                                    ],
+                                  ),
+                                );
+                              }
+                              final allLeaves = _leaveController.allLeaveRequests;
+
+                              // Get appointments from schedule
+                              final appointments = _appointmentConverter.getAppointments(_stateManager.filteredEmployees, leaves: allLeaves);
+
+                              if (appointments.isEmpty) {
+                                return const Center(
+                                  child: Text('Brak zmian do wyświetlenia'),
+                                );
+                              }
+
+                              return Stack(
+                                children: [
+                                  RepaintBoundary(
+                                    key: mainCalendarKey,
+                                    child: SfCalendar(
+                                      controller: _calendarController,
+                                      view: CalendarView.timelineWeek,
+                                      showDatePickerButton: false,
+                                      showNavigationArrow: true,
+                                      headerStyle: CalendarHeaderStyle(
+                                        backgroundColor: AppColors.pageBackground,
+                                        textAlign: TextAlign.left,
+                                        textStyle: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      firstDayOfWeek: 1,
+                                      dataSource: _CalendarDataSource(
+                                        /// Use appointments from actual schedule
+                                        appointments,
+                                        _stateManager.filteredEmployees,
+                                      ),
+                                      specialRegions: _regionsBuilder.getSpecialRegions(),
+                                      timeSlotViewSettings: TimeSlotViewSettings(
+                                        startHour: 7,
+                                        endHour: 21,
+                                        timeIntervalHeight: 40,
+                                        timeIntervalWidth: dynamicIntervalWidth,
+                                        timeInterval: const Duration(hours: 1),
+                                        timeFormat: 'HH:mm',
+                                        timeTextStyle: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                        minimumAppointmentDuration: Duration(hours: 5, minutes: 15),
+                                      ),
+                                      todayHighlightColor: AppColors.logo,
+                                      resourceViewSettings: const ResourceViewSettings(
+                                        visibleResourceCount: 10,
+                                        size: 170,
+                                        showAvatar: false,
+                                        displayNameTextStyle: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      appointmentBuilder: employeeBuildAppointmentWidget,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }),
+                          ),
                         ],
                       ),
                     ),
-                    Expanded(
-                      child: Obx(() {
-                        if (userController.isLoading.value) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-
-                        if (userController.filteredEmployees.isEmpty) {
-                          return const Center(child: Text('Brak dopasowań'));
-                        }
-
-                        return Stack(
-                          children: [
-                            SfCalendar(
-                              controller: _calendarController,
-                              view: CalendarView.timelineWeek,
-                              showDatePickerButton: false,
-                              showNavigationArrow: true,
-                              headerStyle: CalendarHeaderStyle(
-                                backgroundColor: AppColors.pageBackground,
-                                textAlign: TextAlign.left,
-                                textStyle: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              firstDayOfWeek: 1,
-                              dataSource: _CalendarDataSource(
-                                _getAppointments(userController.filteredEmployees),
-                                userController.filteredEmployees,
-                              ),
-                              specialRegions: _getSpecialRegions(),
-                              timeSlotViewSettings: TimeSlotViewSettings(
-                                startHour: 8,
-                                endHour: 21,
-                                timeIntervalHeight: 40,
-                                timeIntervalWidth: dynamicIntervalWidth,
-                                timeInterval: const Duration(hours: 1),
-                                timeFormat: 'HH:mm',
-                                timeTextStyle: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                              todayHighlightColor: AppColors.logo,
-                              resourceViewSettings: const ResourceViewSettings(
-                                visibleResourceCount: 10,
-                                size: 170,
-                                showAvatar: false,
-                                displayNameTextStyle: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-
-                              appointmentBuilder: _buildAppointmentWidget,
-                            ),
-                          ],
-                        );
-                      }),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
+            
+            // LOADING OVERLAY
+            if (isExporting.value)
+              Container(
+                color: AppColors.pageBackground.withOpacity(0.8),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DefaultTextStyle.merge(
+                        style: TextStyle(
+                          decoration: TextDecoration.none,
+                          color: AppColors.logo,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Eksportowanie grafiku...\n',
+                                style: TextStyle(
+                                  color: AppColors.logo,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'To może potrwać kilka sekund.\nProszę czekać.',
+                                style: TextStyle(
+                                  color: AppColors.textColor2,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
-        ),
-      );
+        );
       }),
     );
   }
-
-  Widget _buildAppointmentWidget(
-    BuildContext context,
-    CalendarAppointmentDetails calendarAppointmentDetails,
-  ) {
-    final appointment = calendarAppointmentDetails.appointments.first;
-    return Container(
-      decoration: BoxDecoration(
-        color: appointment.color,
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(
-          color: AppColors.white,
-          width: 0.5,
-        ),
-      ),
-      margin: const EdgeInsets.all(1),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
-            '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (appointment.subject.isNotEmpty)
-            Text(
-              appointment.subject.replaceAll(' - ', ' '),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-        ],
-      ),
-    );
-  }
-
 
   Widget _buildTagFilterDropdown(TagsController tagsController) {
     return Obx(() {
@@ -332,6 +357,11 @@ class _EmployeeMainCalendarState extends State<EmployeeMainCalendar> {
         userController.filterEmployees(_selectedTags);
       },
     );
+  }
+  @override
+  void dispose() {
+    _stateManager.dispose();
+    super.dispose();
   }
 }
 

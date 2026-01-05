@@ -1,38 +1,191 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
 
-  <!-- iOS meta tags & icons -->
+  <!-- Viewport -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#0175C2">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="the_basics">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mrowisko">
+  <meta name="description" content="Scheduling App for Hard Working Ants">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>Mrowisko</title>
 
-  <title>the_basics</title>
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="icons/Icon-192.png">
+  <link rel="icon" type="image/x-icon" href="icons/Icon-192.png">
+
+  <!-- Manifest -->
   <link rel="manifest" href="manifest.json">
+
+
+  <!-- New CHanges !!! we gotta make sure the SW works in hosting  -->
+  <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-messaging-compat.js"></script>
+
+  <!-- init in here too  -->
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBiD7cMxRpDauXenVHRZQvq-cVDuWlAdz0",
+      appId: "1:166365589002:web:f921b3c676a8fc2f6279f3",
+      messagingSenderId: "166365589002",
+      projectId: "p-inz-719da",
+      authDomain: "p-inz-719da.firebaseapp.com",
+      storageBucket: "p-inz-719da.firebasestorage.app",
+      measurementId: "G-ZW7Z0S41QL"
+    };
+
+     // and we innit here too
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase JS SDK initialized for web messaging");
+  </script>
+
+  <script>
+    /* ============================
+       DISPLAY MODE (PWA / browser)
+       ============================ */
+
+    // detect whether app is standalone or in browser
+
+    window.getDisplayMode = function () {
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        return 'standalone';
+      }
+      if (window.navigator.standalone === true) {
+        return 'standalone';
+      }
+      return 'browser';
+    };
+
+    // comments this out because curr we dont have any manual PWA install handling with UI
+
+<!--    /* ============================-->
+<!--       PWA INSTALL FLOW (Android)-->
+<!--       ============================ */-->
+
+<!--    // theoretically this should allow this to display the popup window in chrome for PWA install-->
+<!--    // in practice this doesnt work because chrome keeps blocking my requests-->
+<!--    // user can still manualy install from menu-->
+
+<!--    let deferredPrompt = null;-->
+<!--    window.canInstallPWA = false;-->
+
+<!--    // this should play  when browser detects pwa install criteria-->
+<!--    window.addEventListener('beforeinstallprompt', (e) => {-->
+<!--      e.preventDefault();-->
+<!--      deferredPrompt = e;-->
+<!--      window.canInstallPWA = true;-->
+
+<!--      window.dispatchEvent(-->
+<!--        new CustomEvent('pwa-install-available')-->
+<!--      );-->
+<!--    });-->
+
+<!--    window.triggerPWAInstall = async function () {-->
+<!--      if (!deferredPrompt) return false;-->
+
+<!--      deferredPrompt.prompt();-->
+<!--      const choice = await deferredPrompt.userChoice;-->
+
+<!--      deferredPrompt = null;-->
+<!--      window.canInstallPWA = false;-->
+
+<!--      return choice.outcome === 'accepted';-->
+<!--    };-->
+
+<!--    window.addEventListener('appinstalled', () => {-->
+<!--      deferredPrompt = null;-->
+<!--      window.canInstallPWA = false;-->
+
+<!--      window.dispatchEvent(-->
+<!--        new CustomEvent('pwa-installed')-->
+<!--      );-->
+<!--    });-->
+
+  </script>
 </head>
-<body>
-  <script src="flutter_bootstrap.js" async></script>
+
+<body class="loading">
+
+<!-- Flutter bootstrap -->
+<script src="flutter_bootstrap.js" async></script>
+
+<!-- ============================
+     LOADING SCREEN
+     ============================ -->
+
+
+<div id="flutter-loading" style="
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease;
+">
+  <!-- Spinner -->
+  <div style="
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(1, 117, 194, 0.1);
+    border-top: 3px solid #0175C2;
+    border-radius: 50%;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 20px;
+  "></div>
+
+  <div style="
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #333;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  ">
+    Loading Mrowisko...
+  </div>
+</div>
+
+<style>
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  body.loading {
+    overflow: hidden;
+    margin: 0;
+    height: 100vh;
+  }
+</style>
+
+<script>
+  window.addEventListener('flutter-first-frame', () => {
+    const loader = document.getElementById('flutter-loading');
+    if (!loader) return;
+
+    loader.style.opacity = '0';
+    setTimeout(() => {
+      loader.remove();
+      document.body.classList.remove('loading');
+    }, 300);
+  });
+</script>
+
 </body>
 </html>

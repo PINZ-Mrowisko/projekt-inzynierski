@@ -22,6 +22,7 @@ class SignUpController extends GetxController {
   final pswd1 = TextEditingController();
   final pswd2 = TextEditingController();
   final marketName = TextEditingController();
+  final gender = TextEditingController();
 
   // using obs state management makes it less taxing to redraw
   // the screen anytime something happens
@@ -88,7 +89,8 @@ class SignUpController extends GetxController {
           updatedAt: DateTime.now(),
           hasLoggedIn: true,
         scheduleNotifs: true,
-        leaveNotifs: true
+        leaveNotifs: true,
+        gender: gender.text.trim()
       );
 
       final newUserTemp = UserModel(
@@ -176,5 +178,18 @@ class SignUpController extends GetxController {
     }
 
 
+  }
+
+  @override
+  void onClose() {
+    gender.dispose();
+    email.dispose();
+    firstName.dispose();
+    lastName.dispose();
+    pswd1.dispose();
+    pswd2.dispose();
+    marketName.dispose();
+
+    super.onClose();
   }
 }

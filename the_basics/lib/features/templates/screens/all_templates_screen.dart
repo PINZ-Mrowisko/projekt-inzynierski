@@ -8,7 +8,6 @@ import '../../../utils/common_widgets/generic_list.dart';
 import '../../../utils/common_widgets/search_bar.dart';
 import '../../../utils/common_widgets/side_menu.dart';
 import '../controllers/template_controller.dart';
-import 'new_template_screen.dart';
 
 
 class TemplatesPage extends StatelessWidget {
@@ -78,7 +77,7 @@ class TemplatesPage extends StatelessWidget {
                   Expanded(
                     child: Obx(() {
                       if (templateController.isLoading.value) {
-                        return const Center(child: CircularProgressIndicator());
+                        return Center(child: CircularProgressIndicator(color: AppColors.logo));
                       }
                       if (templateController.errorMessage.value.isNotEmpty) {
                         return Center(child: Text(templateController.errorMessage.value));
@@ -160,6 +159,13 @@ class TemplatesPage extends StatelessWidget {
           (
           // clear the controller of the changes from last screen
           controller.clearController(),
+
+          // assign our vars to include data from chosen template
+          controller.minWomen.value = template.minWomen!,
+          controller.maxWomen.value = template.maxWomen!,
+          controller.minMen.value = template.minMen!,
+          controller.maxMen.value = template.maxMen!,
+
           Get.toNamed('/szablony/edytuj-szablon', arguments: {
             'template': template, 
             'isViewMode': true

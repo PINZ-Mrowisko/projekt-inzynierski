@@ -1,117 +1,163 @@
 from ortools.sat.python import cp_model
-from backend.algorithm.solver import ShiftPrinter
 from backend.connection.database_queries import *
 
-def generate_all_shifts(model, days, shifts, all_workers):
-    all_shifts = {}
 
-    days_dict = {
-        0: "Poniedziałek",
-        1: "Wtorek",
-        2: "Środa",
-        3: "Czwartek",
-        4: "Piątek",
-        5: "Sobota",
-        6: "Niedziela"
-    }
-
+def generate_all_variables(model, all_shifts, all_workers):
+    variables = {}
 
     for worker in all_workers:
-        for day in range(days):
 
-            day_name = days_dict[day]
-            shifts_that_day = shifts[day_name] if day_name in shifts else 0
+        for shift in all_shifts:
 
-            for shift in range(shifts_that_day):
-                for role in worker.tags:
-                    all_shifts[(worker, day, shift, role)] = model.new_bool_var(
-                        f"shift: {worker} | {day} | {shift} | {role}")
+            for rule_idx, rule in enumerate(shift.rules):
 
-    return all_shifts
+                worker_tags_ids = [t.id for t in worker.tags]
+                required_tags = rule.tags
 
-def create_tag_group(all_workers, tag):
-    return [worker for worker in all_workers if tag in worker.tags]
+                if set(required_tags).issubset(set(worker_tags_ids)) or len(worker.tags) == 0:
+                    variables[(worker.id, shift.id, rule_idx)] = model.new_bool_var(
+                        f"W:{worker.id}_D:{shift.id}_R:{rule_idx}"
+                    )
+    return variables
 
+def main(workers, template: Template):
 
-def divide_workers_by_tags(all_workers, all_tags):
-    tag_groups = {}
-    for tag in all_tags:
-        tag_groups[tag] = create_tag_group(all_workers, tag)
-    return tag_groups
-
-def RULE_working_tags_number(model, all_shifts, tag_groups, day, shift, tag, minimum, maximum):
-    role_assignments = [
-        all_shifts[(worker, day, shift, tag)]
-        for worker in tag_groups[tag]
-    ]
-    model.add(sum(role_assignments) >= minimum)
-    model.add(sum(role_assignments) <= maximum)
-    return
-
-
-def main(workers, template: Template, tags):
     model = cp_model.CpModel()
-    tag_groups = divide_workers_by_tags(workers, tags)
+    all_shifts = template.shifts
 
-    all_shifts = generate_all_shifts(model, template.days, template.shifts_number, workers)
-
-    days_dict = {
-        0: "Poniedziałek",
-        1: "Wtorek",
-        2: "Środa",
-        3: "Czwartek",
-        4: "Piątek",
-        5: "Sobota",
-        6: "Niedziela"
-    }
+    all_variables = generate_all_variables(model, template.shifts, workers)
 
     preference_vars = []
+    worker_hour_worked_on_shift = {w.id: [] for w in workers}
+    assignments_for_worker_per_day = {}
+    no_tag_worker_working_var = []
+    kierownik_working_other_role = []
 
+    for shift in all_shifts:
 
-    for day in range(template.days):
-        day_name = days_dict[day]
-        shifts_that_day = template.shifts_number.get(day_name, 0)
-        shifts_objects = [s for s in template.shifts if s.day == day_name]
+        worker_assignments_on_this_shift = {w.id: [] for w in workers}
 
-        for shift_index in range(shifts_that_day):
-            current_shift = shifts_objects[shift_index]
-            current_role_id = current_shift.tagId
-            tag = next((t for t in tags if t.id == current_role_id), None)
+        males_assigned_to_shift = []
+        females_assigned_to_shift = []
 
-            RULE_working_tags_number(model, all_shifts, tag_groups, day, shift_index, tag, current_shift.count,
-                                     current_shift.count)
+        for rule_idx, rule in enumerate(shift.rules):
 
-            male_assigned = []
-            female_assigned = []
+            assigned_vars_for_rule = []
 
             for worker in workers:
-                if (worker, day, shift_index, tag) in all_shifts:
-                    assigned_var = all_shifts[(worker, day, shift_index, tag)]
 
-                    if current_shift.type == worker.work_time_preference:
-                        preference_vars.append(assigned_var)
+                key = (worker.id, shift.id, rule_idx)
 
-                    if worker.sex == 'male':
-                        male_assigned.append(assigned_var)
-                    else:
-                        female_assigned.append(assigned_var)
+                if key in all_variables:
 
-            model.Add(sum(male_assigned) >= template.minMen)
-            model.Add(sum(female_assigned) >= template.minWomen)
-            model.Add(sum(female_assigned) <= template.maxWomen)
-            model.Add(sum(male_assigned) <= template.maxMen)
+                    var = all_variables[key]
 
-    model.Maximize(sum(preference_vars))
+                    assigned_vars_for_rule.append(var)
+                    worker_assignments_on_this_shift[worker.id].append(var)
+                    worker_hour_worked_on_shift[worker.id].append(var * shift.duration)
+
+                    day_key = (worker.id, shift.day)
+                    if day_key not in assignments_for_worker_per_day:
+                        assignments_for_worker_per_day[day_key] = []
+                    assignments_for_worker_per_day[day_key].append(var)
+
+                    if rule.attach_default_rules:
+                        if worker.sex == 'Mężczyzna':
+                            males_assigned_to_shift.append(var)
+                        else:
+                            females_assigned_to_shift.append(var)
+
+                    if len(rule.tags) > 0 and len(worker.tags) == 0:
+                        no_tag_worker_working_var.append(var)
+
+                    is_worker_kierownik = any(tag.name == "Kierownik" for tag in worker.tags)
+
+                    if is_worker_kierownik:
+                        kierownik_tag_id = [tag.id for tag in worker.tags if tag.name == "Kierownik"][0]
+
+                        is_rule_not_kierownik = not any(tag_id == kierownik_tag_id for tag_id in rule.tags)
+
+                        if is_worker_kierownik and is_rule_not_kierownik:
+                            kierownik_working_other_role.append(var)
+
+                    if shift.type == worker.work_time_preference:
+
+                        preference_vars.append(var)
+
+            model.Add(sum(assigned_vars_for_rule) == rule.count)
+
+        if shift.attach_default_rules:
+            model.Add(sum(males_assigned_to_shift) >= template.minMen)
+            model.Add(sum(females_assigned_to_shift) >= template.minWomen)
+            model.Add(sum(males_assigned_to_shift) <= template.maxMen)
+            model.Add(sum(females_assigned_to_shift) <= template.maxWomen)
+
+
+        for worker in workers:
+            vars_in_shift = worker_assignments_on_this_shift[worker.id]
+            if vars_in_shift:
+                model.Add(sum(vars_in_shift) <= 1)
+
+    for day_key, vars_in_day in assignments_for_worker_per_day.items():
+        if vars_in_day:
+            model.Add(sum(vars_in_day) <= 1)
+
+    WEIGHT_PREFERENCE = 200  # Bonus za pracę w ulubionej porze
+    WEIGHT_TIME = 1  # Bonus za każdą przepracowaną minutę
+    WEIGHT_ACTIVATION_PENALTY = 1000  # Kara za aktywację pracownika
+    WEIGHT_NO_TAG_WORKER_PENALTY = 2000  # Kara za przydzielenie zmiany pracownikowi bez wymaganych tagów
+    WEIGHT_KIEROWNIK_ON_DUTY = 5000 # Kara za pracę kierownika na zmianie innej niż z tagiem kierownik
+
+    total_time_working = []
+    activation_vars = {}
+
+    for worker in workers:
+        actual_work_time = sum(worker_hour_worked_on_shift[worker.id])
+        max_minutes = worker.max_working_hours * 60
+        is_active = model.new_bool_var(f"active_{worker.id}")
+        activation_vars[worker.id] = is_active
+
+        model.Add(actual_work_time <= max_minutes * is_active)
+
+        total_time_working.append(actual_work_time)
+
+
+
+    model.Maximize(
+        sum(preference_vars) * WEIGHT_PREFERENCE +
+        sum(total_time_working) * WEIGHT_TIME -
+        sum(activation_vars.values()) * WEIGHT_ACTIVATION_PENALTY -
+        sum(no_tag_worker_working_var) * WEIGHT_NO_TAG_WORKER_PENALTY -
+        sum(kierownik_working_other_role) * WEIGHT_KIEROWNIK_ON_DUTY
+    )
+
 
     solver = cp_model.CpSolver()
-    printer = ShiftPrinter(all_shifts, workers, template)
 
-    status = solver.Solve(model, printer)
+    status = solver.Solve(model)
 
     if status == cp_model.OPTIMAL:
-        print("\nFinal Solution:")
-        printer.print_best_solution()
-        return printer.results_json()
+
+        print("\n--- DIAGNOSTYKA SOLVERA ---")
+        for worker in workers:
+            is_active_val = solver.Value(activation_vars[worker.id])
+
+            minutes_assigned = 0
+
+            print(f"\nPracownik: {worker.firstname}")
+            print(f"  -> Czy pracuje: {"tak" if is_active_val == 1 else "nie"}")
+            print(f"  -> Limit godzin: {worker.max_working_hours}")
+
+            for shift in all_shifts:
+                for rule_idx, rule in enumerate(shift.rules):
+                    key = (worker.id, shift.id, rule_idx)
+                    if key in all_variables and solver.Value(all_variables[key]) == 1:
+                       print(f"     - Dostał zmianę: {shift.day} {shift.start}-{shift.end} ({shift.duration} min)")
+                       minutes_assigned += shift.duration
+
+            print(f"  -> Łącznie przydzielono: {minutes_assigned / 60} h")
+
+        return solver, all_variables
     else:
         print("No solution found.")
-        return {"status": "No solution found."}
+        return {"status": "No solution found."}, None

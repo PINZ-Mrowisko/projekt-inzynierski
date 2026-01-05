@@ -4,8 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
 from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule, \
-    get_previous_schedule
+    get_previous_schedule, get_leave_requests, post_holidays
 from backend.algorithm.algorithm import main
+from backend.connection.mapping import map_result_to_json
+
+import os
+from dotenv import load_dotenv
 
 # === Inicjalizacja Firebase Admin SDK dla Cloud Run ===
 if not firebase_admin._apps:
@@ -30,7 +34,46 @@ app.add_middleware(
 )
 
 @app.get("/run-algorithmv2/{template_id}")
-def run_algorithm(authorization: str = Header(...), template_id: str = ""):
+def run_algorithm(authorization: str = Header(...), template_id: str = "", year: int = 0, month: int = 0):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=403, detail="Brak tokenu")
+
+    id_token = authorization.split(" ")[1]
+
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        user_id = decoded_token["uid"]
+    except Exception as e:
+        print("Błąd weryfikacji tokenu:", e)
+        raise HTTPException(status_code=403, detail="Nieprawidłowy token")
+
+    tags = get_tags(user_id, db)
+    workers = get_workers(user_id, tags, db)
+    leave_requests = get_leave_requests(user_id, db)
+    templates = get_templates(user_id, db)
+    template = [template for template in templates if template.id == template_id]
+
+    try:
+        template = template[0]
+    except:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+
+    solver, all_variables = main(workers, template)
+
+    if all_variables is None:
+        return solver
+
+    else:
+
+        result = map_result_to_json(solver, all_variables, workers, template)
+
+        post_schedule(user_id, template.id, year, month, result, leave_requests, workers, db)
+
+        return result
+
+@app.get("/generate_from_previous/{schedule_id}")
+def generate_from_previous(authorization: str = Header(...), schedule_id: str = "", year: int = 0, month: int = 0):
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=403, detail="Brak tokenu")
 
@@ -46,36 +89,23 @@ def run_algorithm(authorization: str = Header(...), template_id: str = ""):
     tags = get_tags(user_id, db)
     workers = get_workers(user_id, tags, db)
 
-    templates = get_templates(user_id, db)
-    template = [template for template in templates if template.id == template_id]
-    try:
-        template = template[0]
-    except:
-        raise HTTPException(status_code=404, detail="Template not found")
+    schedule, template_id = get_previous_schedule(user_id, schedule_id, db)
 
+    leave_requests = get_leave_requests(user_id, db)
 
-    result = main(workers, template, tags)
+    post_schedule(user_id, template_id, year, month, schedule, leave_requests, workers, db)
 
-    post_schedule(user_id, result, db)
+    return template_id
 
-    return result
+@app.post("/admin/sync_holidays")
+def sync_holidays(gcloud_scheduler_secret: str = Header(...)):
 
-@app.get("/generate_from_previous/{schedule_id}")
-def generate_from_previous(authorization: str = Header(...), schedule_id: str = ""):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=403, detail="Brak tokenu")
+    load_dotenv()
+    secret = os.getenv("CRON_PASSWORD")
 
-    id_token = authorization.split(" ")[1]
+    if gcloud_scheduler_secret is None or gcloud_scheduler_secret != secret:
+        raise HTTPException(status_code=403, detail="Nieautoryzowany dostęp")
 
-    try:
-        decoded_token = auth.verify_id_token(id_token)
-        user_id = decoded_token["uid"]
-    except Exception as e:
-        print("Błąd weryfikacji tokenu:", e)
-        raise HTTPException(status_code=403, detail="Nieprawidłowy token")
+    response = post_holidays(db)
+    return response
 
-    schedule = get_previous_schedule(user_id, schedule_id, db)
-
-    post_schedule(user_id, schedule, db)
-
-    return "Successfully generated new schedule from previous one."

@@ -84,7 +84,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     Expanded(
                       child: Obx(() {
                         if (!readyToShow.value || isLoading.value) {
-                          return const Center(child: CircularProgressIndicator());
+                          return Center(child: CircularProgressIndicator(color: AppColors.logo));
                         }
                         if (user == null) {
                           return const Center(
@@ -177,8 +177,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         Row(
           children: [
             Expanded(
-              //TODO: display actual gender when its added to user model
-              child: _fieldBox("Płeć", "-"),
+              child: _fieldBox("Płeć", user.gender),
             ),
             const SizedBox(width: 16),
             Expanded(

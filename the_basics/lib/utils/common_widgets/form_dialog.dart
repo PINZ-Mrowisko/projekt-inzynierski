@@ -209,6 +209,7 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
           height: 56,
           child: TextField(
             controller: field.controller,
+            enabled: field.enabled,
             textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
               filled: true,
@@ -218,6 +219,12 @@ class _CustomFormDialogState extends State<CustomFormDialog> {
                 borderRadius: BorderRadius.circular(28),
                 borderSide: BorderSide.none,
               ),
+              disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(
+                color: AppColors.transparent,
+              ),
+            ),
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 16,
                 horizontal: 16,
@@ -436,11 +443,13 @@ class DialogInputField {
   final String label;
   final TextEditingController? controller;
   final DialogInputType type;
+  final bool enabled;
 
   DialogInputField({
     required this.label,
     this.controller,
     this.type = DialogInputType.text,
+    this.enabled = true
   });
 }
 

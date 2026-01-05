@@ -1,0 +1,4 @@
+enum ScheduleType {
+  mainCalendar,
+  individualCalendar,
+}

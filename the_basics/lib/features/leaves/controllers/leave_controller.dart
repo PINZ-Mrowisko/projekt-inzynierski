@@ -30,6 +30,9 @@ class LeaveController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
 
+  // test whether this will solve our missing marketID issue
+  bool _isFetching = false;
+
   // we will use this to display in the upper section for the manager
   RxList<LeaveModel> get pendingRequests =>
       allLeaveRequests.where((r) => r.status == 'Oczekujący').toList().obs;
@@ -66,7 +69,15 @@ class LeaveController extends GetxController {
 
   /// fetch all non-deleted leave requests
   Future<void> fetchLeaves() async {
+
+    if (_isFetching) return;
+    _isFetching = true;
+
     try {
+      allLeaveRequests.clear();
+      filteredLeaves.clear();
+      acceptedRequests.clear();
+
       isLoading(true);
       errorMessage('');
       final marketId = userController.employee.value.marketId;
@@ -130,9 +141,10 @@ class LeaveController extends GetxController {
 
     } catch (e) {
       errorMessage(e.toString());
-      Get.snackbar('Błąd', 'Nie udało się pobrać wniosków: $e');
+      //Get.snackbar('Błąd', 'Nie udało się pobrać wniosków: $e');
     } finally {
       isLoading(false);
+      _isFetching = false;
     }
   }
 

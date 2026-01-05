@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - main
+    paths:
+        - 'the_basics/**'
+        - '.github/workflows/push_to_cloud.yml'
 
 jobs:
   build_and_push:
@@ -17,7 +20,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          flutter-version: '3.29.3'
 
       - name: Install dependencies
         working-directory: ./the_basics
@@ -25,7 +28,7 @@ jobs:
 
       - name: Build Flutter web app
         working-directory: ./the_basics
-        run: flutter build web --release
+        run: flutter build web --release --no-tree-shake-icons
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0

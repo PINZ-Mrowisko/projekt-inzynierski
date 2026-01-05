@@ -25,8 +25,8 @@ class SettingsScreen extends StatelessWidget {
       final user = userController.employee.value;
 
       if (user == null) {
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+        return Scaffold(
+          body: Center(child: CircularProgressIndicator(color: AppColors.logo)),
         );
       }
 
@@ -88,9 +88,10 @@ class SettingsScreen extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       border: Border(
                                         bottom: BorderSide(
-                                          color: selectedTab.value == i
-                                              ? AppColors.lightBlue
-                                              : AppColors.transparent,
+                                          color:
+                                              selectedTab.value == i
+                                                  ? AppColors.lightBlue
+                                                  : AppColors.transparent,
                                           width: 3,
                                         ),
                                       ),
@@ -100,9 +101,10 @@ class SettingsScreen extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
-                                        color: selectedTab.value == i
-                                            ? AppColors.logolighter
-                                            : AppColors.textColor2,
+                                        color:
+                                            selectedTab.value == i
+                                                ? AppColors.logolighter
+                                                : AppColors.textColor2,
                                       ),
                                     ),
                                   ),
@@ -120,7 +122,12 @@ class SettingsScreen extends StatelessWidget {
                       child: Obx(() {
                         switch (selectedTab.value) {
                           case 0:
-                            return _notificationsTab(context, user, userController, notifController);
+                            return _notificationsTab(
+                              context,
+                              user,
+                              userController,
+                              notifController,
+                            );
                           case 1:
                             return isAdmin
                                 ? _accessTab()
@@ -151,16 +158,22 @@ class SettingsScreen extends StatelessWidget {
         children: [
           _settingsSwitch(
             title: 'Powiadom mnie o nowych grafikach',
-            value: user.scheduleNotifs && notifController.systemPermissionGranted.value,
+            value: user.scheduleNotifs,
             onChanged: (val) async {
-
-              if (val == true && !notifController.systemPermissionGranted.value) {
-                await notifController.requestPermissions();
+              if (val == true) {
                 await notifController.checkSystemPermission();
 
                 if (!notifController.systemPermissionGranted.value) {
-                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach przeglądarki.");
-                  return;
+                  await notifController.requestPermissions();
+                  await notifController.checkSystemPermission();
+
+                  if (!notifController.systemPermissionGranted.value) {
+                    showCustomSnackbar(
+                      context,
+                      "Musisz włączyć powiadomienia w ustawieniach systemu.",
+                    );
+                    return;
+                  }
                 }
               }
 
@@ -174,19 +187,25 @@ class SettingsScreen extends StatelessWidget {
           title: user.role == "admin"
               ? 'Powiadom mnie o nowych wnioskach do zatwierdzenia'
               : 'Powiadom mnie o zmianach statusów moich wniosków',
-          value: user.leaveNotifs && notifController.systemPermissionGranted.value,
+          value: user.leaveNotifs,
           onChanged: (val) async {
 
-              if (val == true && !notifController.systemPermissionGranted.value) {
+            if (val == true) {
+              await notifController.checkSystemPermission();
+
+              if (!notifController.systemPermissionGranted.value) {
                 await notifController.requestPermissions();
                 await notifController.checkSystemPermission();
 
                 if (!notifController.systemPermissionGranted.value) {
-                  showCustomSnackbar(context, "Musisz włączyć powiadomienia w ustawieniach przeglądarki.");
+                  showCustomSnackbar(
+                    context,
+                    "Musisz włączyć powiadomienia w ustawieniach systemu.",
+                  );
                   return;
                 }
               }
-
+            }
               userController.updateSettings("leaveNotifs", val);
             },
           ),
@@ -214,9 +233,10 @@ class SettingsScreen extends StatelessWidget {
 
           Expanded(
             child: Obx(() {
-              final users = userController.allEmployees
-                  .where((u) => u.hasLoggedIn == false)
-                  .toList();
+              final users =
+                  userController.allEmployees
+                      .where((u) => u.hasLoggedIn == false)
+                      .toList();
 
               if (users.isEmpty) {
                 return const Center(
@@ -312,10 +332,7 @@ class SettingsScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.textColor2,
-            ),
+            style: TextStyle(fontSize: 16, color: AppColors.textColor2),
           ),
           const SizedBox(height: 8),
           Switch(
@@ -328,47 +345,53 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-    Widget _settingsButton({
-      required String title,
-      required String buttonText,
-      required VoidCallback onPressed,
-      IconData? icon,
-    }) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textColor2,
-              ),
-            ),
-            const SizedBox(height: 12),
-            CustomButton(
-              text: buttonText,
-              icon: icon,
-              onPressed: onPressed,
-              backgroundColor: AppColors.blue,
-              textColor: AppColors.textColor2,
-              width: 150,
-              height: 42,
-            ),
-          ],
-        ),
-      );
-    }
-
-  void _sendResetEmail(BuildContext context, UserModel employee) async {
-    try {
-      Get.put(ForgetPswdController());
-      await ForgetPswdController.instance.resendPswdResetEmail(employee.email);
-      showCustomSnackbar(context, "Link do resetowania hasła został wysłany.");
-    } catch (e) {
-      showCustomSnackbar(context, "Nie udało się wysłać e-maila: ${e.toString()}");
-    }
+  Widget _settingsButton({
+    required String title,
+    required String buttonText,
+    required VoidCallback onPressed,
+    IconData? icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 16, color: AppColors.textColor2),
+          ),
+          const SizedBox(height: 12),
+          CustomButton(
+            text: buttonText,
+            icon: icon,
+            onPressed: onPressed,
+            backgroundColor: AppColors.blue,
+            textColor: AppColors.textColor2,
+            width: 150,
+            height: 42,
+          ),
+        ],
+      ),
+    );
   }
 
+
+    // resetowanie hasła
+  void _sendResetEmail(BuildContext context, UserModel employee) async {
+    try {
+      // mpozemy uzyc controllera z początku
+      Get.put(ForgetPswdController());
+
+      // wysyłamy do usera maila z resetem hasła
+
+      await ForgetPswdController.instance.resendPswdResetEmail(employee.email);
+
+      showCustomSnackbar(context, "Link do resetowania hasła został wysłany.");
+    } catch (e) {
+      showCustomSnackbar(
+        context,
+        "Nie udało się wysłać e-maila: ${e.toString()}",
+      );
+    }
+  }
 }

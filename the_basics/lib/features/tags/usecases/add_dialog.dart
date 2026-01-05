@@ -11,10 +11,20 @@ void showAddTagDialog(BuildContext context, TagsController controller) {
 
   void _performAddOperation() async {
     try {
+      if(controller.nameController.text.toLowerCase() == 'kierownik') {
+        showCustomSnackbar(context, 'Tag Kierownika już istnieje');
+        return;
+      }
+
       if (controller.nameController.text.isEmpty) {
         showCustomSnackbar(context, 'Nazwa tagu nie może być pusta');
         return;
       } else {
+        if (controller.nameController.text.contains(',')) {
+          showCustomSnackbar(context, 'Nazwa tagu nie może zawierać przecinka (,)');
+          return;
+        }
+
         final t = controller.tagExists(controller.userController.employee.value.marketId, controller.nameController.text);
         // we check if tag exists, if yes then just display the msg and cancel the saving
         if (await t) {
@@ -41,6 +51,7 @@ void showAddTagDialog(BuildContext context, TagsController controller) {
         DialogInputField(
           label: 'Nazwa',
           controller: controller.nameController,
+
         ),
         DialogInputField(
           label: 'Opis',

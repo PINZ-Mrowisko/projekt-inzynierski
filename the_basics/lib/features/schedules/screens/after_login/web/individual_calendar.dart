@@ -3,15 +3,20 @@ import 'package:get/get.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/leaves/models/leave_model.dart';
-import 'package:the_basics/features/schedules/usecases/show_export_dialog.dart';
+import 'package:the_basics/features/schedules/models/schedule_model.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/appointment_builder.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_exporter.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/utils/schedule_type.dart';
+import 'package:the_basics/features/schedules/usecases/show_individual_calendar_export_dialog.dart';
+import 'package:the_basics/features/schedules/usecases/show_main_calendar_export_dialog.dart';
+import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 import 'package:the_basics/utils/common_widgets/notification_snackbar.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
-import 'package:the_basics/utils/common_widgets/base_dialog.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import '../../../../employees/controllers/user_controller.dart';
-import '../../../../tags/controllers/tags_controller.dart';
 import '../../../../leaves/controllers/leave_controller.dart';
+import '../../../controllers/schedule_controller.dart';
 
 /// panel boczny
 class SideInfoPanel extends StatelessWidget {
@@ -123,77 +128,193 @@ class IndividualCalendar extends StatefulWidget {
 
 class _IndividualCalendarState extends State<IndividualCalendar> {
   final CalendarController _calendarController = CalendarController();
+  final GlobalKey individualCalendarKey = GlobalKey();
+  final isExporting = false.obs;
 
-  List<Appointment> _getAppointments(
-      List<UserModel> filteredEmployees, List<LeaveModel> leaves) {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final scheduleController = Get.find<SchedulesController>();
+      final leaveController = Get.find<LeaveController>();
+
+      if (leaveController.allLeaveRequests.isEmpty) {
+        await leaveController.fetchLeaves();
+      }
+
+      await scheduleController.validateShiftsAgainstLeaves();
+    });
+  }
+
+  List<Appointment> _getAppointments(List<UserModel> filteredEmployees, List<LeaveModel> leaves) {
+
     final DateTime now = DateTime.now();
     final DateTime monday = now.subtract(Duration(days: now.weekday - 1));
     List<Appointment> baseAppointments = [];
 
-    // generuj 5 dni pracy
-    for (final employee in filteredEmployees) {
-      for (int day = 0; day < 5; day++) {
-        final isMorningShift = day % 2 == 0;
-        final startHour = isMorningShift ? 8 : 12;
-        final endHour = isMorningShift ? 16 : 20;
+    final scheduleController = Get.find<SchedulesController>();
+    final userController = Get.find<UserController>();
+    final tagsController = Get.find<TagsController>();
+
+    List<ScheduleModel> myShifts = scheduleController.getShiftsForEmployee(userController.employee.value.id);
+
+    baseAppointments = myShifts.map((shift) {
+      final startDateTime = DateTime(
+        shift.shiftDate.year,
+        shift.shiftDate.month,
+        shift.shiftDate.day,
+        shift.start.hour,
+        shift.start.minute,
+      );
+
+      final endDateTime = DateTime(
+        shift.shiftDate.year,
+        shift.shiftDate.month,
+        shift.shiftDate.day,
+        shift.end.hour,
+        shift.end.minute,
+      );
+
+      // making sure tiles in every screen look the same
+      final tagNames = _convertTagIdsToNames(shift.tags, tagsController);
+      final displayTags = tagNames.isNotEmpty 
+          ? tagNames.join(', ')
+          : 'Brak tagów';
+
+      return Appointment(
+        startTime: startDateTime,
+        endTime: endDateTime,
+        subject: displayTags,
+        resourceIds: <Object>[shift.employeeID],
+        color: _getAppointmentColor(shift),
+        notes: displayTags,
+        id: '${shift.employeeID}_${shift.shiftDate.day}_${shift.start.hour}:${shift.start.minute}_${shift.end.hour}:${shift.end.minute}',
+      );
+    }).toList();
+
+    for (final leave in leaves) {
+      if (leave.status.toLowerCase() == 'zaakceptowany' ||
+          leave.status.toLowerCase() == 'mój urlop') {
+        final startDateTime = DateTime(
+          leave.startDate.year,
+          leave.startDate.month,
+          leave.startDate.day,
+          8,
+          0,
+        );
+
+        final endDateTime = DateTime(
+          leave.endDate.year,
+          leave.endDate.month,
+          leave.endDate.day,
+          16,
+          0,
+        );
 
         baseAppointments.add(
           Appointment(
-            startTime: DateTime(
-                monday.year, monday.month, monday.day + day, startHour, 0),
-            endTime:
-                DateTime(monday.year, monday.month, monday.day + day, endHour, 0),
-            subject: 'Zmiana ${isMorningShift ? 'poranna' : 'popołudniowa'}',
-            color: isMorningShift ? AppColors.logo : AppColors.logolighter,
-            resourceIds: <Object>[employee.id],
-          ),
-        );
-      }
-    }
-
-    // powiel 4 tygodnie
-    List<Appointment> repeatedAppointments = [];
-    for (int week = 0; week < 4; week++) {
-      final Duration weekOffset = Duration(days: 7 * week);
-      for (var appointment in baseAppointments) {
-        repeatedAppointments.add(
-          Appointment(
-            startTime: appointment.startTime.add(weekOffset),
-            endTime: appointment.endTime.add(weekOffset),
-            subject: appointment.subject,
-            color: appointment.color,
-            resourceIds: appointment.resourceIds,
-          ),
-        );
-      }
-    }
-
-    // urlopy zaakceptowane
-    for (final leave in leaves) {
-      if (leave.status.toLowerCase() == 'zaakceptowany' || leave.status.toLowerCase() == 'mój urlop') {
-        repeatedAppointments.add(
-          Appointment(
-            startTime: leave.startDate,
-            endTime: leave.endDate.add(const Duration(hours: 23)),
-            subject: "Urlop: ${leave.comment}",
+            startTime: startDateTime,
+            endTime: endDateTime,
+            subject: "Urlop",
             color: Colors.orangeAccent,
+            notes: leave.comment?.isNotEmpty == true 
+                ? leave.comment!
+                : "Urlop",
           ),
         );
       }
     }
 
-    return repeatedAppointments;
+    return baseAppointments;
   }
+
+  List<String> _convertTagIdsToNames(List<String> tagIds, TagsController tagsController) {
+    final List<String> tagNames = [];
+    
+    for (final tagId in tagIds) {
+      try {
+        final foundTags = tagsController.allTags.where((t) => t.id == tagId).toList();
+        
+        if (foundTags.isNotEmpty) {
+          final tag = foundTags.first;
+          if (tag.tagName != null && tag.tagName!.isNotEmpty) {
+            tagNames.add(tag.tagName!);
+          } else {
+            tagNames.add(tagId);
+          }
+        } else {
+          tagNames.add(tagId);
+        }
+      } catch (e) {
+        tagNames.add(tagId);
+      }
+    }
+    
+    return tagNames;
+  }
+
+  Color _getAppointmentColor(ScheduleModel shift) {
+    if (shift.start.hour >= 12) {
+      return AppColors.logolighter;
+    } else {
+      return AppColors.logo;
+    }
+  }
+
+  Future<void> _exportCalendar() async {
+    isExporting.value = true;
+  try {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final visibleDate = _calendarController.displayDate;
+    final monthName = _getPolishMonthName(visibleDate!.month);
+    
+    await ScheduleExporter.exportToPdf(
+      type: ScheduleType.individualCalendar,
+      chartKey: individualCalendarKey,
+      title: 'Grafik indywidualny - $monthName ${visibleDate.year}',
+      visibleDate: visibleDate,
+    );
+    
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Grafik został pomyślnie zapisany.");
+    }
+  } catch (e) {
+    if (mounted && context.mounted) {
+      showCustomSnackbar(context, "Wystąpił błąd podczas eksportu grafiku: $e");
+    }
+  } finally {
+    isExporting.value = false;
+  }
+}
+
+String _getPolishMonthName(int month) {
+  switch (month) {
+    case 1: return 'Styczeń';
+    case 2: return 'Luty';
+    case 3: return 'Marzec';
+    case 4: return 'Kwiecień';
+    case 5: return 'Maj';
+    case 6: return 'Czerwiec';
+    case 7: return 'Lipiec';
+    case 8: return 'Sierpień';
+    case 9: return 'Wrzesień';
+    case 10: return 'Październik';
+    case 11: return 'Listopad';
+    case 12: return 'Grudzień';
+    default: return '';
+  }
+}
 
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
     final leaveController = Get.find<LeaveController>();
-    final tagsController = Get.find<TagsController>();
 
     return Obx(() {
       final employee = userController.employee.value;
 
+      // get all leave reqs
       final allLeaves = leaveController.allLeaveRequests;
       final userLeaves = allLeaves.where((l) =>
           l.userId == employee.id &&
@@ -201,6 +322,8 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
           l.status.toLowerCase() == 'mój urlop')
       ).toList();
 
+
+      // get all shifts of employee from currently published schedule
       final appointments = _getAppointments([employee], userLeaves);
 
       final now = DateTime.now();
@@ -229,181 +352,149 @@ class _IndividualCalendarState extends State<IndividualCalendar> {
         nextVacation = upcomingVacations.first;
       }
 
-    return Obx(() => Scaffold(
-      backgroundColor: AppColors.pageBackground,
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SideMenu(),
-          ),
+          Scaffold(
+            backgroundColor: AppColors.pageBackground,
+            body: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SideMenu(),
+                ),
 
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 80,
-                child: Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Grafik indywidualny',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.logo,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 80,
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Grafik indywidualny',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.logo,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: SideInfoPanel(
+                        todayShift: todayShift,
+                        tomorrowShift: tomorrowShift,
+                        nextVacation: nextVacation,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 6),
-                child: SideInfoPanel(
-                  todayShift: todayShift,
-                  tomorrowShift: tomorrowShift,
-                  nextVacation: nextVacation,
-                ),
-              ),
-            ],
-          ),
 
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 80,
-                    child: Row(
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
                       children: [
-                        const Spacer(),
-                        CustomButton(
-                          onPressed: () => showExportDialog(context),
-                          text: "Eksportuj",
-                          width: 125,
-                          icon: Icons.download,
+                        SizedBox(
+                          height: 80,
+                          child: Row(
+                            children: [
+                              const Spacer(),
+                              CustomButton(
+                                onPressed: () => showIndividualCalendarExportDialog(context, _exportCalendar),
+                                text: "Eksportuj",
+                                width: 125,
+                                icon: Icons.download,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: RepaintBoundary(
+                            key: individualCalendarKey,
+                            child: SfCalendar(
+                              controller: _calendarController,
+                              view: CalendarView.month,
+                              firstDayOfWeek: 1,
+                              showNavigationArrow: true,
+                              monthViewSettings: MonthViewSettings(
+                                appointmentDisplayMode:
+                                    MonthAppointmentDisplayMode.appointment,
+                                appointmentDisplayCount: 2,
+                              ),
+                              todayHighlightColor: AppColors.logo,
+                              dataSource: _CalendarDataSource(appointments, [employee]),
+                              appointmentBuilder: buildAppointmentWidget,
+                              headerStyle: CalendarHeaderStyle(
+                              backgroundColor: AppColors.pageBackground,),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: SfCalendar(
-                      controller: _calendarController,
-                      view: CalendarView.month,
-                      firstDayOfWeek: 1,
-                      showNavigationArrow: true,
-                      monthViewSettings: MonthViewSettings(
-                        appointmentDisplayMode:
-                            MonthAppointmentDisplayMode.appointment,
-                        appointmentDisplayCount: 2,
-                      ),
-                      todayHighlightColor: AppColors.logo,
-                      dataSource: _CalendarDataSource(appointments, [employee]),
-                      appointmentBuilder: _buildAppointmentWidget,
-                      headerStyle: CalendarHeaderStyle(
-                      backgroundColor: AppColors.pageBackground,),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+          
+          // LOADING OVERLAY
+          if (isExporting.value)
+            Container(
+              color: AppColors.pageBackground.withOpacity(0.8),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DefaultTextStyle.merge(
+                      style: TextStyle(
+                        decoration: TextDecoration.none,
+                        color: AppColors.logo,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Eksportowanie grafiku...\n',
+                              style: TextStyle(
+                                color: AppColors.logo,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'To może potrwać kilka sekund.\nProszę czekać.',
+                              style: TextStyle(
+                                color: AppColors.textColor2,
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
-      ),
-    )
-    );
+      );
     });
   }
-
-Widget _buildAppointmentWidget(
-    BuildContext context, CalendarAppointmentDetails details) {
-  final appointment = details.appointments.first;
-
-  // korekta przesunięcia kafelka
-  const double horizontalOffsetFix = 3.0;
-
-  return Transform.translate(
-    offset: const Offset(horizontalOffsetFix, 0),
-    child: Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        width: details.bounds.width,
-        height: details.bounds.height.clamp(20.0, 45.0), // zapobiega overflow
-        margin: const EdgeInsets.symmetric(horizontal: 3),
-        decoration: BoxDecoration(
-          color: appointment.color,
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: AppColors.white, width: 0.5),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Flexible(
-              child: Text(
-                '${appointment.startTime.hour.toString().padLeft(2, '0')}:${appointment.startTime.minute.toString().padLeft(2, '0')} - '
-                '${appointment.endTime.hour.toString().padLeft(2, '0')}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            if (appointment.subject.isNotEmpty)
-              Flexible(
-                child: Text(
-                  appointment.subject,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-          ],
-        ),
-      ),
-    ),
-  );
 }
 
-  Widget _buildExportButton(
-      IconData icon, String text, VoidCallback onPressed) {
-    return SizedBox(
-      width: 160,
-      height: 56,
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, color: AppColors.textColor2),
-        label: Text(
-          text,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textColor2,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.lightBlue,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(100),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
+// same as in main calendar
 class _CalendarDataSource extends CalendarDataSource {
   _CalendarDataSource(List<Appointment> appointments, List<UserModel> employees) {
     this.appointments = appointments;

@@ -1,0 +1,56 @@
+name: Build and Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend-api/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/push_algorithm.yaml'
+  workflow_dispatch:
+
+
+env:
+  PROJECT_ID: p-inz-719da
+  REPO_NAME: algorytm-generowania-grafikow
+  SERVICE_NAME: scheduling-algorithm
+  TAG: latest
+  REGION: europe-central2
+  ARTIFACT_NAME: algorithm
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Docker Auth
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and Push Container
+        run: |
+          ARTIFACT_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.ARTIFACT_NAME }}
+          IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}
+          
+          cd backend-api
+          docker build -t algorithm .
+          docker tag algorithm $ARTIFACT_URI
+          docker push $ARTIFACT_URI
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ env.TAG }}
+          flags: '--allow-unauthenticated'

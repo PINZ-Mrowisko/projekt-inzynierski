@@ -19,6 +19,7 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
 
     final contractType = RxnString();
     final shiftPreference = RxnString();
+    final gender = RxnString();
 
     final fields = [
       RowDialogField(children: [
@@ -46,17 +47,31 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
           controller: hoursController,
         ),
       ]),
+      RowDialogField(children: [
+        DropdownDialogField(
+          label: 'Preferencje zmian',
+          hintText: 'Wybierz preferencje...',
+          items: [
+            DropdownItem(value: 'Poranne', label: 'Poranne'),
+            DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
+            DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
+          ],
+          onChanged: (value) => shiftPreference.value = value,
+        ),
 
-      DropdownDialogField(
-        label: 'Preferencje zmian',
-        hintText: 'Wybierz preferencje...',
-        items: [
-          DropdownItem(value: 'Poranne', label: 'Poranne'),
-          DropdownItem(value: 'Popołudniowe', label: 'Popołudniowe'),
-          DropdownItem(value: 'Brak preferencji', label: 'Brak preferencji'),
-        ],
-        onChanged: (value) => shiftPreference.value = value,
-      ),
+        // new gender chooser
+        DropdownDialogField(
+          label: 'Płeć',
+          hintText: 'Wybierz płeć...',
+          items: [
+            DropdownItem(value: 'Kobieta', label: 'Kobieta'),
+            DropdownItem(value: 'Mężczyzna', label: 'Mężczyzna'),
+          ],
+          onChanged: (value) => gender.value = value,
+        ),
+
+      ]),
+
 
       MultiSelectDialogField(
         label: 'Tagi',
@@ -76,7 +91,7 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
           if (firstNameController.text.isEmpty ||
               lastNameController.text.isEmpty ||
               emailController.text.isEmpty ||
-              contractType.value == null) {
+              contractType.value == null || gender.value == null) {
             showCustomSnackbar(context, 'Wypełnij wszystkie wymagane pola');
             return;
           }
@@ -122,7 +137,8 @@ void showAddEmployeeDialog(BuildContext context, UserController userController) 
             insertedAt: DateTime.now(),
             updatedAt: DateTime.now(),
               scheduleNotifs: true,
-              leaveNotifs: true
+              leaveNotifs: true,
+            gender: gender.string
           );
 
           try {

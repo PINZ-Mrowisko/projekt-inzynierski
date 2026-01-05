@@ -6,18 +6,20 @@ class ShiftModel {
   final String day;
   final TimeOfDay start;
   final TimeOfDay end;
-  final String tagId;
-  final String tagName;
+  final List<String> tagIds;
+  final List<String> tagNames;
   final int count;
+  final bool obeyGeneralRules;
 
   ShiftModel({
     required this.id,
     required this.day,
     required this.start,
     required this.end,
-    required this.tagId,
-    required this.tagName,
+    required this.tagIds,
+    required this.tagNames,
     required this.count,
+    required this.obeyGeneralRules,
   });
 
   /// Converts to a map suitable for Firestore
@@ -25,12 +27,12 @@ class ShiftModel {
     return {
       'id': id,
       'day': day,
-      // store times as strings
       'start': '${start.hour}:${start.minute}',
       'end': '${end.hour}:${end.minute}',
-      'tagId': tagId,
-      'tagName': tagName,
+      'tagIds': tagIds,
+      'tagNames': tagNames,
       'count': count,
+      'obeyGeneralRules': obeyGeneralRules,
     };
   }
 
@@ -43,9 +45,10 @@ class ShiftModel {
       day: data['day'] ?? '',
       start: _parseTime(data['start']),
       end: _parseTime(data['end']),
-      tagId: data['tagId'] ?? '',
-      tagName: data['tagName'] ?? '',
+      tagIds: List<String>.from(data['tagIds'] ?? []),
+      tagNames: List<String>.from(data['tagNames'] ?? []),
       count: data['count'] ?? 0,
+      obeyGeneralRules: data['obeyGeneralRules'] ?? true,
     );
   }
 
@@ -62,19 +65,22 @@ class ShiftModel {
 
   ShiftModel copyWith({
     String? day,
-    String? tagId,
-    String? tagName,
+    List<String>? tagIds,
+    List<String>? tagNames,
     int? count,
     TimeOfDay? start,
-    TimeOfDay? end
+    TimeOfDay? end,
+    bool? obeyGeneralRules,
   }) {
-  return ShiftModel(
+    return ShiftModel(
+      id: id,
       day: day ?? this.day,
       start: start ?? this.start,
       end: end ?? this.end,
-      tagId: tagId ?? this.tagId,
-      tagName: tagName ?? this.tagName,
+      tagIds: tagIds ?? this.tagIds,
+      tagNames: tagNames ?? this.tagNames,
       count: count ?? this.count,
-      id: id
-  );}
+      obeyGeneralRules: obeyGeneralRules ?? this.obeyGeneralRules,
+    );
+  }
 }

@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/data/repositiories/other/template_repo.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
@@ -76,12 +76,13 @@ class TemplateController extends GetxController {
       // new updated shift model but only day diff
       final updatedShift = ShiftModel(
         id: addedShifts[shiftIndex].id,
-        tagId: addedShifts[shiftIndex].tagId,
-        tagName: addedShifts[shiftIndex].tagName,
+        tagIds: addedShifts[shiftIndex].tagIds,
+        tagNames: addedShifts[shiftIndex].tagNames,
         count: addedShifts[shiftIndex].count,
         start: addedShifts[shiftIndex].start,
         end: addedShifts[shiftIndex].end,
         day: newDay,
+        obeyGeneralRules: addedShifts[shiftIndex].obeyGeneralRules
       );
 
       // and at the end replace the old shift with updated one
@@ -180,6 +181,9 @@ class TemplateController extends GetxController {
           .doc()
           .id;
 
+      // merge same hours before saving
+      final consolidatedShifts = _consolidateShifts(addedShifts);
+
       final newTemplate = TemplateModel(
         id: templateId,
         templateName: nameController.text.trim(),
@@ -192,16 +196,10 @@ class TemplateController extends GetxController {
         isDeleted: false,
         insertedAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        shiftsMap: consolidatedShifts
       );
 
       await _templateRepo.saveTemplate(newTemplate);
-
-      // and then go through shifts and saved them to the same template
-      // Save shifts subcollection
-      for (var shift in addedShifts) {
-        await _templateRepo.saveShift(user.marketId, templateId, shift);
-      }
-
       await fetchTemplates();
 
       nameController.clear();
@@ -225,6 +223,8 @@ class TemplateController extends GetxController {
         return;
       }
 
+      final consolidatedShifts = _consolidateShifts(addedShifts);
+
       final updatedTemplate = template.copyWith(
         templateName: nameController.text.trim(),
         description: descController.text.trim(),
@@ -233,19 +233,19 @@ class TemplateController extends GetxController {
         minWomen: minWomen.value,
         maxWomen: maxWomen.value,
         updatedAt: DateTime.now(),
+        shiftsMap: consolidatedShifts
       );
 
       await _templateRepo.updateTemplate(updatedTemplate);
 
-      await _templateRepo.updateTemplateShifts(
-        template.marketId,
-        template.id,
-        addedShifts,
-      );
       // after updating the template, we can check if there is / was any missing data
 
-      final hasMissingTag =
-      addedShifts.any((shift) => shift.tagName == "BRAK");
+      final hasMissingTag = consolidatedShifts.values.any((shift) {
+        final requirements = shift['requirements'] as List<dynamic>;
+        return requirements.any((req) =>
+        req is Map && (req['tagName'] == "BRAK" || req['tagName'] == ""));
+      });
+
       if (!hasMissingTag && template.isDataMissing == true) {
         await _templateRepo.markTemplateAsComplete(
           template.marketId,
@@ -266,20 +266,138 @@ class TemplateController extends GetxController {
 
   /// we will use this when viewing the shifts, first we want to store them in the controller list
   /// we call this method in newTemplatePage to fill the list
+  /// with our updated structure, we need to parse them a bit to fit ack into model
   Future<void> loadShiftsForTemplate(String marketId, String templateId) async {
-    final shiftsSnapshot = await FirebaseFirestore.instance
-        .collection('Markets')
-        .doc(marketId)
-        .collection('Templates')
-        .doc(templateId)
-        .collection('Shifts')
-        .get();
+    try {
+      isLoading(true);
 
-    final shifts = shiftsSnapshot.docs
-        .map((doc) => ShiftModel.fromSnapshot(doc))
-        .toList();
+      final templateDoc = await FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(marketId)
+          .collection('Templates')
+          .doc(templateId)
+          .get();
 
-    addedShifts.assignAll(shifts);
+      if (!templateDoc.exists) {
+        addedShifts.clear();
+        return;
+      }
+
+      final templateData = templateDoc.data();
+      final shiftsMap = templateData?['shiftsMap'] as Map<String, dynamic>?;
+
+      // Convert consolidated shifts back to ShiftModel objects
+      final List<ShiftModel> shifts = [];
+
+      if (shiftsMap != null) {
+        for (final entry in shiftsMap.entries) {
+          final timeSlotData = entry.value as Map<String, dynamic>;
+
+          final day = timeSlotData['day'] as String? ?? '';
+          final startStr = timeSlotData['start'] as String? ?? '0:0';
+          final endStr = timeSlotData['end'] as String? ?? '0:0';
+
+          final startTime = _parseTime(startStr);
+          final endTime = _parseTime(endStr);
+
+          final requirements = timeSlotData['requirements'] as List<dynamic>? ?? [];
+
+          for (final req in requirements) {
+            final requirement = req as Map<String, dynamic>;
+
+            final tagIdString = requirement['tagId'] as String? ?? '';
+            final tagNameString = requirement['tagName'] as String? ?? '';
+
+            final obey = requirement['obeyGeneralRules'] as bool? ?? true;
+
+            final tagIds = tagIdString.split(',').map((id) => id.trim()).toList();
+            final tagNames = tagNameString.split(',').map((name) => name.trim()).toList();
+
+            // single tag case
+            if (tagIds.length == 1 && tagIds[0].isEmpty) {
+              tagIds.clear();
+            }
+            if (tagNames.length == 1 && tagNames[0].isEmpty) {
+              tagNames.clear();
+            }
+
+            final shift = ShiftModel(
+              id: UniqueKey().toString(),
+              day: day,
+              start: startTime ?? const TimeOfDay(hour: 0, minute: 0),
+              end: endTime ?? const TimeOfDay(hour: 0, minute: 0),
+              tagIds: tagIds,
+              tagNames: tagNames,
+              count: (requirement['count'] as num?)?.toInt() ?? 0,
+              obeyGeneralRules: obey
+            );
+
+            shifts.add(shift);
+          }
+        }
+      }
+
+      addedShifts.assignAll(shifts);
+
+    } catch (e) {
+      print('Error loading shifts: $e');
+      addedShifts.clear();
+    } finally {
+      isLoading(false);
+    }
+  }
+  TimeOfDay? _parseTime(String timeStr) {
+    try {
+      final parts = timeStr.split(':');
+      if (parts.length != 2) return null;
+
+      final hour = int.tryParse(parts[0]) ?? 0;
+      final minute = int.tryParse(parts[1]) ?? 0;
+
+      return TimeOfDay(hour: hour, minute: minute);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic> _consolidateShifts(List<ShiftModel> shifts) {
+    final consolidated = <String, dynamic>{};
+
+    for (final shift in shifts) {
+      final startHour = shift.start.hour.toString().padLeft(2, '0');
+      final startMinute = shift.start.minute.toString().padLeft(2, '0');
+      final endHour = shift.end.hour.toString().padLeft(2, '0');
+      final endMinute = shift.end.minute.toString().padLeft(2, '0');
+
+      // łączymy tagi w stringi z przecinkami
+      final tagIdsString = shift.tagIds.join(', ');
+      final tagNamesString = shift.tagNames.join(', ');
+
+      // create key like "Poniedziałek_12:00_16:00"
+      final key = '${shift.day}_${startHour}:${startMinute}_${endHour}:${endMinute}';
+
+      if (!consolidated.containsKey(key)) {
+        // First time seeing this time slot
+        consolidated[key] = {
+          'day': shift.day,
+          'start': '$startHour:$startMinute',
+          'end': '$endHour:$endMinute',
+          'requirements': [],
+        };
+      }
+
+      // Add this tag requirement to the time slot
+      final requirements = List<Map<String, dynamic>>.from(consolidated[key]['requirements']);
+      requirements.add({
+        'tagId': tagIdsString,
+        'tagName': tagNamesString,
+        'count': shift.count,
+        'obeyGeneralRules': shift.obeyGeneralRules
+      });
+      consolidated[key]['requirements'] = requirements;
+    }
+
+    return consolidated;
   }
 
 

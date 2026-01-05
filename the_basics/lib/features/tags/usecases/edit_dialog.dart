@@ -12,6 +12,7 @@ import 'delete_dialog.dart';
 void showEditTagDialog(BuildContext context, TagsController controller, TagsModel tag) {
     final nameController = TextEditingController(text: tag.tagName);
     final descController = TextEditingController(text: tag.description);
+    final isEditable = tag.tagName.toLowerCase() == 'kierownik' ? false : true;
 
     void _performSaveOperation() async {
       try {
@@ -26,6 +27,11 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
         if (await t){
           showCustomSnackbar(context, controller.tagExistanceMessage.value); Navigator.of(Get.overlayContext!, rootNavigator: true).pop() ;return;
         } else {
+          if(controller.nameController.text.contains(",")){
+            showCustomSnackbar(context, 'Nazwa tagu nie może zawierać przecinka (,)');
+            return;
+          }
+
           showSaveConfirmationDialog(() async {
             try {
               final updatedTag = tag.copyWith(
@@ -59,6 +65,7 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
             DialogInputField(
               label: 'Nazwa',
               controller: nameController,
+              enabled: isEditable
             ),
             DialogInputField(
               label: 'Opis',
@@ -66,11 +73,13 @@ void showEditTagDialog(BuildContext context, TagsController controller, TagsMode
             ),
           ],
           actions: [
+            if(isEditable) (
             DialogActionButton(
               label: 'Usuń',
               onPressed: !controller.isLoading.value ? () => confirmDeleteTag(controller, tag.id, tag.tagName, tag.marketId) : (){},
               backgroundColor: AppColors.warning,
               textColor: AppColors.white,
+            )
             ),
             DialogActionButton(
               label: controller.isLoading.value ? 'Zapisywanie...' : 'Zapisz',

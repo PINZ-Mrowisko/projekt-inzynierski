@@ -7,20 +7,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/features/auth/screens/mobile/login_page_mobile.dart';
 import 'package:the_basics/features/auth/screens/web/login_page.dart';
+import 'package:the_basics/features/dashboard/screens/mobile/dashboard_mobile.dart';
+import 'package:the_basics/features/dashboard/screens/web/dashboard.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/features/employees/screens/employee_management.dart';
 import 'package:the_basics/features/leaves/screens/mobile/employee_leaves_management_mobile.dart';
 import 'package:the_basics/features/leaves/screens/mobile/manager_leaves_management_mobile.dart';
 import 'package:the_basics/features/leaves/screens/web/employee_leaves_management.dart';
 import 'package:the_basics/features/leaves/screens/web/manager_leaves_management.dart';
+import 'package:the_basics/features/reports/screens/reports.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/employee_main_calendar_mobile.dart';
-import 'package:the_basics/features/schedules/screens/after_login/mobile/main_calendar_edit_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/manager_main_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/mobile/individual_calendar_mobile.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/employee_main_calendar.dart';
-import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar_edit.dart';
+import 'package:the_basics/features/schedules/screens/after_login/web/main_calendar/main_calendar_edit.dart';
 import 'package:the_basics/features/schedules/screens/after_login/web/individual_calendar.dart';
-import 'package:the_basics/features/schedules/screens/after_login/web/placeholder_page.dart';
 import 'package:the_basics/features/settings/screens/mobile/settings_mobile.dart';
 import 'package:the_basics/features/settings/screens/web/settings.dart';
 import 'package:the_basics/features/templates/screens/all_templates_screen.dart';
@@ -32,15 +33,13 @@ import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/employee_more_page_mobile.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/manager_more_page_mobile.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
-import 'package:the_basics/utils/platform_controller.dart';
 import 'package:the_basics/utils/platform_wrapper.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
-import 'features/schedules/screens/after_login/web/manager_main_calendar.dart';
+import 'features/schedules/screens/after_login/web/main_calendar/manager_main_calendar.dart';
 import 'features/tags/screens/tags.dart';
 import 'features/schedules/screens/before_login/about_page.dart';
 import 'features/schedules/screens/before_login/features_page.dart';
-import 'features/schedules/screens/before_login/home_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'features/templates/controllers/algorithm_controller.dart';
 import 'firebase_options.dart';
@@ -83,11 +82,11 @@ class MyApp extends StatelessWidget {
       //initialRoute: '/',
       initialBinding: AppBindings(),
       getPages: [
-        GetPage(name: '/', page: () => HomePage()),
+        //GetPage(name: '/', page: () => HomePage()),
         GetPage(name: '/about', page: () => AboutPage()),
         GetPage(name: '/features', page: () => FeaturesPage()),
 
-        GetPage(name: '/dashboard', page: () => PlaceholderPage()),
+        GetPage(name: '/dashboard', page: () => PlatformWrapper(mobile: ManagerDashboardMobileScreen(), web: ManagerDashboardScreen())),
         GetPage(
           name: '/grafik-ogolny-kierownik',
           page:
@@ -104,20 +103,19 @@ class MyApp extends StatelessWidget {
                 child: PlatformWrapper(mobile: EmployeeMainCalendarMobile(), web: EmployeeMainCalendar())
               ),
         ),
-        GetPage(name: '/grafik-ogolny-kierownik/edytuj-grafik', page: () => PlatformWrapper(mobile: MainCalendarEditMobile(), web: MainCalendarEdit())),
+        GetPage(name: '/grafik-ogolny-kierownik/edytuj-grafik', page: () => MainCalendarEdit()),
         
         GetPage(name: '/grafik-indywidualny', page: () => PlatformWrapper(mobile: IndividualCalendarMobile(), web: IndividualCalendar())),
         GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => PlatformWrapper(mobile:EmployeeLeavesManagementMobilePage(), web: EmployeeLeavesManagementPage())),
         GetPage(name: '/wnioski-urlopowe-kierownik', page: () => PlatformWrapper(mobile: ManagerLeavesManagementMobilePage(), web: ManagerLeavesManagementPage())),
         
-        GetPage(name: '/gielda', page: () => PlaceholderPage()),
         GetPage(name: '/twoj-profil', page: () => PlatformWrapper(mobile: UserProfileScreenMobile(), web:  UserProfileScreen())),
         GetPage(name: '/tagi', page: () => TagsPage()),
         GetPage(name: '/pracownicy', page: () => EmployeeManagementPage()),
         GetPage(name: '/szablony', page: () => TemplatesPage()),
         GetPage(name: '/szablony/nowy-szablon', page: () => NewTemplatePage()),
         GetPage(name: '/szablony/edytuj-szablon', page: () => NewTemplatePage()),
-        GetPage(name: '/raporty', page: () => PlaceholderPage()),
+        GetPage(name: '/raporty', page: () => ReportsScreen()),
 
         GetPage(name: '/ustawienia', page: () => PlatformWrapper(mobile: SettingsScreenMobile(), web: SettingsScreen())),
         GetPage(name: '/login', page: () => PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
@@ -182,16 +180,16 @@ class AuthWrapper extends StatelessWidget {
               }
             });
             // lets return a loading indicator  while navigating
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+            return Scaffold(
+              body: Center(child: CircularProgressIndicator(color: AppColors.logo)),
             );
           } else {
             final userController = Get.find<UserController>();
 
                 if (userController.isAdmin.value) {
                   return PlatformWrapper(
-                    mobile: ManagerMainCalendarMobile(), 
-                    web: ManagerMainCalendar(),
+                    mobile: ManagerDashboardMobileScreen(),
+                    web: ManagerDashboardScreen(),
                   );
                 } else {
                   return PlatformWrapper(
