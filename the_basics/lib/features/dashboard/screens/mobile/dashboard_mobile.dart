@@ -25,6 +25,7 @@ class _ManagerDashboardMobileScreenState extends State<ManagerDashboardMobileScr
 
   final isLoading = true.obs;
   final readyToShow = false.obs;
+  late final bool fromMenu;
 
   final RxInt selectedTab = 0.obs;
   final RxInt currentMenuIndex = 2.obs;
@@ -32,6 +33,8 @@ class _ManagerDashboardMobileScreenState extends State<ManagerDashboardMobileScr
   @override
   void initState() {
     super.initState();
+
+    fromMenu = Get.arguments != null && Get.arguments['fromMenu'] == true;
     
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       isLoading.value = true;
@@ -92,6 +95,7 @@ class _ManagerDashboardMobileScreenState extends State<ManagerDashboardMobileScr
                       ),
                     ),
                   ),
+                  if (fromMenu) 
                   Positioned(
                     left: 0,
                     child: IconButton(
@@ -134,6 +138,7 @@ class _ManagerDashboardMobileScreenState extends State<ManagerDashboardMobileScr
                       ),
                     ),
                   ),
+                  if (fromMenu)
                   Positioned(
                     left: 0,
                     child: IconButton(

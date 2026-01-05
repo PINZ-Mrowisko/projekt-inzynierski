@@ -39,7 +39,7 @@ class ManagerMorePageMobile extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               children: [
-                _buildMenuRow(Icons.dashboard, 'Dashboard', () => _navigateTo('/dashboard')),
+                _buildMenuRow(Icons.dashboard, 'Dashboard', () => Get.toNamed('/dashboard', arguments: {'fromMenu': true},),),
                 Divider(height: 1, color: AppColors.divider),
                 _buildMenuRow(Icons.sunny, 'Wnioski urlopowe', () => _navigateTo('/wnioski-urlopowe-kierownik')),
                 Divider(height: 1, color: AppColors.divider),
@@ -106,7 +106,7 @@ class ManagerMorePageMobile extends StatelessWidget {
               const SizedBox(width: 20),
               Text(
                 text,
-                style: TextStyle(color: AppColors.black, fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(color: AppColors.black, fontSize: 18, fontWeight: FontWeight.w500),
               ),
             ],
           ),
