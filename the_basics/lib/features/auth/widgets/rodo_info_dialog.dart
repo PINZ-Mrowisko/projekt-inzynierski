@@ -5,6 +5,9 @@ import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/data/repositiories/auth/auth_repo.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:the_basics/features/notifs/controllers/notif_controller.dart';
+
 
 const String RODO_TEXT = '''
 Informacja o przetwarzaniu danych osobowych 
