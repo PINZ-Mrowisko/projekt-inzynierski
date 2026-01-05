@@ -27,6 +27,29 @@
   <!-- Manifest -->
   <link rel="manifest" href="manifest.json">
 
+
+  <!-- New CHanges !!! we gotta make sure the SW works in hosting  -->
+  <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-messaging-compat.js"></script>
+
+  <!-- init in here too  -->
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBiD7cMxRpDauXenVHRZQvq-cVDuWlAdz0",
+      appId: "1:166365589002:web:f921b3c676a8fc2f6279f3",
+      messagingSenderId: "166365589002",
+      projectId: "p-inz-719da",
+      authDomain: "p-inz-719da.firebaseapp.com",
+      storageBucket: "p-inz-719da.firebasestorage.app",
+      measurementId: "G-ZW7Z0S41QL"
+    };
+
+     // and we innit here too
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase JS SDK initialized for web messaging");
+  </script>
+
   <script>
     /* ============================
        DISPLAY MODE (PWA / browser)
@@ -39,49 +62,55 @@
         return 'standalone';
       }
       if (window.navigator.standalone === true) {
-        return 'standalone'; // iOS
+        return 'standalone';
       }
       return 'browser';
     };
 
-    /* ============================
-       PWA INSTALL FLOW (Android)
-       ============================ */
+    // comments this out because curr we dont have any manual PWA install handling with UI
 
+<!--    /* ============================-->
+<!--       PWA INSTALL FLOW (Android)-->
+<!--       ============================ */-->
 
-    let deferredPrompt = null;
-    window.canInstallPWA = false;
+<!--    // theoretically this should allow this to display the popup window in chrome for PWA install-->
+<!--    // in practice this doesnt work because chrome keeps blocking my requests-->
+<!--    // user can still manualy install from menu-->
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      window.canInstallPWA = true;
+<!--    let deferredPrompt = null;-->
+<!--    window.canInstallPWA = false;-->
 
-      window.dispatchEvent(
-        new CustomEvent('pwa-install-available')
-      );
-    });
+<!--    // this should play  when browser detects pwa install criteria-->
+<!--    window.addEventListener('beforeinstallprompt', (e) => {-->
+<!--      e.preventDefault();-->
+<!--      deferredPrompt = e;-->
+<!--      window.canInstallPWA = true;-->
 
-    window.triggerPWAInstall = async function () {
-      if (!deferredPrompt) return false;
+<!--      window.dispatchEvent(-->
+<!--        new CustomEvent('pwa-install-available')-->
+<!--      );-->
+<!--    });-->
 
-      deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
+<!--    window.triggerPWAInstall = async function () {-->
+<!--      if (!deferredPrompt) return false;-->
 
-      deferredPrompt = null;
-      window.canInstallPWA = false;
+<!--      deferredPrompt.prompt();-->
+<!--      const choice = await deferredPrompt.userChoice;-->
 
-      return choice.outcome === 'accepted';
-    };
+<!--      deferredPrompt = null;-->
+<!--      window.canInstallPWA = false;-->
 
-    window.addEventListener('appinstalled', () => {
-      deferredPrompt = null;
-      window.canInstallPWA = false;
+<!--      return choice.outcome === 'accepted';-->
+<!--    };-->
 
-      window.dispatchEvent(
-        new CustomEvent('pwa-installed')
-      );
-    });
+<!--    window.addEventListener('appinstalled', () => {-->
+<!--      deferredPrompt = null;-->
+<!--      window.canInstallPWA = false;-->
+
+<!--      window.dispatchEvent(-->
+<!--        new CustomEvent('pwa-installed')-->
+<!--      );-->
+<!--    });-->
 
   </script>
 </head>

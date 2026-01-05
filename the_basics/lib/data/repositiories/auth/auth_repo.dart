@@ -166,18 +166,6 @@ class AuthRepo extends GetxController {
         await userController.initialize();
       }
 
-      // final Widget mainPage = PlatformWrapper(
-      //   mobile: userController.isAdmin.value
-      //       ? ManagerMainCalendarMobile()
-      //       : EmployeeMainCalendarMobile(),
-      //   web: userController.isAdmin.value
-      //       ? ManagerMainCalendar()
-      //       : EmployeeMainCalendar(),
-      // );
-
-      // remove popscope here
-      //Get.offAll(() => mainPage);
-
       final routeName = userController.isAdmin.value
           ? '/dashboard'
           : '/grafik-ogolny-pracownicy';
