@@ -27,6 +27,29 @@
   <!-- Manifest -->
   <link rel="manifest" href="manifest.json">
 
+
+  <!-- New CHanges !!! we gotta make sure the SW works in hosting  -->
+  <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-messaging-compat.js"></script>
+
+  <!-- init in here too  -->
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBiD7cMxRpDauXenVHRZQvq-cVDuWlAdz0",
+      appId: "1:166365589002:web:f921b3c676a8fc2f6279f3",
+      messagingSenderId: "166365589002",
+      projectId: "p-inz-719da",
+      authDomain: "p-inz-719da.firebaseapp.com",
+      storageBucket: "p-inz-719da.firebasestorage.app",
+      measurementId: "G-ZW7Z0S41QL"
+    };
+
+     // Initialize Firebase in the main page
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase JS SDK initialized for web messaging");
+  </script>
+
   <script>
     /* ============================
        DISPLAY MODE (PWA / browser)
