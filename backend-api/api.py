@@ -91,7 +91,7 @@ def generate_from_previous(authorization: str = Header(...), schedule_id: str = 
 
     post_schedule(user_id, template_id, year, month, schedule, leave_requests, db)
 
-    return "Successfully generated new schedule from previous one."
+    return template_id
 
 @app.post("/admin/sync_holidays")
 def sync_holidays(gcloud_scheduler_secret: str = Header(...)):

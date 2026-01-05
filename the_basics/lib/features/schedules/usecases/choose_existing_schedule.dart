@@ -75,7 +75,7 @@ void showChooseExistingScheduleDialog(BuildContext context, Function(String?) on
     final scheduleItems = validSchedules.map((schedule) {
       final monthName = _getMonthName(schedule.monthOfUsage);
       return DropdownItem(
-        value: '${schedule.yearOfUsage}-${schedule.monthOfUsage.toString().padLeft(2, '0')}',
+        value: schedule.id ?? '',
         label: '$monthName ${schedule.yearOfUsage}',
       );
     }).toList();

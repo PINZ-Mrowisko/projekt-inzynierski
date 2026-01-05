@@ -469,6 +469,76 @@ class SchedulesController extends GetxController {
     }
   }
 
+  /// wywolanie algorytmu dla poprzedniego grafiku
+  Future<String> generateScheduleFromPreviousSchedule({
+    required String scheduleId,
+    required String targetDate,
+    required String marketId,
+  }) async {
+    try {
+      isLoading(true);
+      errorMessage('');
+
+      final user = FirebaseAuth.instance.currentUser;
+      final idToken = await user?.getIdToken();
+
+      if (idToken == null) {
+        throw Exception('Brak autoryzacji - użytkownik nie jest zalogowany');
+      }
+
+      int year;
+      int monthPart;
+
+      final parts = targetDate.split('-');
+      year = int.parse(parts[0]);
+      monthPart = int.parse(parts[1]);
+
+      final baseUri = Uri.parse('https://scheduling-algorithm-166365589002.europe-central2.run.app/generate_from_previous/$scheduleId');
+
+
+      final uriWithParams = baseUri.replace(
+        queryParameters: {
+          'month': monthPart.toString(),
+          'year': year.toString(),
+          'marketId': marketId,
+        },
+      );
+
+      final response = await http.get(
+        uriWithParams,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+
+        final String receivedId = response.body;
+
+        final String cleanID = receivedId.replaceAll('"', '').trim();
+
+        final scheduleId = await _fetchLatestGeneratedScheduleId(
+          marketId: marketId,
+          templateId: cleanID,
+        );
+
+        if (scheduleId.isEmpty) {
+          throw Exception('Nie znaleziono wygenerowanego grafiku w bazie');
+        }
+        return scheduleId;
+      }
+
+      return 'ugh'; // XD
+
+    } catch (e) {
+      errorMessage.value = 'Błąd generowania: $e';
+      rethrow;
+    } finally {
+      isLoading(false);
+    }
+  }
+
 
   /// pobierz ID najnowszego wygenerowanego grafiku dla template
   /// ta metoda dziala tylko jak znajdzie sie rozwiazanie  - bo wtedy jest template ID
