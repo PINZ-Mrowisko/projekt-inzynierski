@@ -140,7 +140,7 @@ def get_holidays_from_database(db):
         return None
 
 
-def expand_schedule_to_month(schedule_dict, year, month, leaves_req, holidays=None):
+def expand_schedule_to_month(schedule_dict, year, month, leaves_req, workers_list, holidays=None):
 
     holidays_set = set(holidays) if holidays else set()
     grouped_template = defaultdict(list)
@@ -177,7 +177,10 @@ def expand_schedule_to_month(schedule_dict, year, month, leaves_req, holidays=No
             if "assignments" in new_entry:
                 for assignment in new_entry["assignments"]:
                     worker_id = assignment.get("workerId", "")
-                    if is_on_leave(worker_id, date_str, leaves_req):
+
+                    is_employed = any(worker.id == worker_id for worker in workers_list)
+
+                    if is_on_leave(worker_id, date_str, leaves_req) or not is_employed:
                         assignment["firstName"] = "Unknown"
                         assignment["lastName"] = "Unknown"
                         assignment["workerId"] = "Unknown"
@@ -188,7 +191,7 @@ def expand_schedule_to_month(schedule_dict, year, month, leaves_req, holidays=No
     return full_month_schedule
 
 
-def post_schedule(user_id: str, template_id, year, month, schedule_data: dict, leaves_req, db):
+def post_schedule(user_id: str, template_id, year, month, schedule_data: dict, leaves_req, workers, db):
     try:
         docs = db.collection("Markets") \
             .where(filter=FieldFilter("createdBy", "==", user_id)) \
@@ -203,7 +206,7 @@ def post_schedule(user_id: str, template_id, year, month, schedule_data: dict, l
         days_in_month = calendar.monthrange(year, month)[1]
         holidays_list = get_holidays_from_database(db)
 
-        full_month_data = expand_schedule_to_month(schedule_data, year, month, leaves_req, holidays_list)
+        full_month_data = expand_schedule_to_month(schedule_data, year, month, leaves_req, workers, holidays_list)
         schedules_ref = db.collection("Markets").document(market_id).collection("Schedules")
         new_schedule_ref = schedules_ref.document()
 
