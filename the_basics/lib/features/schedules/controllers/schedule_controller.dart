@@ -184,6 +184,9 @@ class SchedulesController extends GetxController {
           continue;
         }
 
+        // Optymalizacja: Parsujemy datę raz dla całej grupy zmian
+        final DateTime parsedDate = DateTime.parse(dateString);
+
         // extract each shift data
         for (final shiftData in dateShifts) {
           if (shiftData is! Map<String, dynamic>) continue;
@@ -200,7 +203,7 @@ class SchedulesController extends GetxController {
             if (assignment is! Map<String, dynamic>) continue;
 
             final shift = ScheduleModel(
-              shiftDate: DateTime.parse(dateString),
+              shiftDate: parsedDate,
               employeeID: assignment['workerId'] as String? ?? '',
               employeeFirstName: assignment['firstName'] as String? ?? '',
               employeeLastName: assignment['lastName'] as String? ?? '',
@@ -208,12 +211,14 @@ class SchedulesController extends GetxController {
               end: endTime,
               duration: duration.toInt(),
               tags: List<String>.from(assignment['tags'] as List<dynamic>? ?? []),
+              monthOfUsage: parsedDate.month,
+              yearOfUsage: parsedDate.year,
+              // -----------------
+
               isDataMissing: false,
               isDeleted: false,
               insertedAt: DateTime.now(),
               updatedAt: DateTime.now(),
-              // Ważne: Warto tutaj generować unikalne ID, jeśli model go wymaga do poprawnego działania w UI
-              // id: ...
             );
 
             parsedShifts.add(shift);
@@ -654,6 +659,61 @@ class SchedulesController extends GetxController {
 
     } catch (e) {
       print("Błąd podczas walidacji urlopów: $e");
+    }
+  }
+  Future<List<ScheduleModel>> fetchAllRecentSchedules(String marketId) async {
+    try {
+      if (marketId.isEmpty) return [];
+
+      final collectionRef = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(marketId)
+          .collection('Schedules');
+
+      final snapshot = await collectionRef
+          .limit(50)
+          .get();
+
+      final List<ScheduleModel> allSchedules = [];
+
+      for (var doc in snapshot.docs) {
+        try {
+          final schedule = ScheduleModel.fromSnapshot(doc);
+          allSchedules.add(schedule);
+        } catch (e) {
+          continue;
+        }
+      }
+
+      allSchedules.sort((a, b) {
+        final dateA = a.publishedAt ?? a.insertedAt; // Fallback do insertedAt
+        final dateB = b.publishedAt ?? b.insertedAt;
+        return dateB.compareTo(dateA);
+      });
+
+      final Map<String, ScheduleModel> uniqueMonthsMap = {};
+
+      for (var schedule in allSchedules) {
+        final String key = '${schedule.yearOfUsage}-${schedule.monthOfUsage}';
+        if (!uniqueMonthsMap.containsKey(key)) {
+          uniqueMonthsMap[key] = schedule;
+        }
+      }
+
+      List<ScheduleModel> resultList = uniqueMonthsMap.values.toList();
+
+      resultList.sort((a, b) {
+        if (a.yearOfUsage != b.yearOfUsage) {
+          return a.yearOfUsage.compareTo(b.yearOfUsage);
+        }
+        return a.monthOfUsage.compareTo(b.monthOfUsage);
+      });
+
+      return resultList;
+
+    } catch (e) {
+      print("Błąd: $e");
+      return [];
     }
   }
 }
