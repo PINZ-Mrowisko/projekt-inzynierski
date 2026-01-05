@@ -243,6 +243,8 @@ class _ShiftEditDialogState extends State<ShiftEditDialog> {
       end: _endTime,
       duration: ((endTotalMinutes - startTotalMinutes) / 60).toInt(),
       tags: tagIdsToSave,
+      monthOfUsage: widget.selectedDate.month,
+      yearOfUsage: widget.selectedDate.year,
       insertedAt: widget.shift?.insertedAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
       isDeleted: false,

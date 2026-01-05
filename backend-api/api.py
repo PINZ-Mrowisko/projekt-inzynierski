@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, credentials, auth
 
 from backend.connection.database_queries import get_tags, get_workers, get_templates, post_schedule, \
-    get_previous_schedule, get_leave_requests, post_holidays, get_holidays_from_database
+    get_previous_schedule, get_leave_requests, post_holidays
 from backend.algorithm.algorithm import main
 from backend.connection.mapping import map_result_to_json
 
@@ -68,7 +68,7 @@ def run_algorithm(authorization: str = Header(...), template_id: str = "", year:
 
         result = map_result_to_json(solver, all_variables, workers, template)
 
-        post_schedule(user_id, template.id, year, month, result, leave_requests, db)
+        post_schedule(user_id, template.id, year, month, result, leave_requests, workers, db)
 
         return result
 
@@ -86,12 +86,16 @@ def generate_from_previous(authorization: str = Header(...), schedule_id: str = 
         print("Błąd weryfikacji tokenu:", e)
         raise HTTPException(status_code=403, detail="Nieprawidłowy token")
 
+    tags = get_tags(user_id, db)
+    workers = get_workers(user_id, tags, db)
+
     schedule, template_id = get_previous_schedule(user_id, schedule_id, db)
+
     leave_requests = get_leave_requests(user_id, db)
 
-    post_schedule(user_id, template_id, year, month, schedule, leave_requests, db)
+    post_schedule(user_id, template_id, year, month, schedule, leave_requests, workers, db)
 
-    return "Successfully generated new schedule from previous one."
+    return template_id
 
 @app.post("/admin/sync_holidays")
 def sync_holidays(gcloud_scheduler_secret: str = Header(...)):

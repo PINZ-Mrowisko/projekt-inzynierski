@@ -30,30 +30,36 @@ class ScheduleGenerationService {
 
         // 2. Wybór źródła
         if (method == 'template') {
+          showChooseMonth(context, (selectedTargetMonth) {
+            if (selectedTargetMonth == null) return;
+
+            showChooseTemplateDialog(context, (selectedTemplate) async {
+              if (selectedTemplate != null) {
+                _selectedSourceId = selectedTemplate;
+                _selectedSourceName = selectedTemplate;
+
+                await _generateAndNavigate(
+                    context, 'template', targetDate: selectedTargetMonth);
+              }
+            });
+          });
+        } else if (method == 'existing_schedule') {
 
           showChooseMonth(context, (selectedTargetMonth) {
 
             if (selectedTargetMonth == null) return;
 
-            showChooseTemplateDialog(context, (selectedTemplate) async {
-              if (selectedTemplate != null) {
+            showChooseExistingScheduleDialog(context, (selectedSchedule) async {
+              if (selectedSchedule != null) {
 
-                _selectedSourceId = selectedTemplate;
-                _selectedSourceName = selectedTemplate;
+                _selectedSourceId = selectedSchedule;
+                _selectedSourceName = selectedSchedule;
 
-                await _generateAndNavigate(context, 'template', targetDate: selectedTargetMonth);
+                await _generateAndNavigate(context, 'existing_schedule', targetDate: selectedTargetMonth);
               }
             });
           });
 
-        } else if (method == 'existing_schedule') {
-          showChooseExistingScheduleDialog(context, (selectedSchedule) async {
-            if (selectedSchedule != null) {
-              _selectedSourceId = selectedSchedule;
-              _selectedSourceName = selectedSchedule;
-              await _generateAndNavigate(context, 'existing_schedule');
-            }
-          });
         }
       });
 
@@ -115,23 +121,36 @@ class ScheduleGenerationService {
 
 
       } else if (sourceType == 'existing_schedule') {
-        // TODO: Implement dla istniejącego grafiku
-        await Future.delayed(const Duration(seconds: 1));
+          final result = await scheduleController.generateScheduleFromPreviousSchedule(
+            scheduleId: _selectedSourceId!,
+            targetDate: targetDate!,
+            marketId: marketId,
+          );
 
-        // final newScheduleId = await _generateFromExistingSchedule(
-        //   sourceId: _selectedSourceId!,
-        //   marketId: marketId,
-        // );
+          final newScheduleId = result;
 
+          // after we get the ID of the schedule we will be generating, let's move onto editing
 
-        // Navigator.of(context).pushNamed(
-        //   '/grafik-ogolny-kierownik/edytuj-grafik',
-        //   arguments: {
-        //     'scheduleId': newScheduleId,
-        //     'sourceType': sourceType,
-        //     'sourceName': _selectedSourceName,
-        //   },
-        // );
+          // 1. fetch into our controller the ID of the new schedule
+          // the publishedID still remains the same, but lets change the displayed
+
+          scheduleController.displayedScheduleID.value = newScheduleId;
+          scheduleController.fetchAndParseGeneratedSchedule(marketId: marketId, scheduleId: scheduleController.displayedScheduleID.value);
+
+          // 2. proceed onto editing screen, where we wish to display our schedule.
+
+          // hide overlay
+          SimpleLoadingOverlay.hide();
+
+          Navigator.of(context).pushNamed(
+            '/grafik-ogolny-kierownik/edytuj-grafik',
+            arguments: {
+              'scheduleId': newScheduleId,
+              'sourceType': sourceType,
+              'sourceName': _selectedSourceName,
+              'marketId': marketId,
+            },
+          );
       }
 
     } catch (e) {

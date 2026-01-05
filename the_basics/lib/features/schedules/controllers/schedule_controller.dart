@@ -135,7 +135,7 @@ class SchedulesController extends GetxController {
 
     // Normalizacja daty startowej do początku dnia
     final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
-    final end = start.add(const Duration(days: 7));
+    final end = DateTime(start.year, start.month, start.day + 7);
 
     double totalHours = 0.0;
 
@@ -215,6 +215,9 @@ class SchedulesController extends GetxController {
           continue;
         }
 
+        // Optymalizacja: Parsujemy datę raz dla całej grupy zmian
+        final DateTime parsedDate = DateTime.parse(dateString);
+
         // extract each shift data
         for (final shiftData in dateShifts) {
           if (shiftData is! Map<String, dynamic>) continue;
@@ -231,7 +234,7 @@ class SchedulesController extends GetxController {
             if (assignment is! Map<String, dynamic>) continue;
 
             final shift = ScheduleModel(
-              shiftDate: DateTime.parse(dateString),
+              shiftDate: parsedDate,
               employeeID: assignment['workerId'] as String? ?? '',
               employeeFirstName: assignment['firstName'] as String? ?? '',
               employeeLastName: assignment['lastName'] as String? ?? '',
@@ -239,12 +242,14 @@ class SchedulesController extends GetxController {
               end: endTime,
               duration: duration.toInt(),
               tags: List<String>.from(assignment['tags'] as List<dynamic>? ?? []),
+              monthOfUsage: parsedDate.month,
+              yearOfUsage: parsedDate.year,
+              // -----------------
+
               isDataMissing: false,
               isDeleted: false,
               insertedAt: DateTime.now(),
               updatedAt: DateTime.now(),
-              // Ważne: Warto tutaj generować unikalne ID, jeśli model go wymaga do poprawnego działania w UI
-              // id: ...
             );
 
             parsedShifts.add(shift);
@@ -495,6 +500,76 @@ class SchedulesController extends GetxController {
     }
   }
 
+  /// wywolanie algorytmu dla poprzedniego grafiku
+  Future<String> generateScheduleFromPreviousSchedule({
+    required String scheduleId,
+    required String targetDate,
+    required String marketId,
+  }) async {
+    try {
+      isLoading(true);
+      errorMessage('');
+
+      final user = FirebaseAuth.instance.currentUser;
+      final idToken = await user?.getIdToken();
+
+      if (idToken == null) {
+        throw Exception('Brak autoryzacji - użytkownik nie jest zalogowany');
+      }
+
+      int year;
+      int monthPart;
+
+      final parts = targetDate.split('-');
+      year = int.parse(parts[0]);
+      monthPart = int.parse(parts[1]);
+
+      final baseUri = Uri.parse('https://scheduling-algorithm-166365589002.europe-central2.run.app/generate_from_previous/$scheduleId');
+
+
+      final uriWithParams = baseUri.replace(
+        queryParameters: {
+          'month': monthPart.toString(),
+          'year': year.toString(),
+          'marketId': marketId,
+        },
+      );
+
+      final response = await http.get(
+        uriWithParams,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+
+        final String receivedId = response.body;
+
+        final String cleanID = receivedId.replaceAll('"', '').trim();
+
+        final scheduleId = await _fetchLatestGeneratedScheduleId(
+          marketId: marketId,
+          templateId: cleanID,
+        );
+
+        if (scheduleId.isEmpty) {
+          throw Exception('Nie znaleziono wygenerowanego grafiku w bazie');
+        }
+        return scheduleId;
+      }
+
+      return 'ugh'; // XD
+
+    } catch (e) {
+      errorMessage.value = 'Błąd generowania: $e';
+      rethrow;
+    } finally {
+      isLoading(false);
+    }
+  }
+
 
   /// pobierz ID najnowszego wygenerowanego grafiku dla template
   /// ta metoda dziala tylko jak znajdzie sie rozwiazanie  - bo wtedy jest template ID
@@ -685,6 +760,61 @@ class SchedulesController extends GetxController {
 
     } catch (e) {
       print("Błąd podczas walidacji urlopów: $e");
+    }
+  }
+  Future<List<ScheduleModel>> fetchAllRecentSchedules(String marketId) async {
+    try {
+      if (marketId.isEmpty) return [];
+
+      final collectionRef = FirebaseFirestore.instance
+          .collection('Markets')
+          .doc(marketId)
+          .collection('Schedules');
+
+      final snapshot = await collectionRef
+          .limit(50)
+          .get();
+
+      final List<ScheduleModel> allSchedules = [];
+
+      for (var doc in snapshot.docs) {
+        try {
+          final schedule = ScheduleModel.fromSnapshot(doc);
+          allSchedules.add(schedule);
+        } catch (e) {
+          continue;
+        }
+      }
+
+      allSchedules.sort((a, b) {
+        final dateA = a.publishedAt ?? a.insertedAt; // Fallback do insertedAt
+        final dateB = b.publishedAt ?? b.insertedAt;
+        return dateB.compareTo(dateA);
+      });
+
+      final Map<String, ScheduleModel> uniqueMonthsMap = {};
+
+      for (var schedule in allSchedules) {
+        final String key = '${schedule.yearOfUsage}-${schedule.monthOfUsage}';
+        if (!uniqueMonthsMap.containsKey(key)) {
+          uniqueMonthsMap[key] = schedule;
+        }
+      }
+
+      List<ScheduleModel> resultList = uniqueMonthsMap.values.toList();
+
+      resultList.sort((a, b) {
+        if (a.yearOfUsage != b.yearOfUsage) {
+          return a.yearOfUsage.compareTo(b.yearOfUsage);
+        }
+        return a.monthOfUsage.compareTo(b.monthOfUsage);
+      });
+
+      return resultList;
+
+    } catch (e) {
+      print("Błąd: $e");
+      return [];
     }
   }
 }

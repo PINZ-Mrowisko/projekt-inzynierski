@@ -35,7 +35,6 @@ jobs:
 
       - name: Docker Auth
         run: |
-          cd backend-api
           gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
       - name: Build and Push Container
@@ -43,6 +42,7 @@ jobs:
           ARTIFACT_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.ARTIFACT_NAME }}
           IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}
           
+          cd backend-api
           docker build -t algorithm .
           docker tag algorithm $ARTIFACT_URI
           docker push $ARTIFACT_URI
