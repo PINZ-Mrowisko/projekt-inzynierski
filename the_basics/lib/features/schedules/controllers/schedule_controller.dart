@@ -104,7 +104,7 @@ class SchedulesController extends GetxController {
 
     // Normalizacja daty startowej do początku dnia
     final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
-    final end = start.add(const Duration(days: 7));
+    final end = DateTime(start.year, start.month, start.day + 7);
 
     double totalHours = 0.0;
 
