@@ -10,6 +10,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 
+import '../../../../utils/common_widgets/form_dialog.dart';
+
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});
 
@@ -76,6 +78,33 @@ class SignUpPage extends StatelessWidget {
                             labelText: 'Nazwisko',
                             border: const OutlineInputBorder(),
                           ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        DropdownButtonFormField<String>(
+                          value: controller.gender.text.isEmpty ? null : controller.gender.text,
+                          decoration: InputDecoration(
+                            labelText: 'Płeć',
+                            border: const OutlineInputBorder(),
+                          ),
+                          hint: const Text('Wybierz płeć...'),
+                          items: [
+                            DropdownMenuItem(
+                              value: 'Kobieta',
+                              child: Text('Kobieta'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Mężczyzna',
+                              child: Text('Mężczyzna'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              controller.gender.text = value;
+                            }
+                          },
+                          validator: (value) => value == null ? 'Wybierz płeć' : null,
                         ),
 
                         const SizedBox(height: 20),

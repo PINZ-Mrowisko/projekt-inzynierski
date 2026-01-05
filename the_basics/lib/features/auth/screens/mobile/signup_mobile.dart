@@ -80,6 +80,33 @@ class SignUpPageMobile extends StatelessWidget {
 
                         const SizedBox(height: 20),
 
+                        DropdownButtonFormField<String>(
+                          value: controller.gender.text.isEmpty ? null : controller.gender.text,
+                          decoration: InputDecoration(
+                            labelText: 'Płeć',
+                            border: const OutlineInputBorder(),
+                          ),
+                          hint: const Text('Wybierz płeć...'),
+                          items: [
+                            DropdownMenuItem(
+                              value: 'Kobieta',
+                              child: Text('Kobieta'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Mężczyzna',
+                              child: Text('Mężczyzna'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              controller.gender.text = value;
+                            }
+                          },
+                          validator: (value) => value == null ? 'Wybierz płeć' : null,
+                        ),
+
+                        const SizedBox(height: 20),
+
                         /// Email
                         TextFormField(
                           controller: controller.email,
