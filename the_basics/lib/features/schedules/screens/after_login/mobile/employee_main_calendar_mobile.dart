@@ -177,7 +177,6 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
           notes: leave.comment?.isNotEmpty == true
               ? leave.comment!
               : 'Urlop',
-          isAllDay: true,
         ),
       );
     }

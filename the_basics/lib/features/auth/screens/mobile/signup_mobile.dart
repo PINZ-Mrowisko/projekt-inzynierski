@@ -80,21 +80,30 @@ class SignUpPageMobile extends StatelessWidget {
 
                         const SizedBox(height: 20),
 
+                        /// PŁEĆ
                         DropdownButtonFormField<String>(
                           value: controller.gender.text.isEmpty ? null : controller.gender.text,
-                          decoration: InputDecoration(
-                            labelText: 'Płeć',
-                            border: const OutlineInputBorder(),
-                          ),
                           hint: const Text('Wybierz płeć...'),
                           items: [
                             DropdownMenuItem(
                               value: 'Kobieta',
-                              child: Text('Kobieta'),
+                                child: Text(
+                                  'Kobieta',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.textColor2,
+                                  ),
+                              ),
                             ),
                             DropdownMenuItem(
                               value: 'Mężczyzna',
-                              child: Text('Mężczyzna'),
+                                child: Text(
+                                  'Mężczyzna',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.textColor2,
+                                  ),
+                              ),
                             ),
                           ],
                           onChanged: (value) {
@@ -103,6 +112,17 @@ class SignUpPageMobile extends StatelessWidget {
                             }
                           },
                           validator: (value) => value == null ? 'Wybierz płeć' : null,
+
+                          decoration: InputDecoration(
+                          labelText: 'Płeć',
+                          border: const OutlineInputBorder(),
+                        ),
+
+                        dropdownColor: AppColors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        elevation: 4,
+                        menuMaxHeight: 200,
+                        itemHeight: 48,
                         ),
 
                         const SizedBox(height: 20),

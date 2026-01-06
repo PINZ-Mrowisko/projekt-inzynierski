@@ -103,7 +103,7 @@ class EmployeeMorePageMobile extends StatelessWidget {
               const SizedBox(width: 20),
               Text(
                 text,
-                style: TextStyle(color: AppColors.black, fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(color: AppColors.black, fontSize: 18, fontWeight: FontWeight.w500),
               ),
             ],
           ),
