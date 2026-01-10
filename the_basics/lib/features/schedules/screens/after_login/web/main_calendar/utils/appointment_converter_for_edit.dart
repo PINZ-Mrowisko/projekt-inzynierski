@@ -174,28 +174,25 @@ class AppointmentConverterForEdit {
     return appointments;
   }
 
-  List<String> _convertTagIdsToNames(List<String> tagIds, TagsController tagsController) {
-    final List<String> tagNames = [];
+  List<String> _convertTagIdsToNames(
+      List<String> tagIds,
+      TagsController tagsController,
+      ) {
+    final tagMap = {
+      for (final tag in tagsController.allTags) tag.id: tag.tagName
+    };
 
-    for (final tagId in tagIds) {
-      final tag = tagsController.allTags.firstWhere(
-            (t) => t.id == tagId,
-      );
-
-      if (tag != null && tag.tagName != null && tag.tagName!.isNotEmpty) {
-        tagNames.add(tag.tagName!);
-      } else {
-        tagNames.add(tagId);
-      }
-    }
-
-    return tagNames;
+    return tagIds.map((id) {
+      final name = tagMap[id];
+      return (name != null && name.isNotEmpty) ? name : "Tag usunięty";
+    }).toList();
   }
 
   Color _getAppointmentColor(ScheduleModel shift) {
     if (shift.employeeID == 'Unknown') {
       return AppColors.warning;
     }
+
     if (shift.start.hour >= 12) {
       return AppColors.logolighter;
     } else {

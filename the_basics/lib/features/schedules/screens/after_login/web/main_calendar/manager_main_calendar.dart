@@ -364,11 +364,7 @@ String _formatWeekTitle(DateTime date) {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text('Brak zmian do wyświetlenia'),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadSchedule,
-                child: Text('Załaduj grafik'),
-              ),
+              SizedBox(height: 16)
             ],
           ),
         );

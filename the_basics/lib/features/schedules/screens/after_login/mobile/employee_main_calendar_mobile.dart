@@ -126,7 +126,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
         shift.end.minute,
       );
 
-      final tagNames = _convertTagIdsToNames(shift.tags);
+      final tagNames = _convertTagIdsToNames(shift.tags, _tagsController);
       final displayTags = tagNames.isNotEmpty
           ? tagNames.join(', ')
           : 'Brak tagów';
@@ -184,29 +184,18 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
     return baseAppointments;
   }
 
-  List<String> _convertTagIdsToNames(List<String> tagIds) {
-    final List<String> tagNames = [];
+  List<String> _convertTagIdsToNames(
+      List<String> tagIds,
+      TagsController tagsController,
+      ) {
+    final tagMap = {
+      for (final tag in tagsController.allTags) tag.id: tag.tagName
+    };
 
-    for (final tagId in tagIds) {
-      try {
-        final foundTags = _tagsController.allTags.where((t) => t.id == tagId).toList();
-
-        if (foundTags.isNotEmpty) {
-          final tag = foundTags.first;
-          if (tag.tagName != null && tag.tagName!.isNotEmpty) {
-            tagNames.add(tag.tagName!);
-          } else {
-            tagNames.add(tagId);
-          }
-        } else {
-          tagNames.add(tagId);
-        }
-      } catch (e) {
-        tagNames.add(tagId);
-      }
-    }
-
-    return tagNames;
+    return tagIds.map((id) {
+      final name = tagMap[id];
+      return (name != null && name.isNotEmpty) ? name :  "Tag usunięty";
+    }).toList();
   }
 
   Color _getAppointmentColor(ScheduleModel shift) {
