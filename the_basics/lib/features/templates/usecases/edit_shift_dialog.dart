@@ -28,6 +28,12 @@ void showEditShiftDialog(
   final List<String>selectedTagIds = List<String>.from(shift.tagIds ?? []);
   final List<String>selectedTagNames = List<String>.from(shift.tagNames ?? []);
 
+  // if selectedTagNames contains just one "BRAK" then lets make it empty
+  if (selectedTagNames.length == 1 && selectedTagNames.first == 'BRAK') {
+    selectedTagNames.clear();
+    selectedTagIds.clear();
+  }
+
   bool obeyGeneralRules = shift.obeyGeneralRules;
 
 

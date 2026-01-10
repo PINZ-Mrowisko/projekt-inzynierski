@@ -10,14 +10,20 @@ void showChooseTemplateDialog(BuildContext context, Function(String?) onTemplate
 
   final templateController = Get.find<TemplateController>();
 
+
+  // only grab templates without errors (so no missing tags)
   final templateItems = templateController.allTemplates
-      .map((t) => DropdownItem(value: t.id, label: t.templateName))
-      .toList();
+      .where((t) => t.isDataMissing == false)
+      .map((t) => DropdownItem(
+    value: t.id,
+    label: t.templateName,
+  )).toList();
+
 
   if (templateItems.isEmpty) {
     showCustomSnackbar(
       context,
-      "Brak dostępnych szablonów.",
+      "Brak dostępnych szablonów. Stwórz nowy szablon lub usuń błędy w istniejącym.",
     );
     return;
   }

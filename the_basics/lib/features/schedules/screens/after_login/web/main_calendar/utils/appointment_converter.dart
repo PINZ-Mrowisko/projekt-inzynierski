@@ -124,22 +124,18 @@ class AppointmentConverter {
   }
 
   // help function to convert tag IDs to names
-  List<String> _convertTagIdsToNames(List<String> tagIds, TagsController tagsController) {
-    final List<String> tagNames = [];
-    
-    for (final tagId in tagIds) {
-      final tag = tagsController.allTags.firstWhere(
-        (t) => t.id == tagId,
-      );
-      
-      if (tag != null && tag.tagName != null && tag.tagName!.isNotEmpty) {
-        tagNames.add(tag.tagName!);
-      } else {
-        tagNames.add(tagId);
-      }
-    }
-    
-    return tagNames;
+  List<String> _convertTagIdsToNames(
+      List<String> tagIds,
+      TagsController tagsController,
+      ) {
+    final tagMap = {
+      for (final tag in tagsController.allTags) tag.id: tag.tagName
+    };
+
+    return tagIds.map((id) {
+      final name = tagMap[id];
+      return (name != null && name.isNotEmpty) ? name : "Tag usunięty";
+    }).toList();
   }
 
   Color _getAppointmentColor(ScheduleModel shift) {
