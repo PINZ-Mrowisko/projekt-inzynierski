@@ -62,7 +62,7 @@ class ResetPswd extends StatelessWidget {
                     children: [
                       SizedBox(
                         child: CustomButton(
-                          onPressed: () => Get.offAll(() => const PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
+                          onPressed: () => Get.offAll(() => PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
                           text: "Wróć do logowania",
                           width: 170,
                         ),

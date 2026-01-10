@@ -33,6 +33,7 @@ import 'package:the_basics/utils/bindings/app_bindings.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/employee_more_page_mobile.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/manager_more_page_mobile.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
+import 'package:the_basics/utils/middleware/auth_middleware.dart';
 import 'package:the_basics/utils/platform_wrapper.dart';
 import 'package:the_basics/utils/route_observer.dart';
 import 'package:the_basics/utils/themes/theme.dart';
@@ -86,7 +87,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/about', page: () => AboutPage()),
         GetPage(name: '/features', page: () => FeaturesPage()),
 
-        GetPage(name: '/dashboard', page: () => PlatformWrapper(mobile: ManagerDashboardMobileScreen(), web: ManagerDashboardScreen())),
+        GetPage(name: '/dashboard', page: () => PlatformWrapper(mobile: ManagerDashboardMobileScreen(), web: ManagerDashboardScreen()), middlewares: [AuthMiddleware()]),
         GetPage(
           name: '/grafik-ogolny-kierownik',
           page:
@@ -94,6 +95,7 @@ class MyApp extends StatelessWidget {
                 canPop: false,
                 child: PlatformWrapper(mobile: ManagerMainCalendarMobile(), web: ManagerMainCalendar())
               ),
+              middlewares: [AuthMiddleware()]
         ),
         GetPage(
           name: '/grafik-ogolny-pracownicy',
@@ -102,25 +104,26 @@ class MyApp extends StatelessWidget {
                 canPop: false,
                 child: PlatformWrapper(mobile: EmployeeMainCalendarMobile(), web: EmployeeMainCalendar())
               ),
+            middlewares: [AuthMiddleware()]
         ),
-        GetPage(name: '/grafik-ogolny-kierownik/edytuj-grafik', page: () => MainCalendarEdit()),
+        GetPage(name: '/grafik-ogolny-kierownik/edytuj-grafik', page: () => MainCalendarEdit(), middlewares: [AuthMiddleware()]),
         
-        GetPage(name: '/grafik-indywidualny', page: () => PlatformWrapper(mobile: IndividualCalendarMobile(), web: IndividualCalendar())),
-        GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => PlatformWrapper(mobile:EmployeeLeavesManagementMobilePage(), web: EmployeeLeavesManagementPage())),
-        GetPage(name: '/wnioski-urlopowe-kierownik', page: () => PlatformWrapper(mobile: ManagerLeavesManagementMobilePage(), web: ManagerLeavesManagementPage())),
+        GetPage(name: '/grafik-indywidualny', page: () => PlatformWrapper(mobile: IndividualCalendarMobile(), web: IndividualCalendar()), middlewares: [AuthMiddleware()]),
+        GetPage(name: '/wnioski-urlopowe-pracownicy', page: () => PlatformWrapper(mobile:EmployeeLeavesManagementMobilePage(), web: EmployeeLeavesManagementPage()), middlewares: [AuthMiddleware()]),
+        GetPage(name: '/wnioski-urlopowe-kierownik', page: () => PlatformWrapper(mobile: ManagerLeavesManagementMobilePage(), web: ManagerLeavesManagementPage()), middlewares: [AuthMiddleware()]),
         
-        GetPage(name: '/twoj-profil', page: () => PlatformWrapper(mobile: UserProfileScreenMobile(), web:  UserProfileScreen())),
-        GetPage(name: '/tagi', page: () => TagsPage()),
-        GetPage(name: '/pracownicy', page: () => EmployeeManagementPage()),
-        GetPage(name: '/szablony', page: () => TemplatesPage()),
-        GetPage(name: '/szablony/nowy-szablon', page: () => NewTemplatePage()),
-        GetPage(name: '/szablony/edytuj-szablon', page: () => NewTemplatePage()),
-        GetPage(name: '/raporty', page: () => ReportsScreen()),
+        GetPage(name: '/twoj-profil', page: () => PlatformWrapper(mobile: UserProfileScreenMobile(), web:  UserProfileScreen()), middlewares: [AuthMiddleware()]),
+        GetPage(name: '/tagi', page: () => TagsPage(), middlewares: [AuthMiddleware()]),
+        GetPage(name: '/pracownicy', page: () => EmployeeManagementPage(), middlewares: [AuthMiddleware()]),
+        GetPage(name: '/szablony', page: () => TemplatesPage(), middlewares: [AuthMiddleware()]),
+        GetPage(name: '/szablony/nowy-szablon', page: () => NewTemplatePage(), middlewares: [AuthMiddleware()]),
+        GetPage(name: '/szablony/edytuj-szablon', page: () => NewTemplatePage(), middlewares: [AuthMiddleware()]),
+        GetPage(name: '/raporty', page: () => ReportsScreen(), middlewares: [AuthMiddleware()]),
 
-        GetPage(name: '/ustawienia', page: () => PlatformWrapper(mobile: SettingsScreenMobile(), web: SettingsScreen())),
+        GetPage(name: '/ustawienia', page: () => PlatformWrapper(mobile: SettingsScreenMobile(), web: SettingsScreen()), middlewares: [AuthMiddleware()]),
         GetPage(name: '/login', page: () => PlatformWrapper(mobile: LoginPageMobile(), web: LoginPage())),
-        GetPage(name: '/wiecej-pracownicy', page: () => EmployeeMorePageMobile()),
-        GetPage(name: '/wiecej-kierownik', page: () => ManagerMorePageMobile()),
+        GetPage(name: '/wiecej-pracownicy', page: () => EmployeeMorePageMobile(), middlewares: [AuthMiddleware()]),
+        GetPage(name: '/wiecej-kierownik', page: () => ManagerMorePageMobile(), middlewares: [AuthMiddleware()]),
       ],
       title: 'Mrowisko',
       //navigatorKey: navigatorKey,

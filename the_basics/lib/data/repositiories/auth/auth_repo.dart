@@ -233,15 +233,17 @@ class AuthRepo extends GetxController {
   Future<UserCredential> loginWithEmailAndPassword(String mail, String password, bool rememberMe) async {
     try {
 
-      /// this apparently doesnt work on mobile - to do later to return it to webb
-      // await FirebaseAuth.instance.setPersistence(
-      //   rememberMe ? Persistence.LOCAL : Persistence.SESSION,
-      // );
-
+      if (kIsWeb) {
+        await _auth.setPersistence(
+          rememberMe ? Persistence.LOCAL : Persistence.SESSION,
+        );
+      }
       final userCredential = await _auth.signInWithEmailAndPassword(email: mail, password: password);
 
       if(rememberMe) {
         await _prefs.setBool("remember_me", true);
+      } else {
+        await _prefs.remove("remember_me");
       }
 
       // if user logs in successfully, we can start the controllers
@@ -265,14 +267,12 @@ class AuthRepo extends GetxController {
   /// LOGOUT
   Future<void> logout() async {
     try {
+      await _auth.signOut();
+
       /// remove saved prefs if user chooses a manual log out
       await _prefs.remove('remember_me');
       await _prefs.remove('auth_token');
 
-
-      //removes the saved user so it doesnt log us back after logout
-      await FirebaseAuth.instance.setPersistence(Persistence.NONE);
-      await FirebaseAuth.instance.signOut();
 
       Get.deleteAll(force: true);
 

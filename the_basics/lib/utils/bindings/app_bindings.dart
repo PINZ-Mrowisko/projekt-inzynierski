@@ -13,6 +13,7 @@ import 'package:the_basics/features/templates/controllers/template_controller.da
 import 'package:the_basics/utils/platform_controller.dart';
 
 import '../../data/repositiories/other/tags_repo.dart';
+import '../../features/auth/controllers/login_controller.dart';
 import '../../features/schedules/controllers/schedule_controller.dart';
 
 class AppBindings implements Bindings {
@@ -38,6 +39,7 @@ class AppBindings implements Bindings {
     // Get.lazyPut(() => TagsController(), fenix: true);
 
     // we initialize the controllers at the start of the app,but dont call the initialzie methods withing yet, that happends only after login
+    Get.put(LoginController());
     Get.put(PlatformController());
     Get.put(UserController());
     Get.put(TagsController());
