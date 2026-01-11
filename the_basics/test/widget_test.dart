@@ -32,8 +32,8 @@ void main() {
     testWidgets('Should allow entering text into email field', (WidgetTester tester) async {
       FlutterError.onError = ignoreOverflowErrors;
 
-      await tester.pumpWidget(const MaterialApp(home: MediaQuery(
-        data: MediaQueryData(size: Size(800, 1280)),
+      await tester.pumpWidget(MaterialApp(home: MediaQuery(
+        data: const MediaQueryData(size: Size(800, 1280)),
         child: LoginPage(),
       ),));
 
@@ -57,8 +57,8 @@ void main() {
     testWidgets('Should render all main UI elements', (WidgetTester tester) async {
       FlutterError.onError = ignoreOverflowErrors;
 
-      await tester.pumpWidget(const MaterialApp(home: MediaQuery(
-        data: MediaQueryData(size: Size(800, 1280)),
+      await tester.pumpWidget(MaterialApp(home: MediaQuery(
+        data: const MediaQueryData(size: Size(800, 1280)),
         child: LoginPage(),
       ),));
 
@@ -69,8 +69,8 @@ void main() {
 
     testWidgets('Should show error for invalid email', (WidgetTester tester) async {
       FlutterError.onError = ignoreOverflowErrors;
-      await tester.pumpWidget(const MaterialApp(home: MediaQuery(
-        data: MediaQueryData(size: Size(800, 1280)),
+      await tester.pumpWidget(MaterialApp(home: MediaQuery(
+        data: const MediaQueryData(size: Size(800, 1280)),
         child: LoginPage(),
       ),));
 
@@ -120,7 +120,7 @@ void main() {
           home: ResetPswd(email: 'test@example.com'),
           getPages: [
             GetPage(name: '/', page: () => ResetPswd(email: 'test@example.com')),
-            GetPage(name: '/login', page: () => const LoginPage()),
+            GetPage(name: '/login', page: () => LoginPage()),
           ],
         ),
       );

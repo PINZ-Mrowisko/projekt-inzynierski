@@ -19,9 +19,6 @@ class LoginController extends GetxController {
 
   final localStorage = GetStorage();
 
-  // allows us to access data from the form
-  GlobalKey<FormState> loginFormKey = GlobalKey<FormState>();
-
   void clearControllers() {
     email.clear();
     pswd.clear();
@@ -34,9 +31,9 @@ class LoginController extends GetxController {
       errorMessage.value = '';
 
       // start Loading
-      if (!loginFormKey.currentState!.validate()) {
-        return;
-      }
+      // if (!loginFormKey.currentState!.validate()) {
+      //   return;
+      // }
 
       // login user using Email & Password auth
       final userCredentials = await AuthRepo.instance

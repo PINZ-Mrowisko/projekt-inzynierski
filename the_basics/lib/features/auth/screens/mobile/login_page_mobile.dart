@@ -13,7 +13,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 
 class LoginPageMobile extends StatelessWidget {
-  const LoginPageMobile({super.key});
+   LoginPageMobile({super.key});
+
+  final _formKey = GlobalKey<FormState>();
+
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +50,7 @@ class LoginPageMobile extends StatelessWidget {
 
               children: [
                     Form(
-                    key: controller.loginFormKey,
+                    key: _formKey,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Column(

@@ -13,19 +13,20 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:the_basics/utils/common_widgets/custom_button.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  LoginPage({super.key});
+
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(LoginController());
+    final controller = Get.find<LoginController>();
 
     return PopScope(
       canPop: false,
       onPopInvoked: (bool didPop) async{
         if (didPop) {controller.clearControllers();}
       },
-      child: Obx(() {
-      return Scaffold(
+      child: Scaffold(
         backgroundColor: AppColors.pageBackground,
         body: Center(
           child: Container(
@@ -45,7 +46,7 @@ class LoginPage extends StatelessWidget {
 
               children: [
                     Form(
-                    key: controller.loginFormKey,
+                    key: _formKey,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Column(
@@ -184,8 +185,6 @@ class LoginPage extends StatelessWidget {
               ),
           ),
           ),
-        );
-      }),
-    );
+    ));
   }
 }
