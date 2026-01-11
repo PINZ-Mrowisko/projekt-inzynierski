@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
+import '../../data/repositiories/auth/auth_repo.dart';
 import '/utils/app_colors.dart';
 
 class SideMenuController extends GetxController {
@@ -235,6 +236,7 @@ class SideMenu extends StatelessWidget {
   }
 
   Widget _buildSettingsSection() {
+    final authRepo = Get.find<AuthRepo>();
     return Column(
       children: [
         Padding(
@@ -256,13 +258,14 @@ class SideMenu extends StatelessWidget {
                 route: '/ustawienia',
               ),
               SizedBox(height: 4 * _scaleFactor),
-              _buildMenuItem(
-                icon: Icons.logout,
-                text: 'Wyloguj się',
-                route: '/login',
-              ),
-            ],
-          ),
+    _buildMenuItem(
+    icon: Icons.logout,
+    text: 'Wyloguj się',
+    onTap: () {
+    authRepo.logout();
+    },
+    ),])
+
         ),
       ],
     );
@@ -333,7 +336,8 @@ class SideMenu extends StatelessWidget {
   Widget _buildMenuItem({
     required IconData icon,
     required String text,
-    required String route,
+    String? route,
+    VoidCallback? onTap,
   }) {
 
     return Obx(() {
@@ -347,7 +351,13 @@ class SideMenu extends StatelessWidget {
           color: isActive ? AppColors.lightBlue : AppColors.transparent,
           borderRadius: BorderRadius.circular(15 * _scaleFactor),
           child: InkWell(
-            onTap: () => _navigateTo(route),
+            onTap: () {
+              if (onTap != null) {
+                onTap();
+              } else if (route != null) {
+                _navigateTo(route);
+              }
+            },
             borderRadius: BorderRadius.circular(15 * _scaleFactor),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 8 * _scaleFactor),

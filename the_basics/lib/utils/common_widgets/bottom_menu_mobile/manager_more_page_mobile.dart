@@ -5,6 +5,8 @@ import 'package:the_basics/features/employees/controllers/user_controller.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/bottom_menu_mobile.dart';
 import 'package:the_basics/utils/common_widgets/side_menu.dart';
 
+import '../../../data/repositiories/auth/auth_repo.dart';
+
 class ManagerMorePageMobile extends StatelessWidget {
   ManagerMorePageMobile({super.key});
 
@@ -13,6 +15,8 @@ class ManagerMorePageMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authRepo = Get.find<AuthRepo>();
+
     return Obx(() => Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: AppBar(
@@ -56,7 +60,7 @@ class ManagerMorePageMobile extends StatelessWidget {
                 Divider(height: 1, color: AppColors.divider),
                 _buildMenuRow(Icons.settings, 'Ustawienia', () => _navigateTo('/ustawienia')),
                 Divider(height: 1, color: AppColors.divider),
-                _buildMenuRow(Icons.logout, 'Wyloguj się', () => _navigateTo('/login')),
+                _buildMenuRow(Icons.logout, 'Wyloguj się', authRepo.logout),
               ],
             ),
           ),

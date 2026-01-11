@@ -273,11 +273,6 @@ class AuthRepo extends GetxController {
       await _prefs.remove('remember_me');
       await _prefs.remove('auth_token');
 
-
-      Get.deleteAll(force: true);
-
-      await Future.delayed(Duration(milliseconds: 1000));
-
       // logout and show the login page
       Get.offAllNamed('/login');
 
