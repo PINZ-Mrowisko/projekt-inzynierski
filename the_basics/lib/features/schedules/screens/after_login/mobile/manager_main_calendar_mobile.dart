@@ -12,8 +12,6 @@ import 'package:the_basics/features/schedules/usecases/show_tags_filtering_dialo
 import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 import 'package:the_basics/utils/common_widgets/bottom_menu_mobile/bottom_menu_mobile.dart';
-
-
 import '../../../controllers/schedule_controller.dart';
 import '../../../models/schedule_model.dart';
 
@@ -31,13 +29,17 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
 
   DateTime _visibleStartDate = DateTime.now();
   final int _visibleDays = 3;
-  
+
   final CalendarController _calendarController = CalendarController();
   final SpecialRegionsBuilder _regionsBuilder = SpecialRegionsBuilder();
 
   final LeaveController _leaveController = Get.find<LeaveController>();
   final TagsController _tagsController = Get.find<TagsController>();
- 
+
+  static const int viewStartHour = 7;
+  static const int viewEndHour = 21;
+  static const int minVisualDurationMinutes = 480;
+
   @override
   void initState() {
     super.initState();
@@ -49,8 +51,6 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       userController.resetFilters();
-
-      //await _leaveController.fetchLeaves();
       await scheduleController.validateShiftsAgainstLeaves();
     });
     ever(_selectedTags, (tags) {
@@ -74,33 +74,32 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
     return true;
   }
 
-  // handling global calendar view change
   void _goToPreviousRange() {
     setState(() {
       _visibleStartDate =
           _visibleStartDate.subtract(Duration(days: _visibleDays));
       _calendarController.displayDate =
-        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
+          DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
     });
   }
 
   void _goToNextRange() {
     setState(() {
       _visibleStartDate = _visibleStartDate.add(Duration(days: _visibleDays));
-    _calendarController.displayDate =
-        DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
+      _calendarController.displayDate =
+          DateTime(_visibleStartDate.year, _visibleStartDate.month, _visibleStartDate.day, 7);
     });
   }
 
   String _getDateRangeText() {
     final endDate = _visibleStartDate.add(Duration(days: _visibleDays - 1));
-    
+
     if (_visibleStartDate.month == endDate.month) {
       return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
-            '${endDate.day}.${endDate.month}';
+          '${endDate.day}.${endDate.month}';
     } else {
       return '${_visibleStartDate.day}.${_visibleStartDate.month} - '
-            '${endDate.day}.${endDate.month}';
+          '${endDate.day}.${endDate.month}';
     }
   }
 
@@ -109,11 +108,10 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
     final allLeaves = _leaveController.allLeaveRequests;
 
     List<Appointment> baseAppointments = [];
-
     List<ScheduleModel> myShifts = scheduleController.getShiftsForEmployee(userID);
 
     baseAppointments = myShifts.map((shift) {
-      final startDateTime = DateTime(
+      final realStart = DateTime(
         shift.shiftDate.year,
         shift.shiftDate.month,
         shift.shiftDate.day,
@@ -121,7 +119,7 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
         shift.start.minute,
       );
 
-      final endDateTime = DateTime(
+      final realEnd = DateTime(
         shift.shiftDate.year,
         shift.shiftDate.month,
         shift.shiftDate.day,
@@ -129,42 +127,87 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
         shift.end.minute,
       );
 
-      final tagNames = _convertTagIdsToNames(shift.tags, _tagsController);
-      final displayTags = tagNames.isNotEmpty 
+      DateTime visualStart = realStart;
+      DateTime visualEnd = realEnd;
+      bool isClamped = false;
+
+      final viewStartDateTime = DateTime(realStart.year, realStart.month, realStart.day, viewStartHour, 0);
+      final viewEndDateTime = DateTime(realStart.year, realStart.month, realStart.day, viewEndHour, 0);
+
+      if (realEnd.isBefore(viewStartDateTime) || realEnd.isAtSameMomentAs(viewStartDateTime)) {
+        visualStart = viewStartDateTime;
+        visualEnd = viewStartDateTime.add(const Duration(minutes: minVisualDurationMinutes));
+        isClamped = true;
+      }
+      else if (realStart.isAfter(viewEndDateTime) || realStart.isAtSameMomentAs(viewEndDateTime)) {
+        visualEnd = viewEndDateTime;
+        visualStart = viewEndDateTime.subtract(const Duration(minutes: minVisualDurationMinutes));
+        isClamped = true;
+      }
+      else {
+        if (visualStart.isBefore(viewStartDateTime)) {
+          visualStart = viewStartDateTime;
+          isClamped = true;
+        }
+        if (visualEnd.isAfter(viewEndDateTime)) {
+          visualEnd = viewEndDateTime;
+        }
+
+        final currentDuration = visualEnd.difference(visualStart).inMinutes;
+        if (currentDuration < minVisualDurationMinutes) {
+          final int missing = minVisualDurationMinutes - currentDuration;
+          DateTime proposedEnd = visualEnd.add(Duration(minutes: missing));
+
+          if (proposedEnd.isAfter(viewEndDateTime)) {
+            visualEnd = viewEndDateTime;
+            visualStart = visualEnd.subtract(const Duration(minutes: minVisualDurationMinutes));
+            if (visualStart.isBefore(viewStartDateTime)) visualStart = viewStartDateTime;
+          } else {
+            visualEnd = proposedEnd;
+          }
+        }
+      }
+
+      final tagNames = _convertTagIdsToNames(shift.tags);
+      final displayTags = tagNames.isNotEmpty
           ? tagNames.join(', ')
           : 'Brak tagów';
 
+      final timePart = '${shift.start.hour.toString().padLeft(2, '0')}:${shift.start.minute.toString().padLeft(2, '0')} - '
+          '${shift.end.hour.toString().padLeft(2, '0')}:${shift.end.minute.toString().padLeft(2, '0')}';
+
+      final String packedLocation = ';;$timePart;;${isClamped ? "1" : "0"}';
+
       return Appointment(
-        startTime: startDateTime,
-        endTime: endDateTime,
+        startTime: visualStart,
+        endTime: visualEnd,
         subject: displayTags,
         resourceIds: <Object>[shift.employeeID],
         color: _getAppointmentColor(shift),
         notes: displayTags,
+        location: packedLocation,
         id: '${shift.employeeID}_${shift.shiftDate.day}_${shift.start.hour}:${shift.start.minute}_${shift.end.hour}:${shift.end.minute}',
       );
     }).toList();
 
     final userLeaves = allLeaves.where((leave) =>
-        leave.userId == userID &&
+    leave.userId == userID &&
         (leave.status.toLowerCase() == 'zaakceptowany' ||
-         leave.status.toLowerCase() == 'mój urlop')).toList();
+            leave.status.toLowerCase() == 'mój urlop')).toList();
 
     for (final leave in userLeaves) {
       final startDateTime = DateTime(
         leave.startDate.year,
         leave.startDate.month,
         leave.startDate.day,
-        8,
-        0,
+        8, 0,
       );
 
       final endDateTime = DateTime(
         leave.endDate.year,
         leave.endDate.month,
         leave.endDate.day,
-        16,
-        0,
+        16, 0,
       );
 
       baseAppointments.add(
@@ -173,7 +216,7 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
           endTime: endDateTime,
           subject: 'Urlop',
           color: Colors.orangeAccent,
-          notes: leave.comment?.isNotEmpty == true 
+          notes: leave.comment?.isNotEmpty == true
               ? leave.comment!
               : 'Urlop',
         ),
@@ -183,17 +226,14 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
     return baseAppointments;
   }
 
-  List<String> _convertTagIdsToNames(
-      List<String> tagIds,
-      TagsController tagsController,
-      ) {
+  List<String> _convertTagIdsToNames(List<String> tagIds) {
     final tagMap = {
-      for (final tag in tagsController.allTags) tag.id: tag.tagName
+      for (final tag in _tagsController.allTags) tag.id: tag.tagName
     };
 
     return tagIds.map((id) {
       final name = tagMap[id];
-      return (name != null && name.isNotEmpty) ? name :  "Tag usunięty";
+      return (name != null && name.isNotEmpty) ? name : "Tag usunięty";
     }).toList();
   }
 
@@ -249,7 +289,7 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
               timeIntervalWidth: screenWidth / (3 * 14),
               timeTextStyle: const TextStyle(color: AppColors.transparent, fontSize: 0),
               numberOfDaysInView: 3,
-                minimumAppointmentDuration: Duration(hours: 8, minutes: 0)
+              // USUNIĘTO minimumAppointmentDuration
             ),
           ),
         ),
@@ -264,130 +304,129 @@ class _ManagerMainCalendarMobileState extends State<ManagerMainCalendarMobile> {
     final userController = Get.find<UserController>();
 
     return PopScope(
-      canPop: false,
-      onPopInvoked: (_) => _onWillPop(),
-      child: Obx(() => Scaffold(
-        backgroundColor: AppColors.pageBackground,
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(140),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                color: AppColors.pageBackground,
-                padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 14),
-                child: SafeArea(
-                  bottom: false,
-                  child: Stack(
-                    alignment: Alignment.center,
+        canPop: false,
+        onPopInvoked: (_) => _onWillPop(),
+        child: Obx(() => Scaffold(
+          backgroundColor: AppColors.pageBackground,
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(140),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  color: AppColors.pageBackground,
+                  padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 14),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Center(
+                          child: Text(
+                            'Grafik ogólny',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.black,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          child: Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  showTagsFilterDialog(context, _selectedTags);
+                                },
+                                icon: const Icon(Icons.filter_alt_outlined, size: 30),
+                                color: AppColors.logo,
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  showEmployeeSearchDialog(context, _selectedTags);
+                                },
+                                icon: const Icon(Icons.search_outlined, size: 30),
+                                color: AppColors.logo,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                Container(
+                  color: AppColors.pageBackground,
+                  height: 55,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Center(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Text(
-                          'Grafik ogólny',
+                          DateFormat('MMM yyyy', 'pl').format(_visibleStartDate),
                           style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                             color: AppColors.black,
-                            letterSpacing: 0.4,
                           ),
                         ),
                       ),
-
-                      Positioned(
-                        right: 0,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                showTagsFilterDialog(context, _selectedTags);
-                              },
-                              icon: const Icon(Icons.filter_alt_outlined, size: 30),
-                              color: AppColors.logo,
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                showEmployeeSearchDialog(context, _selectedTags);
-                              },
-                              icon: const Icon(Icons.search_outlined, size: 30),
-                              color: AppColors.logo,
-                            ),
-                          ],
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios, size: 22),
+                        color: AppColors.logo,
+                        onPressed: _goToPreviousRange,
                       ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Container(
-                color: AppColors.pageBackground,
-                height: 55,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        DateFormat('MMM yyyy', 'pl').format(_visibleStartDate),
+                      Text(
+                        _getDateRangeText(),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.black,
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, size: 22),
-                      color: AppColors.logo,
-                      onPressed: _goToPreviousRange,
-                    ),
-                    Text(
-                      _getDateRangeText(),
-                      style: TextStyle(
-                        fontSize: 18, 
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.black,
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios, size: 22),
+                        color: AppColors.logo,
+                        onPressed: _goToNextRange,
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios, size: 22),
-                      color: AppColors.logo,
-                      onPressed: _goToNextRange,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        body: Obx(() {
-          if (userController.isLoading.value) {
-            return Center(child: CircularProgressIndicator(color: AppColors.logo));
-          }
-          final employees = userController.filteredEmployees;
-          if (employees.isEmpty) {
-            return const Center(
-              child: Text(
-                'Brak dopasowań',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            );
-          }
+          body: Obx(() {
+            if (userController.isLoading.value) {
+              return Center(child: CircularProgressIndicator(color: AppColors.logo));
+            }
+            final employees = userController.filteredEmployees;
+            if (employees.isEmpty) {
+              return const Center(
+                child: Text(
+                  'Brak dopasowań',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              );
+            }
 
-          return ListView.builder(
-            itemCount: employees.length,
-            itemBuilder: (context, index) =>
-                _buildEmployeeCalendar(employees[index], employees),
-          );
-        }),
-        bottomNavigationBar: MobileBottomMenu(currentIndex: _currentMenuIndex),
-      ),
-      )
+            return ListView.builder(
+              itemCount: employees.length,
+              itemBuilder: (context, index) =>
+                  _buildEmployeeCalendar(employees[index], employees),
+            );
+          }),
+          bottomNavigationBar: MobileBottomMenu(currentIndex: _currentMenuIndex),
+        ),
+        )
     );
   }
 }
-  
+
 class _CalendarDataSource extends CalendarDataSource {
   _CalendarDataSource(List<Appointment> appointments) {
     this.appointments = appointments;

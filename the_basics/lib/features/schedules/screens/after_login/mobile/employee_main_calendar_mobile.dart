@@ -35,6 +35,10 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
   final LeaveController _leaveController = Get.find<LeaveController>();
   final TagsController _tagsController = Get.find<TagsController>();
 
+  static const int viewStartHour = 7;
+  static const int viewEndHour = 21;
+  static const int minVisualDurationMinutes = 480;
+
   @override
   void initState() {
     super.initState();
@@ -46,7 +50,6 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       userController.resetFilters();
-
       //await _leaveController.fetchLeaves();
       await scheduleController.validateShiftsAgainstLeaves();
     });
@@ -110,7 +113,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
     List<ScheduleModel> myShifts = scheduleController.getShiftsForEmployee(userID);
 
     baseAppointments = myShifts.map((shift) {
-      final startDateTime = DateTime(
+      final realStart = DateTime(
         shift.shiftDate.year,
         shift.shiftDate.month,
         shift.shiftDate.day,
@@ -118,7 +121,7 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
         shift.start.minute,
       );
 
-      final endDateTime = DateTime(
+      final realEnd = DateTime(
         shift.shiftDate.year,
         shift.shiftDate.month,
         shift.shiftDate.day,
@@ -126,18 +129,68 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
         shift.end.minute,
       );
 
-      final tagNames = _convertTagIdsToNames(shift.tags, _tagsController);
+      DateTime visualStart = realStart;
+      DateTime visualEnd = realEnd;
+      bool isClamped = false;
+
+      final viewStartDateTime = DateTime(realStart.year, realStart.month, realStart.day, viewStartHour, 0);
+      final viewEndDateTime = DateTime(realStart.year, realStart.month, realStart.day, viewEndHour, 0);
+
+      if (realEnd.isBefore(viewStartDateTime) || realEnd.isAtSameMomentAs(viewStartDateTime)) {
+        visualStart = viewStartDateTime;
+        visualEnd = viewStartDateTime.add(const Duration(minutes: minVisualDurationMinutes));
+        isClamped = true;
+      }
+      else if (realStart.isAfter(viewEndDateTime) || realStart.isAtSameMomentAs(viewEndDateTime)) {
+        visualEnd = viewEndDateTime;
+        visualStart = viewEndDateTime.subtract(const Duration(minutes: minVisualDurationMinutes));
+        isClamped = true;
+      }
+      // C. W środku lub wystaje
+      else {
+        if (visualStart.isBefore(viewStartDateTime)) {
+          visualStart = viewStartDateTime;
+          isClamped = true;
+        }
+        if (visualEnd.isAfter(viewEndDateTime)) {
+          visualEnd = viewEndDateTime;
+        }
+
+        // Gwarancja minimalnej długości (60 min)
+        final currentDuration = visualEnd.difference(visualStart).inMinutes;
+        if (currentDuration < minVisualDurationMinutes) {
+          final int missing = minVisualDurationMinutes - currentDuration;
+          DateTime proposedEnd = visualEnd.add(Duration(minutes: missing));
+
+          if (proposedEnd.isAfter(viewEndDateTime)) {
+            // Jeśli wydłużenie wyjdzie poza 21:00, cofamy start
+            visualEnd = viewEndDateTime;
+            visualStart = visualEnd.subtract(const Duration(minutes: minVisualDurationMinutes));
+            if (visualStart.isBefore(viewStartDateTime)) visualStart = viewStartDateTime;
+          } else {
+            visualEnd = proposedEnd;
+          }
+        }
+      }
+
+      final tagNames = _convertTagIdsToNames(shift.tags);
       final displayTags = tagNames.isNotEmpty
           ? tagNames.join(', ')
           : 'Brak tagów';
 
+      final timePart = '${shift.start.hour.toString().padLeft(2, '0')}:${shift.start.minute.toString().padLeft(2, '0')} - '
+          '${shift.end.hour.toString().padLeft(2, '0')}:${shift.end.minute.toString().padLeft(2, '0')}';
+
+      final String packedLocation = ';;$timePart;;${isClamped ? "1" : "0"}';
+
       return Appointment(
-        startTime: startDateTime,
-        endTime: endDateTime,
+        startTime: visualStart,
+        endTime: visualEnd,
         subject: displayTags,
         resourceIds: <Object>[shift.employeeID],
         color: _getAppointmentColor(shift),
         notes: displayTags,
+        location: packedLocation,
         id: '${shift.employeeID}_${shift.shiftDate.day}_${shift.start.hour}:${shift.start.minute}_${shift.end.hour}:${shift.end.minute}',
       );
     }).toList();
@@ -184,17 +237,14 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
     return baseAppointments;
   }
 
-  List<String> _convertTagIdsToNames(
-      List<String> tagIds,
-      TagsController tagsController,
-      ) {
+  List<String> _convertTagIdsToNames(List<String> tagIds) {
     final tagMap = {
-      for (final tag in tagsController.allTags) tag.id: tag.tagName
+      for (final tag in _tagsController.allTags) tag.id: tag.tagName
     };
 
     return tagIds.map((id) {
       final name = tagMap[id];
-      return (name != null && name.isNotEmpty) ? name :  "Tag usunięty";
+      return (name != null && name.isNotEmpty) ? name : "Tag usunięty";
     }).toList();
   }
 
@@ -244,13 +294,14 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
             todayHighlightColor: AppColors.logo,
             showCurrentTimeIndicator: true,
             timeSlotViewSettings: TimeSlotViewSettings(
-                startHour: 7,
-                endHour: 21,
-                timeInterval: const Duration(hours: 1),
-                timeIntervalWidth: screenWidth / (3 * 14),
-                timeTextStyle: TextStyle(color: AppColors.transparent, fontSize: 0),
-                numberOfDaysInView: 3,
-                minimumAppointmentDuration: Duration(hours: 8, minutes: 0)
+              startHour: 7,
+              endHour: 21,
+              timeInterval: const Duration(hours: 1),
+              timeIntervalWidth: screenWidth / (3 * 14),
+              timeTextStyle: TextStyle(color: AppColors.transparent, fontSize: 0),
+              numberOfDaysInView: 3,
+              // USUNIĘTO sztywne minimumAppointmentDuration (8h),
+              // teraz steruje tym logika w _getAppointments (min 60min)
             ),
           ),
         ),
@@ -294,30 +345,30 @@ class _EmployeeMainCalendarMobileState extends State<EmployeeMainCalendarMobile>
                           ),
                         ),
 
-                      Positioned(
-                        right: 0,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                showTagsFilterDialog(context, _selectedTags);
-                              },
-                              icon: const Icon(Icons.filter_alt_outlined, size: 30),
-                              color: AppColors.logo,
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                showEmployeeSearchDialog(context, _selectedTags);
-                              },
-                              icon: const Icon(Icons.search_outlined, size: 30),
-                              color: AppColors.logo,
-                            ),
-                          ],
+                        Positioned(
+                          right: 0,
+                          child: Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  showTagsFilterDialog(context, _selectedTags);
+                                },
+                                icon: const Icon(Icons.filter_alt_outlined, size: 30),
+                                color: AppColors.logo,
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  showEmployeeSearchDialog(context, _selectedTags);
+                                },
+                                icon: const Icon(Icons.search_outlined, size: 30),
+                                color: AppColors.logo,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
                 ),
                 Container(
                   color: AppColors.pageBackground,
