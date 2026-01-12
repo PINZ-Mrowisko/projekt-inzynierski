@@ -9,17 +9,39 @@ Widget buildAppointmentWidget(
 
   final appointment = calendarAppointmentDetails.appointments.first;
 
-  // Pobieramy licznik ukrytych zmian (np. "(+2)") z pola location
-  final String extraCount = appointment.location ?? '';
+  // --- ROZPAKOWYWANIE DANYCH Z LOCATION ---
+  // Format: "COUNTER;;TIME_TEXT;;IS_CLAMPED"
+
+  String extraCount = '';
+  String timeTextToShow = '';
+  bool isClamped = false;
+
+  if (appointment.location != null && appointment.location!.contains(';;')) {
+    final parts = appointment.location!.split(';;');
+    if (parts.length >= 2) {
+      extraCount = parts[0];
+      timeTextToShow = parts[1];
+    }
+    if (parts.length >= 3) {
+      isClamped = parts[2] == "1";
+    }
+  } else {
+    extraCount = appointment.location ?? '';
+    final st = appointment.startTime;
+    final et = appointment.endTime;
+    timeTextToShow = '${st.hour.toString().padLeft(2, '0')}:${st.minute.toString().padLeft(2, '0')} - '
+        '${et.hour.toString().padLeft(2, '0')}:${et.minute.toString().padLeft(2, '0')}';
+  }
 
   final bool hasWarning = appointment.notes?.contains('⚠️') ?? false;
   final bool isLeave = appointment.subject.toLowerCase().contains('urlop');
 
-  final startTime = appointment.startTime;
-  final endTime = appointment.endTime;
-
-  final String timeText = '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - '
-      '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
+  if (isLeave) {
+    final st = appointment.startTime;
+    final et = appointment.endTime;
+    timeTextToShow = '${st.hour.toString().padLeft(2, '0')}:${st.minute.toString().padLeft(2, '0')} - '
+        '${et.hour.toString().padLeft(2, '0')}:${et.minute.toString().padLeft(2, '0')}';
+  }
 
   String displayBottomText = appointment.notes ?? '';
 
@@ -58,7 +80,7 @@ Widget buildAppointmentWidget(
                 fontFamily: 'Roboto',
               ),
               children: [
-                TextSpan(text: timeText),
+                TextSpan(text: timeTextToShow),
                 if (extraCount.isNotEmpty)
                   TextSpan(
                     text: ' $extraCount',
@@ -88,7 +110,7 @@ Widget buildAppointmentWidget(
     return tileContent;
   }
 
-  final String tooltipMessage = '$timeText\n$displayBottomText ${extraCount.isNotEmpty ? extraCount : ''}';
+  final String tooltipMessage = '$timeTextToShow\n$displayBottomText ${extraCount.isNotEmpty ? extraCount : ''}';
 
   return Tooltip(
     message: tooltipMessage,
