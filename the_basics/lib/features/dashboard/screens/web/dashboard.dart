@@ -39,6 +39,8 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
         await leaveController.fetchLeaves();
         await schedulesController.initialize();
 
+        await schedulesController.validateShiftsAgainstLeaves();
+
         await Future.delayed(const Duration(milliseconds: 50));
         
         readyToShow.value = true;
