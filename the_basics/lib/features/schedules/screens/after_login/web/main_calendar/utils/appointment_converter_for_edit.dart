@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:the_basics/features/auth/models/user_model.dart';
 import 'package:the_basics/features/employees/controllers/user_controller.dart';
@@ -10,6 +11,13 @@ import 'package:the_basics/features/tags/controllers/tags_controller.dart';
 import 'package:the_basics/utils/app_colors.dart';
 
 class AppointmentConverterForEdit {
+
+  // Zakres widoczności (musi być zgodny z MainCalendarEdit)
+  static const int viewStartHour = 7;
+  static const int viewEndHour = 21;
+  // Minimalna wizualna szerokość kafelka w minutach
+  static const int minVisualDurationMinutes = 315;
+
   List<Appointment> getAppointments(
       List<UserModel> filteredEmployees,
       {List<LeaveModel>? leaves}
@@ -20,6 +28,7 @@ class AppointmentConverterForEdit {
 
     final appointments = <Appointment>[];
 
+    // Zliczanie Unknown na dany dzień
     final Map<String, int> unknownCounts = {};
     for (final shift in scheduleController.individualShifts) {
       if (shift.employeeID == 'Unknown') {
@@ -37,7 +46,7 @@ class AppointmentConverterForEdit {
       return a.start.hour.compareTo(b.start.hour);
     });
 
-    // Shifts
+    // --- PRZETWARZANIE ZMIAN (SHIFTS) ---
     for (final shift in sortedShifts) {
       final isUnknown = shift.employeeID == 'Unknown';
       final employeeExists = filteredEmployees.any((emp) => emp.id == shift.employeeID);
@@ -51,41 +60,103 @@ class AppointmentConverterForEdit {
       }
 
       if (isUnknown || employeeExists) {
-        final startDateTime = DateTime(
-          shift.shiftDate.year,
-          shift.shiftDate.month,
-          shift.shiftDate.day,
-          shift.start.hour,
-          shift.start.minute,
+        // PRAWDZIWE DANE
+        final realStart = DateTime(
+          shift.shiftDate.year, shift.shiftDate.month, shift.shiftDate.day,
+          shift.start.hour, shift.start.minute,
+        );
+        final realEnd = DateTime(
+          shift.shiftDate.year, shift.shiftDate.month, shift.shiftDate.day,
+          shift.end.hour, shift.end.minute,
         );
 
-        final endDateTime = DateTime(
-          shift.shiftDate.year,
-          shift.shiftDate.month,
-          shift.shiftDate.day,
-          shift.end.hour,
-          shift.end.minute,
-        );
+        DateTime visualStart = realStart;
+        DateTime visualEnd = realEnd;
+        bool isClamped = false;
 
+        final viewStartDateTime = DateTime(realStart.year, realStart.month, realStart.day, viewStartHour, 0);
+        final viewEndDateTime = DateTime(realStart.year, realStart.month, realStart.day, viewEndHour, 0);
+
+        // A. Całkowicie przed widokiem (np. 05:00-06:00) -> Przyklej do 7:00
+        if (realEnd.isBefore(viewStartDateTime) || realEnd.isAtSameMomentAs(viewStartDateTime)) {
+          visualStart = viewStartDateTime;
+          visualEnd = viewStartDateTime.add(Duration(minutes: minVisualDurationMinutes));
+          isClamped = true;
+        }
+        // B. Całkowicie po widoku (np. 22:00-23:00) -> Przyklej przed 21:00
+        else if (realStart.isAfter(viewEndDateTime) || realStart.isAtSameMomentAs(viewEndDateTime)) {
+          visualEnd = viewEndDateTime;
+          visualStart = viewEndDateTime.subtract(Duration(minutes: minVisualDurationMinutes));
+          isClamped = true;
+        }
+        // C. W środku lub wystaje
+        else {
+          // C. W środku lub wystaje na krawędziach
+
+          // Utnij start do 7:00
+          if (visualStart.isBefore(viewStartDateTime)) {
+            visualStart = viewStartDateTime;
+            isClamped = true;
+          }
+
+          // Utnij koniec do 21:00 (rozwiązuje problem wystawania na kolejny dzień)
+          if (visualEnd.isAfter(viewEndDateTime)) {
+            visualEnd = viewEndDateTime;
+            // Nie ustawiam isClamped = true, żeby nie było strzałki, ale można
+          }
+
+          // D. Sprawdzenie minimalnej długości
+          final currentDuration = visualEnd.difference(visualStart).inMinutes;
+
+          if (currentDuration < minVisualDurationMinutes) {
+            // Oblicz ile brakuje
+            final int missing = minVisualDurationMinutes - currentDuration;
+
+            // Spróbuj wydłużyć w prawo
+            DateTime proposedEnd = visualEnd.add(Duration(minutes: missing));
+
+            if (proposedEnd.isAfter(viewEndDateTime)) {
+              // ŚCIANA 21:00! Nie możemy wydłużyć w prawo.
+              visualEnd = viewEndDateTime;
+
+              // WYDŁUŻAMY W LEWO (wstecz)
+              visualStart = visualEnd.subtract(Duration(minutes: minVisualDurationMinutes));
+
+              // Zabezpieczenie: nie wyjdź przed 7:00
+              if (visualStart.isBefore(viewStartDateTime)) {
+                visualStart = viewStartDateTime;
+              }
+            } else {
+              // Mamy miejsce z prawej, wydłużamy normalnie
+              visualEnd = proposedEnd;
+            }
+          }
+        }
+
+        // TAGI
         final tagNames = _convertTagIdsToNames(shift.tags, tagsController);
         final String displayTags = tagNames.isNotEmpty
             ? tagNames.join(', ')
             : 'Brak tagów';
 
-        String counterForLocation = '';
-        String displayTagsForNotes = displayTags;
-
+        // PAKOWANIE DANYCH DO LOCATION
+        // Format: Counter ;; PrawdziwyCzas ;; isClamped
+        String counterPart = '';
         if (isUnknown) {
           final dateKey = '${shift.shiftDate.year}-${shift.shiftDate.month}-${shift.shiftDate.day}';
           final count = unknownCounts[dateKey] ?? 0;
-
           if (count > 1) {
-            counterForLocation = '(+${count - 1})';
-            displayTagsForNotes = '$displayTags $counterForLocation';
+            counterPart = '(+${count - 1})';
           }
         }
 
-        // Logika brakujących tagów
+        final timePart = '${shift.start.hour.toString().padLeft(2, '0')}:${shift.start.minute.toString().padLeft(2, '0')} - '
+            '${shift.end.hour.toString().padLeft(2, '0')}:${shift.end.minute.toString().padLeft(2, '0')}';
+
+        // Result: "(+2);;05:00 - 06:00;;1"
+        final String packedLocation = '$counterPart;;$timePart;;${isClamped ? "1" : "0"}';
+
+        // OSTRZEŻENIA O BRAKUJĄCYCH TAGACH
         bool hasMissingTags = false;
         if (!isUnknown && shift.tags.isNotEmpty) {
           final employee = userController.allEmployees.firstWhereOrNull(
@@ -99,20 +170,20 @@ class AppointmentConverterForEdit {
           }
         }
 
-        String displayNotes = displayTagsForNotes;
+        String displayNotes = displayTags;
         if (hasMissingTags) {
-          displayNotes = '⚠️ $displayTagsForNotes';
+          displayNotes = '⚠️ $displayTags';
         }
 
         appointments.add(
           Appointment(
-            startTime: startDateTime,
-            endTime: endDateTime,
+            startTime: visualStart,
+            endTime: visualEnd,
             subject: displayTags,
             color: _getAppointmentColor(shift),
             resourceIds: <Object>[shift.employeeID],
             notes: displayNotes,
-            location: counterForLocation, // tu mamy nasz licznik
+            location: packedLocation, // <--- Przekazujemy paczkę danych
             id: '${shift.employeeID}_${shift.shiftDate.day}_'
                 '${shift.start.hour}:${shift.start.minute}_'
                 '${shift.end.hour}:${shift.end.minute}',
@@ -121,7 +192,7 @@ class AppointmentConverterForEdit {
       }
     }
 
-    // Leaves
+    // --- PRZETWARZANIE URLOPÓW (ZACHOWANA ORYGINALNA LOGIKA) ---
     if (leaves != null) {
       for (final leave in leaves) {
         if (leave.status.toLowerCase() == 'zaakceptowany' ||
@@ -137,7 +208,7 @@ class AppointmentConverterForEdit {
               leave.startDate.year,
               leave.startDate.month,
               leave.startDate.day,
-              8,
+              8, // standard time for leave start 8:00 AM
               0,
             );
 
@@ -145,10 +216,11 @@ class AppointmentConverterForEdit {
               leave.endDate.year,
               leave.endDate.month,
               leave.endDate.day,
-              16,
+              16, // standard time for leave end 4:00 PM
               0,
             );
 
+            // full coverage if multi-day leave
             final visualEndDateTime = leave.startDate.isAtSameMomentAs(leave.endDate)
                 ? startDateTime.add(Duration(hours: 8))
                 : endDateTime;

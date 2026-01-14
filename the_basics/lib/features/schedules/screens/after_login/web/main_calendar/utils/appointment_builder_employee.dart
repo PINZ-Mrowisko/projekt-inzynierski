@@ -9,17 +9,25 @@ Widget employeeBuildAppointmentWidget(
 
   final appointment = calendarAppointmentDetails.appointments.first;
 
-  // Pobieramy licznik ukrytych zmian (np. "(+2)") z pola location
-  final String extraCount = appointment.location ?? '';
+  String extraCount = '';
+  String timeTextToShow = '';
+
+  if (appointment.location != null && appointment.location!.contains(';;')) {
+    final parts = appointment.location!.split(';;');
+    if (parts.length >= 2) {
+      extraCount = parts[0];
+      timeTextToShow = parts[1];
+    }
+  } else {
+    extraCount = appointment.location ?? '';
+    final st = appointment.startTime;
+    final et = appointment.endTime;
+    timeTextToShow = '${st.hour.toString().padLeft(2, '0')}:${st.minute.toString().padLeft(2, '0')} - '
+        '${et.hour.toString().padLeft(2, '0')}:${et.minute.toString().padLeft(2, '0')}';
+  }
 
   final bool hasWarning = appointment.notes?.contains('⚠️') ?? false;
   final bool isLeave = appointment.subject.toLowerCase().contains('urlop');
-
-  final startTime = appointment.startTime;
-  final endTime = appointment.endTime;
-
-  final String timeText = '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - '
-      '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
 
   String displayBottomText = appointment.notes ?? '';
 
@@ -44,70 +52,70 @@ Widget employeeBuildAppointmentWidget(
     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
     child: isLeave
         ? Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Urlop',
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Urlop',
+          style: TextStyle(
+            color: AppColors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    )
+        : Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+
+        if (!isLeave)
+          RichText(
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            text: TextSpan(
               style: TextStyle(
                 color: AppColors.white,
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
+                fontFamily: 'Roboto',
               ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        )
-       : Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-
-            if (!isLeave)
-              RichText(
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                text: TextSpan(
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Roboto',
+              children: [
+                TextSpan(text: timeTextToShow),
+                if (extraCount.isNotEmpty)
+                  TextSpan(
+                    text: ' $extraCount',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                  children: [
-                    TextSpan(text: timeText),
-                    if (extraCount.isNotEmpty)
-                      TextSpan(
-                        text: ' $extraCount',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
+              ],
+            ),
+          ),
 
-            if (displayBottomText.isNotEmpty)
-              Text(
-                displayBottomText,
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 10,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-          ],
-        ),
-      );
+        if (displayBottomText.isNotEmpty)
+          Text(
+            displayBottomText,
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: 10,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+      ],
+    ),
+  );
 
   if (isLeave) {
     return tileContent;
   }
 
-  final String tooltipMessage = '$timeText\n$displayBottomText ${extraCount.isNotEmpty ? extraCount : ''}';
+  final String tooltipMessage = '$timeTextToShow\n$displayBottomText ${extraCount.isNotEmpty ? extraCount : ''}';
 
   return Tooltip(
     message: tooltipMessage,
